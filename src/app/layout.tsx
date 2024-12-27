@@ -22,8 +22,11 @@ export default function RootLayout({
           appId="cm51rmjaz04s9ojzwfaopdnzd"
           config={{
             embeddedWallets: {
-              createOnLogin: 'users-without-wallets'
+              createOnLogin: 'users-without-wallets',
+              noPromptOnSignature: true
             },
+            defaultChain: 'solana:devnet',
+            supportedChains: ['solana:devnet'],
             appearance: {
               theme: 'light',
               accentColor: '#3b82f6'

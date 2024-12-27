@@ -27,7 +27,7 @@ export const getProgram = async (wallet: Wallet) => {
     anchor.setProvider(provider);
 
     const program = new anchor.Program(
-      IDL as anchor.Idl,
+      IDL,
       new PublicKey(PROGRAM_ID),
       provider
     );
