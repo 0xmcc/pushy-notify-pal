@@ -4,10 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import AvatarPreview from './profile/AvatarPreview';
 import { uploadFileToSupabase, sanitizeFilePath } from '@/utils/fileUpload';
 import { toast } from 'sonner';
-import { Gamepad2 } from 'lucide-react';
+import { Gamepad2, UserX } from 'lucide-react';
 
 export const Header = () => {
-  const { user } = usePrivy();
+  const { user, authenticated } = usePrivy();
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,13 +81,19 @@ export const Header = () => {
         </div>
         <div 
           onClick={handleAvatarClick} 
-          className={`cursor-pointer ${user ? 'hover:opacity-80' : ''}`}
+          className={`cursor-pointer ${authenticated ? 'hover:opacity-80' : ''}`}
         >
-          <AvatarPreview 
-            previewUrl={null} 
-            avatarUrl={avatarUrl}
-            size="xs"
-          />
+          {authenticated ? (
+            <AvatarPreview 
+              previewUrl={null} 
+              avatarUrl={avatarUrl}
+              size="xs"
+            />
+          ) : (
+            <div className="w-8 h-8 flex items-center justify-center text-gaming-text-secondary">
+              <UserX className="w-5 h-5" />
+            </div>
+          )}
           <input
             ref={fileInputRef}
             type="file"
