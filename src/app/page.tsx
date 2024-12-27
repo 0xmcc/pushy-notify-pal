@@ -91,13 +91,12 @@ const HomePage = () => {
           </p>
         </div>
 
+        <WalletSection />
+        
         {authenticated && !hasProfile ? (
           <OnboardingFlow />
         ) : (
-          <>
-            <NotificationSection />
-            <WalletSection />
-          </>
+          <NotificationSection />
         )}
       </div>
     </div>
