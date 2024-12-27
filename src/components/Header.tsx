@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AvatarPreview from './profile/AvatarPreview';
 import { uploadFileToSupabase, sanitizeFilePath } from '@/utils/fileUpload';
 import { toast } from 'sonner';
+import { Gamepad2 } from 'lucide-react';
 
 export const Header = () => {
   const { user } = usePrivy();
@@ -73,7 +74,11 @@ export const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 py-1 z-50">
-      <div className="max-w-4xl mx-auto flex justify-end items-center px-4">
+      <div className="max-w-4xl mx-auto flex justify-between items-center px-4">
+        <div className="flex items-center gap-2">
+          <Gamepad2 className="w-6 h-6 text-primary" />
+          <span className="font-semibold text-primary">GameArena</span>
+        </div>
         <div 
           onClick={handleAvatarClick} 
           className={`cursor-pointer ${user ? 'hover:opacity-80' : ''}`}
