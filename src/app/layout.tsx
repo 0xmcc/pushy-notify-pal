@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from '@privy-io/react-auth';
+import { BottomNav } from "@/components/BottomNav";
 
 const queryClient = new QueryClient();
 
@@ -30,9 +31,12 @@ export default function RootLayout({
         >
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
+              <main className="pb-16">
+                {children}
+              </main>
+              <BottomNav />
               <Toaster />
               <Sonner />
-              {children}
             </TooltipProvider>
           </QueryClientProvider>
         </PrivyProvider>
