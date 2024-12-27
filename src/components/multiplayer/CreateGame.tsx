@@ -2,19 +2,15 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
-import { PublicKey, LAMPORTS_PER_SOL, Connection } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import BN from 'bn.js';
-import { IDL } from '@/types/rps_game';
 import { supabase } from "@/integrations/supabase/client";
-
-const PROGRAM_ID = "8LCEgTSrryvRuX3AE46Pa1msev4CfPXZiiWzbg6Vk8bn";
-const DEVNET_ENDPOINT = "https://api.devnet.solana.com";
+import { getProgram } from "@/services/game-service";
+import { StakeInput } from "./StakeInput";
+import { GameMoveSelector } from "./GameMoveSelector";
 
 type Move = 'rock' | 'paper' | 'scissors';
 
@@ -32,37 +28,6 @@ export const CreateGame = () => {
   const [stakeAmount, setStakeAmount] = useState("");
   const [selectedMove, setSelectedMove] = useState<Move | ''>('');
   const [isCreating, setIsCreating] = useState(false);
-
-  const getProgram = async () => {
-    if (!user?.wallet?.address) return null;
-
-    const connection = new Connection(DEVNET_ENDPOINT);
-    const wallet = {
-      publicKey: new PublicKey(user.wallet.address),
-      signTransaction: async (tx: any) => {
-        const signedTx = await user.wallet?.signTransaction(tx);
-        return signedTx;
-      },
-      signAllTransactions: async (txs: any[]) => {
-        const signedTxs = await Promise.all(txs.map(tx => user.wallet?.signTransaction(tx)));
-        return signedTxs.filter(Boolean);
-      }
-    };
-
-    const provider = new anchor.AnchorProvider(
-      connection,
-      wallet as any,
-      { commitment: 'processed' }
-    );
-
-    anchor.setProvider(provider);
-
-    return new anchor.Program(
-      IDL as anchor.Idl,
-      new PublicKey(PROGRAM_ID),
-      provider
-    );
-  };
 
   const handleCreateGame = async () => {
     if (!authenticated) {
@@ -87,28 +52,24 @@ export const CreateGame = () => {
 
     setIsCreating(true);
     try {
-      const program = await getProgram();
+      const program = await getProgram(user.wallet);
       if (!program) {
         throw new Error("Failed to initialize program");
       }
 
-      // For testing, we'll use a dummy player two
       const dummyPlayerTwo = anchor.web3.Keypair.generate();
-
-      // Convert stake amount to lamports
       const betAmount = new BN(Number(stakeAmount) * LAMPORTS_PER_SOL);
 
-      // Derive PDAs
-      const [gamePda] = PublicKey.findProgramAddressSync(
+      const [gamePda] = anchor.web3.PublicKey.findProgramAddressSync(
         [
           Buffer.from("game"),
-          new PublicKey(user.wallet.address).toBuffer(),
+          new anchor.web3.PublicKey(user.wallet.address).toBuffer(),
           dummyPlayerTwo.publicKey.toBuffer()
         ],
         program.programId
       );
 
-      const [vaultPda] = PublicKey.findProgramAddressSync(
+      const [vaultPda] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("vault"), gamePda.toBuffer()],
         program.programId
       );
@@ -116,7 +77,7 @@ export const CreateGame = () => {
       const tx = await program.methods
         .createGame(betAmount)
         .accounts({
-          playerOne: new PublicKey(user.wallet.address),
+          playerOne: new anchor.web3.PublicKey(user.wallet.address),
           playerTwo: dummyPlayerTwo.publicKey,
           gameAccount: gamePda,
           vault: vaultPda,
@@ -124,13 +85,12 @@ export const CreateGame = () => {
         })
         .rpc({ commitment: "confirmed" });
 
-      // Store game in Supabase for UI
       const { error } = await supabase
         .from('active_games')
         .insert({
           creator_did: user.id,
           stake_amount: Number(stakeAmount),
-          selected_move: moveToNumber(selectedMove),
+          selected_move: String(moveToNumber(selectedMove)),
           status: 'active'
         });
 
@@ -152,39 +112,8 @@ export const CreateGame = () => {
       <h2 className="text-lg font-semibold text-gaming-text-primary">Create New Game</h2>
       
       <div className="space-y-4">
-        <div>
-          <Label htmlFor="stakeAmount" className="block text-sm font-medium text-gaming-text-secondary mb-1">
-            Stake Amount (SOL)
-          </Label>
-          <Input
-            id="stakeAmount"
-            type="number"
-            min="0"
-            step="0.01"
-            value={stakeAmount}
-            onChange={(e) => setStakeAmount(e.target.value)}
-            placeholder="Enter stake amount"
-            className="w-full bg-gaming-card border-gaming-accent text-gaming-text-primary placeholder:text-gaming-text-secondary"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="block text-sm font-medium text-gaming-text-secondary">
-            Select Your Move
-          </Label>
-          <RadioGroup
-            value={selectedMove}
-            onValueChange={(value) => setSelectedMove(value as Move)}
-            className="flex gap-4"
-          >
-            {['rock', 'paper', 'scissors'].map((move) => (
-              <div key={move} className="flex items-center space-x-2">
-                <RadioGroupItem value={move} id={move} className="border-gaming-accent text-gaming-primary" />
-                <Label htmlFor={move} className="capitalize text-gaming-text-primary">{move}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
+        <StakeInput value={stakeAmount} onChange={setStakeAmount} />
+        <GameMoveSelector selectedMove={selectedMove} onMoveSelect={setSelectedMove} />
       </div>
       
       <Button 
