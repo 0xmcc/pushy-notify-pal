@@ -3,6 +3,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { IDL } from '@/types/rps_game';
 import { createWalletAdapter } from '@/utils/wallet-adapter';
 import { Wallet } from '@privy-io/react-auth';
+import bs58 from 'bs58';
 
 const PROGRAM_ID = "8LCEgTSrryvRuX3AE46Pa1msev4CfPXZiiWzbg6Vk8bn";
 const DEVNET_ENDPOINT = "https://api.devnet.solana.com";
@@ -22,22 +23,20 @@ export const getProgram = async (wallet: Wallet) => {
       walletAdapter,
       { commitment: 'processed' }
     );
-    console.log('Anchor provider created');
-
-    anchor.setProvider(provider);
     console.log('Provider set');
 
-    // Add metadata and address to match Idl type
-    const programIdl = {
-      ...IDL,
-      metadata: {
-        address: PROGRAM_ID,
-      },
-      address: PROGRAM_ID,
-    };
+    anchor.setProvider(provider);
 
     const program = new anchor.Program(
-      programIdl,
+      {
+        ...IDL,
+        metadata: {
+          name: "rps_game",
+          version: "0.1.0",
+          spec: "0.1.0",
+          address: PROGRAM_ID,
+        }
+      },
       new PublicKey(PROGRAM_ID),
       provider
     );
