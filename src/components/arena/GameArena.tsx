@@ -11,10 +11,15 @@ interface Inventory {
   scissors: number;
 }
 
+interface Opponent {
+  did: string;
+  display_name: string;
+}
+
 interface GameArenaProps {
   playerInventory: Inventory;
   opponentInventory: Inventory;
-  opponent: string;
+  opponent: Opponent | null;
 }
 
 export const GameArena = ({ playerInventory, opponentInventory, opponent }: GameArenaProps) => {
@@ -42,7 +47,7 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
       <Card className="mb-8 p-4">
         <div className="flex justify-between items-center mb-2">
           <div>
-            <h3 className="font-semibold">{opponent || 'Waiting for opponent...'}</h3>
+            <h3 className="font-semibold">{opponent ? opponent.display_name : 'Waiting for opponent...'}</h3>
             <div className="text-sm text-muted-foreground">
               Score: {opponentScore}/{targetScore}
             </div>

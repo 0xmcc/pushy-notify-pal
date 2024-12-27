@@ -10,8 +10,13 @@ interface Inventory {
   scissors: number;
 }
 
+interface Opponent {
+  did: string;
+  display_name: string;
+}
+
 const ArenaPage = () => {
-  const [opponent, setOpponent] = useState<string>("");
+  const [opponent, setOpponent] = useState<Opponent | null>(null);
   const [playerInventory, setPlayerInventory] = useState<Inventory>({
     rock: 3,
     paper: 3,

@@ -14,7 +14,7 @@ interface User {
 }
 
 interface UserSearchProps {
-  onSelectOpponent: (opponent: string) => void;
+  onSelectOpponent: (opponent: { did: string; display_name: string }) => void;
 }
 
 export const UserSearch = ({ onSelectOpponent }: UserSearchProps) => {
@@ -69,7 +69,7 @@ export const UserSearch = ({ onSelectOpponent }: UserSearchProps) => {
             <div
               key={user.did}
               className="flex justify-between items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
-              onClick={() => onSelectOpponent(user.did)}
+              onClick={() => onSelectOpponent({ did: user.did, display_name: user.display_name || user.did })}
             >
               <div className="flex items-center space-x-2">
                 <img 
