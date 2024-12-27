@@ -11,6 +11,7 @@ import OnboardingFlow from '@/components/OnboardingFlow';
 const HomePage = () => {
   const { authenticated, user } = usePrivy();
   const [hasProfile, setHasProfile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Add user to Supabase when authenticated
   useEffect(() => {
@@ -44,23 +45,41 @@ const HomePage = () => {
   useEffect(() => {
     const checkProfile = async () => {
       if (authenticated && user) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('display_name, avatar_url')
-          .eq('did', user.id)
-          .single();
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('display_name, avatar_url')
+            .eq('did', user.id)
+            .maybeSingle();
 
-        if (error) {
-          console.error('Error checking profile:', error);
-          return;
+          if (error) {
+            console.error('Error checking profile:', error);
+            toast.error('Failed to load profile');
+            return;
+          }
+
+          setHasProfile(Boolean(data?.display_name && data?.avatar_url));
+        } catch (error) {
+          console.error('Error in checkProfile:', error);
+          toast.error('Failed to load profile');
+        } finally {
+          setIsLoading(false);
         }
-
-        setHasProfile(Boolean(data?.display_name && data?.avatar_url));
+      } else {
+        setIsLoading(false);
       }
     };
 
     checkProfile();
   }, [authenticated, user]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
+        <div className="animate-pulse text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col items-center justify-center p-4 space-y-6">
