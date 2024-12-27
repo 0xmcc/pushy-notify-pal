@@ -101,16 +101,10 @@ const HomePage = () => {
             <span>{authenticated ? 'Create Wallet' : 'Connect Wallet'}</span>
           </Button>
 
-          {authenticated && user && (
+          {authenticated && user && user.wallet && (
             <div className="p-4 bg-white rounded-lg shadow space-y-2">
-              <p className="text-sm font-medium text-gray-700">Access Token:</p>
-              <p className="text-xs bg-gray-50 p-2 rounded break-all">{user.accessToken}</p>
-              {user.wallet && (
-                <>
-                  <p className="text-sm font-medium text-gray-700">Wallet Address:</p>
-                  <p className="text-xs bg-gray-50 p-2 rounded break-all">{user.wallet.address}</p>
-                </>
-              )}
+              <p className="text-sm font-medium text-gray-700">Wallet Address:</p>
+              <p className="text-xs bg-gray-50 p-2 rounded break-all">{user.wallet.address}</p>
             </div>
           )}
 
