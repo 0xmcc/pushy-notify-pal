@@ -1,6 +1,6 @@
 import { Idl } from '@coral-xyz/anchor';
 
-export type RpsGame = {
+export interface RpsGame extends Idl {
   version: "0.1.0";
   name: "rps_game";
   instructions: [
@@ -42,11 +42,12 @@ export type RpsGame = {
     }
   ];
   metadata: {
+    address: string; // Required by Idl interface
     name: "rps_game";
     version: "0.1.0";
     spec: "0.1.0";
   };
-};
+}
 
 export const IDL: RpsGame = {
   version: "0.1.0",
@@ -90,6 +91,7 @@ export const IDL: RpsGame = {
     }
   ],
   metadata: {
+    address: PROGRAM_ID,
     name: "rps_game",
     version: "0.1.0",
     spec: "0.1.0"

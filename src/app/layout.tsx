@@ -7,8 +7,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from '@privy-io/react-auth';
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
+import { Chain } from '@privy-io/react-auth';
 
 const queryClient = new QueryClient();
+
+// Define Solana chain configuration
+const SOLANA_DEVNET: Chain = {
+  id: 'solana:devnet',
+  name: 'Solana Devnet',
+  rpcUrls: ['https://api.devnet.solana.com'],
+  nativeCurrency: {
+    name: 'SOL',
+    symbol: 'SOL',
+    decimals: 9,
+  },
+  testnet: true,
+};
 
 export default function RootLayout({
   children,
@@ -25,8 +39,8 @@ export default function RootLayout({
               createOnLogin: 'users-without-wallets',
               noPromptOnSignature: true
             },
-            defaultChain: 'solana:devnet',
-            supportedChains: ['solana:devnet'],
+            defaultChain: SOLANA_DEVNET,
+            supportedChains: [SOLANA_DEVNET],
             appearance: {
               theme: 'light',
               accentColor: '#3b82f6'
