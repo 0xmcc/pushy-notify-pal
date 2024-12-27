@@ -86,7 +86,7 @@ export const Header = () => {
           <AvatarPreview 
             previewUrl={null} 
             avatarUrl={avatarUrl}
-            size="sm"
+            size="xs"
           />
           <input
             ref={fileInputRef}
