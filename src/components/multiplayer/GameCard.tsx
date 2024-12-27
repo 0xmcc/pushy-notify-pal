@@ -11,12 +11,19 @@ interface GameCardProps {
 
 export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const { user, authenticated } = usePrivy();
+  const fallbackAvatar = "/placeholder.svg";
 
   return (
     <div className="relative border border-gaming-accent rounded-lg p-6 bg-gaming-card/80 backdrop-blur-sm hover:bg-gaming-card/90 transition-all">
       <div className="flex items-center gap-4 mb-6">
         <Avatar className="h-12 w-12 border-2 border-gaming-accent">
-          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${game.creator_did}`} />
+          <AvatarImage 
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${game.creator_did}`}
+            onError={(e) => {
+              console.log("Avatar image failed to load, using fallback");
+              (e.target as HTMLImageElement).src = fallbackAvatar;
+            }}
+          />
           <AvatarFallback>
             {game.creator_name?.slice(0, 2).toUpperCase() || 'XX'}
           </AvatarFallback>
