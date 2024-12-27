@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import NotificationButton from '@/components/NotificationButton';
-import { Bell, Wallet } from 'lucide-react';
+import { Bell, Wallet, LogOut } from 'lucide-react';
 import { usePrivy, useCreateWallet } from '@privy-io/react-auth';
+import { supabase } from "@/integrations/supabase/client";
 
 const HomePage = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [notificationSupported, setNotificationSupported] = useState(false);
-  const { login, ready, authenticated, user } = usePrivy();
+  const { login, ready, authenticated, user, logout } = usePrivy();
   const { createWallet } = useCreateWallet();
 
   useEffect(() => {
@@ -32,6 +33,34 @@ const HomePage = () => {
         });
     }
   }, []);
+
+  // Add user to Supabase when authenticated
+  useEffect(() => {
+    const addUserToSupabase = async () => {
+      if (authenticated && user) {
+        try {
+          const { error } = await supabase
+            .from('users')
+            .upsert({ 
+              did: user.id,
+              rating: 1200 
+            }, { 
+              onConflict: 'did'
+            });
+
+          if (error) {
+            console.error('Error adding user to Supabase:', error);
+            toast.error('Failed to sync user data');
+          }
+        } catch (error) {
+          console.error('Error in addUserToSupabase:', error);
+          toast.error('Failed to sync user data');
+        }
+      }
+    };
+
+    addUserToSupabase();
+  }, [authenticated, user]);
 
   const sendTestNotification = async () => {
     if (!('Notification' in window)) {
@@ -72,6 +101,16 @@ const HomePage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Failed to logout");
+      console.error('Error logging out:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col items-center justify-center p-4 space-y-6">
       <div className="w-full max-w-md space-y-6">
@@ -100,6 +139,16 @@ const HomePage = () => {
             <Wallet className="w-5 h-5" />
             <span>{authenticated ? 'Create Wallet' : 'Connect Wallet'}</span>
           </Button>
+
+          {authenticated && (
+            <Button
+              onClick={handleLogout}
+              className="w-full h-12 bg-red-500 hover:bg-red-600 transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </Button>
+          )}
 
           {authenticated && user && user.wallet && (
             <div className="p-4 bg-white rounded-lg shadow space-y-2">

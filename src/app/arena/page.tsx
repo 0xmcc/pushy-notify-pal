@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Inventory {
   rock: number;
@@ -11,8 +13,14 @@ interface Inventory {
   scissors: number;
 }
 
+interface User {
+  did: string;
+  rating: number;
+}
+
 const ArenaPage = () => {
   const [opponent, setOpponent] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<User[]>([]);
   const [playerInventory, setPlayerInventory] = useState<Inventory>({
     rock: 3,
     paper: 3,
@@ -23,6 +31,35 @@ const ArenaPage = () => {
     paper: 3,
     scissors: 3,
   });
+
+  const searchUsers = async (searchTerm: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('did, rating')
+        .ilike('did', `%${searchTerm}%`)
+        .limit(5);
+
+      if (error) {
+        console.error('Error searching users:', error);
+        toast.error('Failed to search users');
+        return;
+      }
+
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Error in searchUsers:', error);
+      toast.error('Failed to search users');
+    }
+  };
+
+  useEffect(() => {
+    if (opponent.length >= 3) {
+      searchUsers(opponent);
+    } else {
+      setSearchResults([]);
+    }
+  }, [opponent]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-20">
@@ -38,6 +75,22 @@ const ArenaPage = () => {
           />
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
         </div>
+        
+        {/* Search Results */}
+        {searchResults.length > 0 && (
+          <div className="mt-2 bg-white rounded-lg shadow-lg p-2 space-y-2">
+            {searchResults.map((user) => (
+              <div
+                key={user.did}
+                className="flex justify-between items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+                onClick={() => setOpponent(user.did)}
+              >
+                <span className="text-sm font-medium">{user.did}</span>
+                <span className="text-sm text-gray-500">Rating: {user.rating}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Game Arena */}
