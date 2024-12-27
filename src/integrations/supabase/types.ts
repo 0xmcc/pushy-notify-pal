@@ -9,6 +9,61 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      active_games: {
+        Row: {
+          created_at: string
+          creator_did: string
+          id: string
+          opponent_did: string | null
+          selected_move: string
+          stake_amount: number
+          status: string | null
+          winner_did: string | null
+        }
+        Insert: {
+          created_at?: string
+          creator_did: string
+          id?: string
+          opponent_did?: string | null
+          selected_move: string
+          stake_amount: number
+          status?: string | null
+          winner_did?: string | null
+        }
+        Update: {
+          created_at?: string
+          creator_did?: string
+          id?: string
+          opponent_did?: string | null
+          selected_move?: string
+          stake_amount?: number
+          status?: string | null
+          winner_did?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_games_creator_did_fkey"
+            columns: ["creator_did"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["did"]
+          },
+          {
+            foreignKeyName: "active_games_opponent_did_fkey"
+            columns: ["opponent_did"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["did"]
+          },
+          {
+            foreignKeyName: "active_games_winner_did_fkey"
+            columns: ["winner_did"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["did"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
