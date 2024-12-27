@@ -46,11 +46,19 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
         throw result.error;
       }
 
+      console.log('File uploaded successfully, updating users table', {
+        publicUrl: result.publicUrl,
+        userId: user.id
+      });
+
       // Update the avatar_url in the users table
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('users')
         .update({ avatar_url: result.publicUrl })
-        .eq('did', user.id);
+        .eq('did', user.id)
+        .select();
+
+      console.log('Update response:', { updateData, updateError });
 
       if (updateError) {
         throw updateError;
