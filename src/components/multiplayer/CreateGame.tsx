@@ -65,8 +65,10 @@ export const CreateGame = () => {
       }
       console.log('Program initialized successfully');
 
-      const dummyPlayerTwo = anchor.web3.Keypair.generate();
-      console.log('Generated dummy player two:', dummyPlayerTwo.publicKey.toString());
+      // TODO: Remove this once we have a real player two
+      // We need to get the opponent's public key from the game 
+      // const dummyPlayerTwo = anchor.web3.Keypair.generate();
+      // console.log('Generated dummy player two:', dummyPlayerTwo.publicKey.toString());
       
       const betAmount = new BN(Number(stakeAmount) * LAMPORTS_PER_SOL);
       console.log('Calculated bet amount in lamports:', betAmount.toString());
@@ -75,7 +77,7 @@ export const CreateGame = () => {
         [
           Buffer.from("game"),
           new anchor.web3.PublicKey(user.wallet.address).toBuffer(),
-          dummyPlayerTwo.publicKey.toBuffer()
+          //dummyPlayerTwo.publicKey.toBuffer()
         ],
         program.programId
       );
