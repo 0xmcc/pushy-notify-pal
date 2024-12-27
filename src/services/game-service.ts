@@ -8,20 +8,30 @@ const PROGRAM_ID = "8LCEgTSrryvRuX3AE46Pa1msev4CfPXZiiWzbg6Vk8bn";
 const DEVNET_ENDPOINT = "https://api.devnet.solana.com";
 
 export const getProgram = async (wallet: Wallet) => {
+  console.log('Initializing program with wallet:', wallet.address);
+  
   const connection = new Connection(DEVNET_ENDPOINT);
+  console.log('Connected to Solana network:', DEVNET_ENDPOINT);
+  
   const walletAdapter = createWalletAdapter(wallet);
+  console.log('Wallet adapter created');
 
   const provider = new anchor.AnchorProvider(
     connection,
-    walletAdapter as any,
+    walletAdapter,
     { commitment: 'processed' }
   );
+  console.log('Anchor provider created');
 
   anchor.setProvider(provider);
+  console.log('Provider set');
 
-  return new anchor.Program(
-    IDL as any,
+  const program = new anchor.Program(
+    IDL,
     new PublicKey(PROGRAM_ID),
     provider
   );
+  console.log('Program initialized with ID:', PROGRAM_ID);
+
+  return program;
 };
