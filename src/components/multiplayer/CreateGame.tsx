@@ -7,15 +7,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePrivy } from "@privy-io/react-auth";
 
 type Move = 'rock' | 'paper' | 'scissors';
 
 export const CreateGame = () => {
+  const { user, authenticated } = usePrivy();
   const [stakeAmount, setStakeAmount] = useState("");
   const [selectedMove, setSelectedMove] = useState<Move | ''>('');
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateGame = async () => {
+    if (!authenticated) {
+      toast.error("Please sign in to create a game");
+      return;
+    }
+
     if (!stakeAmount || isNaN(Number(stakeAmount))) {
       toast.error("Please enter a valid stake amount");
       return;
@@ -28,16 +35,14 @@ export const CreateGame = () => {
 
     setIsCreating(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('active_games')
         .insert({
-          creator_did: 'test-user-1', // Temporary hardcoded user ID
+          creator_did: user?.id,
           stake_amount: Number(stakeAmount),
           selected_move: selectedMove,
           status: 'active'
-        })
-        .select()
-        .single();
+        });
 
       if (error) throw error;
       
@@ -59,7 +64,7 @@ export const CreateGame = () => {
       <div className="space-y-4">
         <div>
           <Label htmlFor="stakeAmount" className="block text-sm font-medium text-gaming-text-secondary mb-1">
-            Stake Amount
+            Stake Amount (SOL)
           </Label>
           <Input
             id="stakeAmount"
@@ -68,7 +73,7 @@ export const CreateGame = () => {
             value={stakeAmount}
             onChange={(e) => setStakeAmount(e.target.value)}
             placeholder="Enter stake amount"
-            className="w-full bg-gaming-accent border-gaming-accent text-gaming-text-primary placeholder:text-gaming-text-secondary"
+            className="w-full bg-gaming-card border-gaming-accent text-gaming-text-primary placeholder:text-gaming-text-secondary"
           />
         </div>
 
@@ -83,7 +88,7 @@ export const CreateGame = () => {
           >
             {['rock', 'paper', 'scissors'].map((move) => (
               <div key={move} className="flex items-center space-x-2">
-                <RadioGroupItem value={move} id={move} className="border-gaming-primary text-gaming-primary" />
+                <RadioGroupItem value={move} id={move} className="border-gaming-accent text-gaming-primary" />
                 <Label htmlFor={move} className="capitalize text-gaming-text-primary">{move}</Label>
               </div>
             ))}
@@ -93,10 +98,10 @@ export const CreateGame = () => {
       
       <Button 
         onClick={handleCreateGame}
-        disabled={isCreating}
-        className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-white"
+        disabled={isCreating || !authenticated}
+        className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-white disabled:opacity-50"
       >
-        {isCreating ? "Creating..." : "Create Game"}
+        {!authenticated ? "Sign in to Create Game" : isCreating ? "Creating..." : "Create Game"}
       </Button>
     </div>
   );
