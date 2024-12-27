@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Wallet, LogOut } from 'lucide-react';
@@ -28,7 +27,7 @@ const WalletSection = () => {
       {!authenticated && (
         <Button
           onClick={handleWalletConnect}
-          className="w-full h-12 bg-purple-500 hover:bg-purple-600 transition-all duration-200 flex items-center justify-center space-x-2"
+          className="w-full h-12 bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 text-white"
         >
           <Wallet className="w-5 h-5" />
           <span>Connect Wallet</span>
@@ -38,7 +37,7 @@ const WalletSection = () => {
       {authenticated && (
         <Button
           onClick={handleLogout}
-          className="w-full h-12 bg-red-500 hover:bg-red-600 transition-all duration-200 flex items-center justify-center space-x-2"
+          className="w-full h-12 bg-gradient-to-r from-gaming-danger to-gaming-warning hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 text-white"
         >
           <LogOut className="w-5 h-5" />
           <span>Logout</span>

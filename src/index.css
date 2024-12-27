@@ -6,32 +6,23 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
- 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
- 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
- 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
- 
     --radius: 0.75rem;
   }
 
@@ -40,9 +31,24 @@
   }
  
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-gaming-background text-gaming-text-primary antialiased;
     font-feature-settings: "ss01" on, "ss02" on, "cv01" on, "cv02" on;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Gaming theme specific styles */
+  .bg-gradient-gaming {
+    @apply bg-gradient-to-br from-gaming-primary to-gaming-secondary;
+  }
+
+  .gaming-card {
+    @apply bg-gaming-card border border-gaming-accent rounded-xl shadow-lg backdrop-blur-sm;
+  }
+
+  .gaming-button {
+    @apply bg-gradient-to-r from-gaming-primary to-gaming-secondary 
+           hover:opacity-90 transition-all duration-200 
+           text-white font-medium rounded-lg;
   }
 }
