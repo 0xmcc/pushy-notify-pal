@@ -16,6 +16,8 @@ interface Inventory {
 interface User {
   did: string;
   rating: number;
+  display_name: string;
+  avatar_url: string;
 }
 
 const ArenaPage = () => {
@@ -36,8 +38,8 @@ const ArenaPage = () => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('did, rating')
-        .ilike('did', `%${searchTerm}%`)
+        .select('did, rating, display_name, avatar_url')
+        .or(`display_name.ilike.%${searchTerm}%,did.ilike.%${searchTerm}%`)
         .limit(5);
 
       if (error) {
@@ -68,7 +70,7 @@ const ArenaPage = () => {
         <div className="relative">
           <Input
             type="text"
-            placeholder="Search for opponent..."
+            placeholder="Search for opponent by name or ID..."
             value={opponent}
             onChange={(e) => setOpponent(e.target.value)}
             className="pl-10 pr-4 py-2 w-full"
@@ -85,7 +87,16 @@ const ArenaPage = () => {
                 className="flex justify-between items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
                 onClick={() => setOpponent(user.did)}
               >
-                <span className="text-sm font-medium">{user.did}</span>
+                <div className="flex items-center space-x-2">
+                  <img 
+                    src={user.avatar_url} 
+                    alt={user.display_name || user.did} 
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <span className="text-sm font-medium">
+                    {user.display_name || user.did}
+                  </span>
+                </div>
                 <span className="text-sm text-gray-500">Rating: {user.rating}</span>
               </div>
             ))}

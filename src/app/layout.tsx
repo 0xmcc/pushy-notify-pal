@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from '@privy-io/react-auth';
 import { BottomNav } from "@/components/BottomNav";
+import { Header } from "@/components/Header";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +32,8 @@ export default function RootLayout({
         >
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
-              <main className="pb-16">
+              <Header />
+              <main className="pb-16 pt-20">
                 {children}
               </main>
               <BottomNav />
