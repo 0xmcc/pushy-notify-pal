@@ -20,7 +20,17 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user) {
+      console.log('No file selected or user not authenticated');
+      return;
+    }
+
+    console.log('Starting file upload process', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      userId: user.id
+    });
 
     // Create a preview URL for immediate display
     setPreviewUrl(URL.createObjectURL(file));
@@ -30,25 +40,35 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}-avatar.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading file to Supabase storage', { filePath });
+
+      const { data, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, { 
+          upsert: true,
+          contentType: file.type
+        });
 
       if (uploadError) {
+        console.error('Supabase storage upload error:', uploadError);
         throw uploadError;
       }
+
+      console.log('File uploaded successfully', { data });
 
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
+      console.log('Generated public URL:', publicUrl);
+
       setAvatarUrl(publicUrl);
       onComplete(publicUrl);
       toast.success('Avatar uploaded successfully!');
     } catch (error) {
-      console.error('Error uploading avatar:', error);
-      toast.error('Failed to upload avatar');
-      setPreviewUrl(null);
+      console.error('Detailed error during avatar upload:', error);
+      toast.error('Failed to upload avatar. Please try again.');
+      // Don't clear preview on error so user can see what they selected
     } finally {
       setIsUploading(false);
     }
