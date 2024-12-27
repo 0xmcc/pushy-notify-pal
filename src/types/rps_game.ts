@@ -1,3 +1,5 @@
+import { Idl } from '@coral-xyz/anchor';
+
 export type RpsGame = {
   version: "0.1.0";
   name: "rps_game";
@@ -40,9 +42,10 @@ export type RpsGame = {
     }
   ];
   metadata: {
-    address: string;
+    name: "rps_game";
+    version: "0.1.0";
+    spec: "0.1.0";
   };
-  address: string;
 };
 
 export const IDL: RpsGame = {
@@ -87,7 +90,8 @@ export const IDL: RpsGame = {
     }
   ],
   metadata: {
-    address: "8LCEgTSrryvRuX3AE46Pa1msev4CfPXZiiWzbg6Vk8bn"
-  },
-  address: "8LCEgTSrryvRuX3AE46Pa1msev4CfPXZiiWzbg6Vk8bn"
+    name: "rps_game",
+    version: "0.1.0",
+    spec: "0.1.0"
+  }
 };

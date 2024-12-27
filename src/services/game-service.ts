@@ -3,7 +3,6 @@ import * as anchor from '@coral-xyz/anchor';
 import { IDL } from '@/types/rps_game';
 import { createWalletAdapter } from '@/utils/wallet-adapter';
 import { Wallet } from '@privy-io/react-auth';
-import { Buffer } from 'buffer';
 
 const PROGRAM_ID = "8LCEgTSrryvRuX3AE46Pa1msev4CfPXZiiWzbg6Vk8bn";
 const DEVNET_ENDPOINT = "https://api.devnet.solana.com";
@@ -28,7 +27,7 @@ export const getProgram = async (wallet: Wallet) => {
     anchor.setProvider(provider);
 
     const program = new anchor.Program(
-      IDL,
+      IDL as anchor.Idl,
       new PublicKey(PROGRAM_ID),
       provider
     );
