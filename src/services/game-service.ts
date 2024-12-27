@@ -10,28 +10,42 @@ const DEVNET_ENDPOINT = "https://api.devnet.solana.com";
 export const getProgram = async (wallet: Wallet) => {
   console.log('Initializing program with wallet:', wallet.address);
   
-  const connection = new Connection(DEVNET_ENDPOINT);
-  console.log('Connected to Solana network:', DEVNET_ENDPOINT);
-  
-  const walletAdapter = createWalletAdapter(wallet);
-  console.log('Wallet adapter created');
+  try {
+    const connection = new Connection(DEVNET_ENDPOINT);
+    console.log('Connected to Solana network:', DEVNET_ENDPOINT);
+    
+    const walletAdapter = createWalletAdapter(wallet);
+    console.log('Wallet adapter created');
 
-  const provider = new anchor.AnchorProvider(
-    connection,
-    walletAdapter,
-    { commitment: 'processed' }
-  );
-  console.log('Anchor provider created');
+    const provider = new anchor.AnchorProvider(
+      connection,
+      walletAdapter,
+      { commitment: 'processed' }
+    );
+    console.log('Anchor provider created');
 
-  anchor.setProvider(provider);
-  console.log('Provider set');
+    anchor.setProvider(provider);
+    console.log('Provider set');
 
-  const program = new anchor.Program(
-    IDL,
-    new PublicKey(PROGRAM_ID),
-    provider
-  );
-  console.log('Program initialized with ID:', PROGRAM_ID);
+    // Add metadata and address to match Idl type
+    const programIdl = {
+      ...IDL,
+      metadata: {
+        address: PROGRAM_ID,
+      },
+      address: PROGRAM_ID,
+    };
 
-  return program;
+    const program = new anchor.Program(
+      programIdl,
+      new PublicKey(PROGRAM_ID),
+      provider
+    );
+    console.log('Program initialized with ID:', PROGRAM_ID);
+
+    return program;
+  } catch (error) {
+    console.error('Error initializing program:', error);
+    throw error;
+  }
 };
