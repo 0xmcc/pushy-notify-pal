@@ -59,7 +59,7 @@ export const IDL: RpsGame = {
   instructions: [
     {
       name: "createGame",
-      discriminator: [0, 0, 0, 0, 0, 0, 0, 0], // Default discriminator, should be updated with actual values
+      discriminator: [0, 0, 0, 0, 0, 0, 0, 0],
       accounts: [
         {
           name: "playerOne",

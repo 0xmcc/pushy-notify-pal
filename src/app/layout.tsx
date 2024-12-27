@@ -12,7 +12,7 @@ const queryClient = new QueryClient();
 
 // Define Solana chain configuration
 const SOLANA_DEVNET = {
-  id: 'solana:devnet',
+  id: 1,  // Changed to number as required by Chain type
   name: 'Solana Devnet',
   rpcUrls: ['https://api.devnet.solana.com'],
   nativeCurrency: {
