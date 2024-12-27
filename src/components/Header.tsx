@@ -5,6 +5,7 @@ import AvatarPreview from './profile/AvatarPreview';
 import { uploadFileToSupabase, sanitizeFilePath } from '@/utils/fileUpload';
 import { toast } from 'sonner';
 import { Gamepad2, UserX } from 'lucide-react';
+import { WalletBalance } from './wallet/WalletBalance';
 
 export const Header = () => {
   const { user, authenticated } = usePrivy();
@@ -79,28 +80,31 @@ export const Header = () => {
           <Gamepad2 className="w-6 h-6 text-gaming-primary" />
           <span className="font-semibold text-gaming-text-primary">GameArena</span>
         </div>
-        <div 
-          onClick={handleAvatarClick} 
-          className={`cursor-pointer ${authenticated ? 'hover:opacity-80' : ''}`}
-        >
-          {authenticated ? (
-            <AvatarPreview 
-              previewUrl={null} 
-              avatarUrl={avatarUrl}
-              size="xs"
+        <div className="flex items-center gap-4">
+          <WalletBalance />
+          <div 
+            onClick={handleAvatarClick} 
+            className={`cursor-pointer ${authenticated ? 'hover:opacity-80' : ''}`}
+          >
+            {authenticated ? (
+              <AvatarPreview 
+                previewUrl={null} 
+                avatarUrl={avatarUrl}
+                size="xs"
+              />
+            ) : (
+              <div className="w-8 h-8 flex items-center justify-center text-gaming-text-secondary">
+                <UserX className="w-5 h-5" />
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
             />
-          ) : (
-            <div className="w-8 h-8 flex items-center justify-center text-gaming-text-secondary">
-              <UserX className="w-5 h-5" />
-            </div>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
+          </div>
         </div>
       </div>
     </header>

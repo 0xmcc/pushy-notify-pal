@@ -23,6 +23,11 @@ export const CreateGame = () => {
       return;
     }
 
+    if (!user?.wallet?.address) {
+      toast.error("Please connect your wallet to create a game");
+      return;
+    }
+
     if (!stakeAmount || isNaN(Number(stakeAmount))) {
       toast.error("Please enter a valid stake amount");
       return;
@@ -35,6 +40,8 @@ export const CreateGame = () => {
 
     setIsCreating(true);
     try {
+      // TODO: Add smart contract integration here once we have the complete documentation
+      // For now, we'll keep the existing functionality
       const { error } = await supabase
         .from('active_games')
         .insert({
@@ -70,6 +77,7 @@ export const CreateGame = () => {
             id="stakeAmount"
             type="number"
             min="0"
+            step="0.01"
             value={stakeAmount}
             onChange={(e) => setStakeAmount(e.target.value)}
             placeholder="Enter stake amount"
@@ -98,10 +106,12 @@ export const CreateGame = () => {
       
       <Button 
         onClick={handleCreateGame}
-        disabled={isCreating || !authenticated}
+        disabled={isCreating || !authenticated || !user?.wallet?.address}
         className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-white disabled:opacity-50"
       >
-        {!authenticated ? "Sign in to Create Game" : isCreating ? "Creating..." : "Create Game"}
+        {!authenticated ? "Sign in to Create Game" : 
+         !user?.wallet?.address ? "Connect Wallet to Create Game" :
+         isCreating ? "Creating..." : "Create Game"}
       </Button>
     </div>
   );
