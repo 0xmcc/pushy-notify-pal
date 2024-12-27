@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AvatarPreview from './AvatarPreview';
 import { uploadFileToSupabase, sanitizeFilePath } from '@/utils/fileUpload';
+import { supabase } from "@/integrations/supabase/client";
 
 interface AvatarUploadProps {
   onComplete: (url: string) => void;
@@ -43,6 +44,16 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
 
       if ('error' in result) {
         throw result.error;
+      }
+
+      // Update the avatar_url in the users table
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ avatar_url: result.publicUrl })
+        .eq('did', user.id);
+
+      if (updateError) {
+        throw updateError;
       }
 
       setAvatarUrl(result.publicUrl);
