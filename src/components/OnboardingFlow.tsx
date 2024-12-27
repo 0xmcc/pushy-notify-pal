@@ -15,10 +15,14 @@ const OnboardingFlow = () => {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Create a preview URL for immediate display
+    setPreviewUrl(URL.createObjectURL(file));
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -42,6 +46,8 @@ const OnboardingFlow = () => {
     } catch (error) {
       console.error('Error uploading avatar:', error);
       toast.error('Failed to upload avatar');
+      // Reset preview on error
+      setPreviewUrl(null);
     }
   };
 
@@ -79,11 +85,15 @@ const OnboardingFlow = () => {
           <p className="text-gray-600">Choose an avatar that represents you</p>
           <div className="flex flex-col items-center space-y-4">
             <Avatar className="w-24 h-24">
-              {avatarUrl ? (
-                <AvatarImage src={avatarUrl} alt="Profile" />
+              {previewUrl || avatarUrl ? (
+                <AvatarImage 
+                  src={previewUrl || avatarUrl} 
+                  alt="Profile" 
+                  className="object-cover"
+                />
               ) : (
                 <AvatarFallback>
-                  <Camera className="w-8 h-8 text-gray-400" />
+                  <User className="w-8 h-8 text-gray-400" />
                 </AvatarFallback>
               )}
             </Avatar>
