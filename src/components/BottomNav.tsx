@@ -6,33 +6,39 @@ export const BottomNav = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-16 bg-gaming-background border-t border-gaming-accent flex items-center justify-around px-4">
+    <div className="fixed bottom-0 left-0 right-0 h-12 bg-[#1A1F2C] border-t border-[#222222] flex items-center justify-around px-4 backdrop-blur-sm bg-opacity-95">
       <button
         onClick={() => navigate("/")}
-        className={`flex flex-col items-center space-y-1 ${
-          location.pathname === "/" ? "text-gaming-primary" : "text-gaming-text-secondary"
-        }`}
+        className={`flex flex-col items-center ${
+          location.pathname === "/" 
+            ? "text-gaming-primary" 
+            : "text-[#8E9196] hover:text-[#D6BCFA]"
+        } transition-colors duration-200`}
       >
-        <Home size={24} />
-        <span className="text-xs">Home</span>
+        <Home size={20} />
+        <span className="text-[10px] mt-0.5">Home</span>
       </button>
       <button
         onClick={() => navigate("/arena")}
-        className={`flex flex-col items-center space-y-1 ${
-          location.pathname === "/arena" ? "text-gaming-primary" : "text-gaming-text-secondary"
-        }`}
+        className={`flex flex-col items-center ${
+          location.pathname === "/arena" 
+            ? "text-gaming-primary" 
+            : "text-[#8E9196] hover:text-[#D6BCFA]"
+        } transition-colors duration-200`}
       >
-        <Swords size={24} />
-        <span className="text-xs">Arena</span>
+        <Swords size={20} />
+        <span className="text-[10px] mt-0.5">Arena</span>
       </button>
       <button
         onClick={() => navigate("/multiplayer")}
-        className={`flex flex-col items-center space-y-1 ${
-          location.pathname === "/multiplayer" ? "text-gaming-primary" : "text-gaming-text-secondary"
-        }`}
+        className={`flex flex-col items-center ${
+          location.pathname === "/multiplayer" 
+            ? "text-gaming-primary" 
+            : "text-[#8E9196] hover:text-[#D6BCFA]"
+        } transition-colors duration-200`}
       >
-        <Users size={24} />
-        <span className="text-xs">Multiplayer</span>
+        <Users size={20} />
+        <span className="text-[10px] mt-0.5">Multi</span>
       </button>
     </div>
   );
