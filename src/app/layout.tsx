@@ -12,9 +12,16 @@ const queryClient = new QueryClient();
 
 // Define Solana chain configuration
 const SOLANA_DEVNET = {
-  id: 1,  // Changed to number as required by Chain type
+  id: 1,
   name: 'Solana Devnet',
-  rpcUrls: ['https://api.devnet.solana.com'],
+  rpcUrls: {
+    default: {
+      http: ['https://api.devnet.solana.com'],
+    },
+    privyWalletOverride: {
+      http: ['https://api.devnet.solana.com'],
+    }
+  },
   nativeCurrency: {
     name: 'SOL',
     symbol: 'SOL',
