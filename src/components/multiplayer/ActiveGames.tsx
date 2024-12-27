@@ -17,6 +17,31 @@ interface ActiveGamesProps {
   stakeRange: [number, number];
 }
 
+// Mock data for testing
+const mockGames: Game[] = [
+  {
+    id: '1',
+    creator_did: 'CryptoWarrior',
+    stake_amount: 250,
+    created_at: new Date().toISOString(),
+    selected_move: 'hidden'
+  },
+  {
+    id: '2',
+    creator_did: 'PixelNinja',
+    stake_amount: 500,
+    created_at: new Date().toISOString(),
+    selected_move: 'hidden'
+  },
+  {
+    id: '3',
+    creator_did: 'BlockchainMaster',
+    stake_amount: 750,
+    created_at: new Date().toISOString(),
+    selected_move: 'hidden'
+  }
+];
+
 export const ActiveGames = ({ stakeRange }: ActiveGamesProps) => {
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +77,12 @@ export const ActiveGames = ({ stakeRange }: ActiveGamesProps) => {
 
       if (error) throw error;
       
-      setGames(data || []);
+      // Combine real data with mock data and filter by stake range
+      const allGames = [...(data || []), ...mockGames].filter(
+        game => game.stake_amount >= stakeRange[0] && game.stake_amount <= stakeRange[1]
+      );
+      
+      setGames(allGames);
     } catch (error) {
       console.error('Error fetching games:', error);
       toast.error("Failed to load games");
@@ -80,11 +110,11 @@ export const ActiveGames = ({ stakeRange }: ActiveGamesProps) => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-4">Loading games...</div>;
+    return <div className="text-center py-4 text-gaming-text-secondary">Loading games...</div>;
   }
 
   if (games.length === 0) {
-    return <div className="text-center py-4">No active games available</div>;
+    return <div className="text-center py-4 text-gaming-text-secondary">No active games available</div>;
   }
 
   return (
@@ -92,15 +122,20 @@ export const ActiveGames = ({ stakeRange }: ActiveGamesProps) => {
       {games.map((game) => (
         <div 
           key={game.id}
-          className="border rounded-lg p-4 flex justify-between items-center bg-white shadow-sm"
+          className="border border-gaming-accent rounded-lg p-4 flex justify-between items-center bg-gaming-accent/20 backdrop-blur-sm"
         >
           <div>
-            <p className="font-medium">Stake: {game.stake_amount}</p>
-            <p className="text-sm text-gray-500">
+            <p className="font-medium text-gaming-text-primary">
+              Stake: {game.stake_amount} credits
+            </p>
+            <p className="text-sm text-gaming-text-secondary">
               Created by: {game.creator_did}
             </p>
           </div>
-          <Button onClick={() => joinGame(game.id)}>
+          <Button 
+            onClick={() => joinGame(game.id)}
+            className="bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90"
+          >
             Join Game
           </Button>
         </div>

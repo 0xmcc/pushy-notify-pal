@@ -10,20 +10,20 @@ const MultiplayerPage = () => {
   const [stakeRange, setStakeRange] = useState<[number, number]>([0, 1000]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-20 p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">Multiplayer</h1>
+    <div className="min-h-screen bg-gaming-background pb-20 p-4">
+      <h1 className="text-2xl font-bold text-center mb-4 text-gaming-text-primary">Multiplayer</h1>
       
       <div className="max-w-2xl mx-auto space-y-4">
-        <Card className="p-4">
+        <Card className="p-4 bg-gaming-card border-gaming-accent">
           <StakeRange value={stakeRange} onChange={setStakeRange} />
         </Card>
         
-        <Card className="p-4">
+        <Card className="p-4 bg-gaming-card border-gaming-accent">
           <CreateGame />
         </Card>
         
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Available Games</h2>
+        <Card className="p-4 bg-gaming-card border-gaming-accent">
+          <h2 className="text-lg font-semibold mb-4 text-gaming-text-primary">Available Games</h2>
           <ActiveGames stakeRange={stakeRange} />
         </Card>
       </div>

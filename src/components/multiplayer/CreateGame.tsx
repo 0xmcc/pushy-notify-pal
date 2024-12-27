@@ -54,11 +54,11 @@ export const CreateGame = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Create New Game</h2>
+      <h2 className="text-lg font-semibold text-gaming-text-primary">Create New Game</h2>
       
       <div className="space-y-4">
         <div>
-          <Label htmlFor="stakeAmount" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="stakeAmount" className="block text-sm font-medium text-gaming-text-secondary mb-1">
             Stake Amount
           </Label>
           <Input
@@ -68,12 +68,12 @@ export const CreateGame = () => {
             value={stakeAmount}
             onChange={(e) => setStakeAmount(e.target.value)}
             placeholder="Enter stake amount"
-            className="w-full"
+            className="w-full bg-gaming-accent border-gaming-accent text-gaming-text-primary placeholder:text-gaming-text-secondary"
           />
         </div>
 
         <div className="space-y-2">
-          <Label className="block text-sm font-medium text-gray-700">
+          <Label className="block text-sm font-medium text-gaming-text-secondary">
             Select Your Move
           </Label>
           <RadioGroup
@@ -83,8 +83,8 @@ export const CreateGame = () => {
           >
             {['rock', 'paper', 'scissors'].map((move) => (
               <div key={move} className="flex items-center space-x-2">
-                <RadioGroupItem value={move} id={move} />
-                <Label htmlFor={move} className="capitalize">{move}</Label>
+                <RadioGroupItem value={move} id={move} className="border-gaming-primary text-gaming-primary" />
+                <Label htmlFor={move} className="capitalize text-gaming-text-primary">{move}</Label>
               </div>
             ))}
           </RadioGroup>
@@ -94,7 +94,7 @@ export const CreateGame = () => {
       <Button 
         onClick={handleCreateGame}
         disabled={isCreating}
-        className="w-full"
+        className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-white"
       >
         {isCreating ? "Creating..." : "Create Game"}
       </Button>

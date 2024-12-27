@@ -10,7 +10,7 @@ interface StakeRangeProps {
 export const StakeRange = ({ value, onChange }: StakeRangeProps) => {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Stake Range Filter</h2>
+      <h2 className="text-lg font-semibold text-gaming-text-primary">Stake Range Filter</h2>
       <div className="space-y-2">
         <Slider
           defaultValue={value}
@@ -18,8 +18,9 @@ export const StakeRange = ({ value, onChange }: StakeRangeProps) => {
           min={0}
           step={10}
           onValueChange={(value) => onChange(value as [number, number])}
+          className="py-4"
         />
-        <div className="flex justify-between text-sm text-gray-500">
+        <div className="flex justify-between text-sm text-gaming-text-secondary">
           <span>{value[0]} credits</span>
           <span>{value[1]} credits</span>
         </div>
