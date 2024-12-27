@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -5,7 +7,7 @@ import NotificationButton from '@/components/NotificationButton';
 import { Bell, Wallet } from 'lucide-react';
 import { usePrivy, useCreateWallet } from '@privy-io/react-auth';
 
-const Index = () => {
+const HomePage = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [notificationSupported, setNotificationSupported] = useState(false);
   const { login, ready, authenticated, user } = usePrivy();
@@ -102,7 +104,7 @@ const Index = () => {
           {authenticated && user && (
             <div className="p-4 bg-white rounded-lg shadow space-y-2">
               <p className="text-sm font-medium text-gray-700">Access Token:</p>
-              <p className="text-xs bg-gray-50 p-2 rounded break-all">{user.accessToken}</p>
+              <p className="text-xs bg-gray-50 p-2 rounded break-all">{user?.token}</p>
               {user.wallet && (
                 <>
                   <p className="text-sm font-medium text-gray-700">Wallet Address:</p>
@@ -131,4 +133,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default HomePage;
