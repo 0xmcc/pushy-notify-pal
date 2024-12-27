@@ -54,30 +54,28 @@ const NotificationSection = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-6">
       <NotificationButton />
       
       <Button 
         onClick={sendTestNotification}
-        className="w-full h-12 bg-blue-500 hover:bg-blue-600 transition-all duration-200 flex items-center justify-center space-x-2"
+        className="w-full h-12 bg-gaming-card hover:bg-gaming-accent/80 transition-all duration-200 flex items-center justify-center gap-2"
       >
         <Bell className="w-5 h-5" />
         <span>Send Test Notification</span>
       </Button>
 
       {!notificationSupported && (
-        <div className="text-amber-600 text-sm text-center p-2 bg-amber-50 rounded-lg">
+        <div className="text-gaming-warning text-sm text-center p-2 bg-gaming-card/50 rounded-lg">
           Your browser doesn't support notifications
         </div>
       )}
 
-      <div className="text-center text-xs text-gray-500 mt-8">
-        {isIOS && (
-          <p>
-            Make sure to add this page to your home screen for the best experience
-          </p>
-        )}
-      </div>
+      {isIOS && (
+        <div className="text-gaming-text-secondary text-xs text-center mt-4">
+          Make sure to add this page to your home screen for the best experience
+        </div>
+      )}
     </div>
   );
 };
