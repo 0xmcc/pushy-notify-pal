@@ -72,8 +72,8 @@ export const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 p-4 z-50 bg-white/80 backdrop-blur-sm">
-      <div className="max-w-4xl mx-auto flex justify-end items-center">
+    <header className="fixed top-0 left-0 right-0 py-2 z-50 bg-white/50 backdrop-blur-sm border-b border-gray-100">
+      <div className="max-w-4xl mx-auto flex justify-end items-center px-4">
         <div 
           onClick={handleAvatarClick} 
           className={`cursor-pointer ${user ? 'hover:opacity-80' : ''}`}
