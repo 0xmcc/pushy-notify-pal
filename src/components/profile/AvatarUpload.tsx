@@ -22,6 +22,10 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
+  const sanitizeFilePath = (path: string): string => {
+    return path.replace(/:/g, '-');
+  };
+
   const uploadWithRetry = async (file: File, filePath: string, attempt: number = 1): Promise<boolean> => {
     try {
       const { data, error: uploadError } = await supabase.storage
@@ -70,7 +74,8 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
 
     try {
       const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}-avatar.${fileExt}`;
+      const sanitizedUserId = sanitizeFilePath(user.id);
+      const filePath = `${sanitizedUserId}-avatar.${fileExt}`;
 
       console.log('Uploading file to Supabase storage', { filePath });
 
