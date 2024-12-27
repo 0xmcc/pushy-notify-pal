@@ -1,57 +1,97 @@
-'use client';
-
 import { usePrivy } from '@privy-io/react-auth';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import AvatarPreview from './profile/AvatarPreview';
+import { uploadFileToSupabase, sanitizeFilePath } from '@/utils/fileUpload';
+import { toast } from 'sonner';
 
-export function Header() {
-  const { login, authenticated, user } = usePrivy();
-  const navigate = useNavigate();
+export const Header = () => {
+  const { user } = usePrivy();
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from('users')
-        .select('avatar_url')
-        .eq('did', user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('avatar_url')
+          .eq('did', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          return;
+        }
+
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   const handleAvatarClick = () => {
-    if (authenticated) {
-      navigate('/');
-    } else {
-      login();
+    if (user) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const sanitizedUserId = sanitizeFilePath(user.id);
+      const filePath = `${sanitizedUserId}-avatar.${fileExt}`;
+
+      const result = await uploadFileToSupabase(file, filePath);
+
+      if ('error' in result) {
+        throw result.error;
+      }
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ avatar_url: result.publicUrl })
+        .eq('did', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setAvatarUrl(result.publicUrl);
+      toast.success('Avatar updated successfully!');
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      toast.error('Failed to update avatar');
     }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-white/80 backdrop-blur-sm border-b border-gray-100 z-50">
-      <div className="container h-full mx-auto flex items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-purple-900">
-            RPS Arena
-          </span>
-        </div>
-
-        <Avatar 
-          className="w-8 h-8 cursor-pointer transition-transform hover:scale-105"
-          onClick={handleAvatarClick}
+    <header className="fixed top-0 left-0 right-0 p-4 z-50 bg-white/80 backdrop-blur-sm">
+      <div className="max-w-4xl mx-auto flex justify-end items-center">
+        <div 
+          onClick={handleAvatarClick} 
+          className={`cursor-pointer ${user ? 'hover:opacity-80' : ''}`}
         >
-          <AvatarImage src={profile?.avatar_url || ''} />
-          <AvatarFallback>
-            <User className="w-4 h-4" />
-          </AvatarFallback>
-        </Avatar>
+          <AvatarPreview 
+            previewUrl={null} 
+            avatarUrl={avatarUrl}
+            size="sm"
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
+        </div>
       </div>
     </header>
   );
-}
+};

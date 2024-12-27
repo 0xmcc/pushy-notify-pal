@@ -24,14 +24,12 @@ const ArenaPage = () => {
   });
 
   return (
-    <div className="container mx-auto max-w-2xl px-4">
-      <div className="space-y-8">
-        <UserSearch onSelectOpponent={setOpponent} />
-        <GameArena 
-          playerInventory={playerInventory}
-          opponentInventory={opponentInventory}
-        />
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-20">
+      <UserSearch onSelectOpponent={setOpponent} />
+      <GameArena 
+        playerInventory={playerInventory}
+        opponentInventory={opponentInventory}
+      />
     </div>
   );
 };
