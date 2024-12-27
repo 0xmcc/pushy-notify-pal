@@ -46,8 +46,9 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
       }
 
       setAvatarUrl(result.publicUrl);
-      onComplete(result.publicUrl);
       toast.success('Avatar uploaded successfully!');
+      // Automatically move to the next step by calling onComplete
+      onComplete(result.publicUrl);
     } catch (error) {
       console.error('Detailed error during avatar upload:', error);
       toast.error('Failed to upload avatar. Please check your internet connection and try again.');
