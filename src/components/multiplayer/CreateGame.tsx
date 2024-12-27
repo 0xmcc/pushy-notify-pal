@@ -7,13 +7,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { PublicKey, LAMPORTS_PER_SOL, Connection } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import BN from 'bn.js';
 import { IDL } from '@/types/rps_game';
+import { supabase } from "@/integrations/supabase/client";
 
 const PROGRAM_ID = "8LCEgTSrryvRuX3AE46Pa1msev4CfPXZiiWzbg6Vk8bn";
+const DEVNET_ENDPOINT = "https://api.devnet.solana.com";
 
 type Move = 'rock' | 'paper' | 'scissors';
 
@@ -28,25 +29,36 @@ const moveToNumber = (move: Move): number => {
 
 export const CreateGame = () => {
   const { user, authenticated } = usePrivy();
-  const { connection } = useConnection();
-  const { publicKey, wallet, sendTransaction } = useWallet();
   const [stakeAmount, setStakeAmount] = useState("");
   const [selectedMove, setSelectedMove] = useState<Move | ''>('');
   const [isCreating, setIsCreating] = useState(false);
 
-  const getProgram = () => {
-    if (!publicKey || !wallet) return null;
+  const getProgram = async () => {
+    if (!user?.wallet?.address) return null;
+
+    const connection = new Connection(DEVNET_ENDPOINT);
+    const wallet = {
+      publicKey: new PublicKey(user.wallet.address),
+      signTransaction: async (tx: any) => {
+        const signedTx = await user.wallet?.signTransaction(tx);
+        return signedTx;
+      },
+      signAllTransactions: async (txs: any[]) => {
+        const signedTxs = await Promise.all(txs.map(tx => user.wallet?.signTransaction(tx)));
+        return signedTxs.filter(Boolean);
+      }
+    };
 
     const provider = new anchor.AnchorProvider(
       connection,
-      (wallet.adapter as anchor.Wallet),
+      wallet as any,
       { commitment: 'processed' }
     );
 
     anchor.setProvider(provider);
 
     return new anchor.Program(
-      IDL,
+      IDL as anchor.Idl,
       new PublicKey(PROGRAM_ID),
       provider
     );
@@ -58,7 +70,7 @@ export const CreateGame = () => {
       return;
     }
 
-    if (!publicKey || !wallet) {
+    if (!user?.wallet?.address) {
       toast.error("Please connect your wallet to create a game");
       return;
     }
@@ -75,23 +87,22 @@ export const CreateGame = () => {
 
     setIsCreating(true);
     try {
-      const program = getProgram();
+      const program = await getProgram();
       if (!program) {
         throw new Error("Failed to initialize program");
       }
 
+      // For testing, we'll use a dummy player two
+      const dummyPlayerTwo = anchor.web3.Keypair.generate();
+
       // Convert stake amount to lamports
       const betAmount = new BN(Number(stakeAmount) * LAMPORTS_PER_SOL);
-
-      // For testing, we'll use a dummy player two
-      // In production, this should be the opponent's public key
-      const dummyPlayerTwo = anchor.web3.Keypair.generate();
 
       // Derive PDAs
       const [gamePda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("game"),
-          publicKey.toBuffer(),
+          new PublicKey(user.wallet.address).toBuffer(),
           dummyPlayerTwo.publicKey.toBuffer()
         ],
         program.programId
@@ -105,10 +116,11 @@ export const CreateGame = () => {
       const tx = await program.methods
         .createGame(betAmount)
         .accounts({
-          playerOne: publicKey,
+          playerOne: new PublicKey(user.wallet.address),
           playerTwo: dummyPlayerTwo.publicKey,
           gameAccount: gamePda,
           vault: vaultPda,
+          systemProgram: anchor.web3.SystemProgram.programId,
         })
         .rpc({ commitment: "confirmed" });
 
@@ -116,7 +128,7 @@ export const CreateGame = () => {
       const { error } = await supabase
         .from('active_games')
         .insert({
-          creator_did: user?.id,
+          creator_did: user.id,
           stake_amount: Number(stakeAmount),
           selected_move: moveToNumber(selectedMove),
           status: 'active'
@@ -177,11 +189,11 @@ export const CreateGame = () => {
       
       <Button 
         onClick={handleCreateGame}
-        disabled={isCreating || !authenticated || !publicKey}
+        disabled={isCreating || !authenticated || !user?.wallet?.address}
         className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-white disabled:opacity-50"
       >
         {!authenticated ? "Sign in to Create Game" : 
-         !publicKey ? "Connect Wallet to Create Game" :
+         !user?.wallet?.address ? "Connect Wallet to Create Game" :
          isCreating ? "Creating..." : "Create Game"}
       </Button>
     </div>
