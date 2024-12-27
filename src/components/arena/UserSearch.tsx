@@ -58,17 +58,17 @@ export const UserSearch = ({ onSelectOpponent }: UserSearchProps) => {
           placeholder="Search for opponent by name or ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 pr-4 py-2 w-full"
+          className="pl-10 pr-4 py-2 w-full bg-gaming-card text-gaming-text-primary border-gaming-accent placeholder:text-gaming-text-secondary"
         />
-        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gaming-text-secondary" />
       </div>
       
       {searchResults.length > 0 && (
-        <div className="mt-2 bg-white rounded-lg shadow-lg p-2 space-y-2">
+        <div className="mt-2 bg-gaming-card rounded-lg shadow-lg p-2 space-y-2 border border-gaming-accent">
           {searchResults.map((user) => (
             <div
               key={user.did}
-              className="flex justify-between items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+              className="flex justify-between items-center p-2 hover:bg-gaming-accent/20 rounded cursor-pointer"
               onClick={() => onSelectOpponent({ did: user.did, display_name: user.display_name || user.did })}
             >
               <div className="flex items-center space-x-2">
@@ -77,11 +77,11 @@ export const UserSearch = ({ onSelectOpponent }: UserSearchProps) => {
                   alt={user.display_name || user.did} 
                   className="w-8 h-8 rounded-full"
                 />
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-gaming-text-primary">
                   {user.display_name || user.did}
                 </span>
               </div>
-              <span className="text-sm text-gray-500">Rating: {user.rating}</span>
+              <span className="text-sm text-gaming-text-secondary">Rating: {user.rating}</span>
             </div>
           ))}
         </div>

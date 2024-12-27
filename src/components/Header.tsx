@@ -73,11 +73,11 @@ export const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 py-1 z-50">
+    <header className="fixed top-0 left-0 right-0 py-1 z-50 bg-gaming-background border-b border-gaming-accent">
       <div className="max-w-4xl mx-auto flex justify-between items-center px-4">
         <div className="flex items-center gap-2">
-          <Gamepad2 className="w-6 h-6 text-primary" />
-          <span className="font-semibold text-primary">GameArena</span>
+          <Gamepad2 className="w-6 h-6 text-gaming-primary" />
+          <span className="font-semibold text-gaming-text-primary">GameArena</span>
         </div>
         <div 
           onClick={handleAvatarClick} 

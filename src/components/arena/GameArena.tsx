@@ -55,10 +55,10 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
                 Score: {opponentScore}/{targetScore}
               </div>
             </div>
-            <div className="flex space-x-6 text-2xl">
-              <span>🪨 {opponentInventory.rock}</span>
-              <span>📄 {opponentInventory.paper}</span>
-              <span>✂️ {opponentInventory.scissors}</span>
+            <div className="flex space-x-6 text-2xl text-gaming-text-primary">
+              <span>🪨 <span className="text-gaming-text-primary">{opponentInventory.rock}</span></span>
+              <span>📄 <span className="text-gaming-text-primary">{opponentInventory.paper}</span></span>
+              <span>✂️ <span className="text-gaming-text-primary">{opponentInventory.scissors}</span></span>
             </div>
           </div>
           <Progress 
@@ -95,27 +95,27 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
             <div className="flex space-x-4">
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary"
                 disabled={playerInventory.rock === 0}
                 onClick={() => setSelectedMove('rock')}
               >
-                🪨 {playerInventory.rock}
+                🪨 <span className="text-gaming-text-primary">{playerInventory.rock}</span>
               </Button>
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary"
                 disabled={playerInventory.paper === 0}
                 onClick={() => setSelectedMove('paper')}
               >
-                📄 {playerInventory.paper}
+                📄 <span className="text-gaming-text-primary">{playerInventory.paper}</span>
               </Button>
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary"
                 disabled={playerInventory.scissors === 0}
                 onClick={() => setSelectedMove('scissors')}
               >
-                ✂️ {playerInventory.scissors}
+                ✂️ <span className="text-gaming-text-primary">{playerInventory.scissors}</span>
               </Button>
             </div>
           </div>
