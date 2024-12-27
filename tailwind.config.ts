@@ -61,6 +61,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				gaming: {
+					background: '#0A0A0B',
+					card: '#151518',
+					accent: '#2A2A2E',
+					primary: '#6366F1',
+					secondary: '#8B5CF6',
+					success: '#10B981',
+					warning: '#F59E0B',
+					danger: '#EF4444',
+					text: {
+						primary: '#FFFFFF',
+						secondary: '#A1A1AA'
+					}
 				}
 			},
 			borderRadius: {

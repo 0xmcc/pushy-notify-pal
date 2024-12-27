@@ -29,13 +29,15 @@ const ArenaPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-20">
-      <UserSearch onSelectOpponent={setOpponent} />
-      <GameArena 
-        playerInventory={playerInventory}
-        opponentInventory={opponentInventory}
-        opponent={opponent}
-      />
+    <div className="min-h-screen bg-gaming-background text-gaming-text-primary pb-20">
+      <div className="max-w-4xl mx-auto px-4">
+        <UserSearch onSelectOpponent={setOpponent} />
+        <GameArena 
+          playerInventory={playerInventory}
+          opponentInventory={opponentInventory}
+          opponent={opponent}
+        />
+      </div>
     </div>
   );
 };

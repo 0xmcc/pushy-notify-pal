@@ -26,7 +26,7 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
   const [selectedMove, setSelectedMove] = useState<string | null>(null);
   const [playerScore, setPlayerScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
-  const targetScore = 5; // Best of 9 means first to 5 wins
+  const targetScore = 5;
 
   const renderMoveIcon = (move: string) => {
     switch (move) {
@@ -42,76 +42,88 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
   };
 
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-6 space-y-8">
       {/* Opponent's Side */}
-      <Card className="mb-8 p-4">
-        <div className="flex justify-between items-center mb-2">
-          <div>
-            <h3 className="font-semibold">{opponent ? opponent.display_name : 'Waiting for opponent...'}</h3>
-            <div className="text-sm text-muted-foreground">
-              Score: {opponentScore}/{targetScore}
+      <Card className="bg-gaming-card border-gaming-accent shadow-lg backdrop-blur-sm">
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-semibold text-gaming-text-primary text-lg">
+                {opponent ? opponent.display_name : 'Waiting for opponent...'}
+              </h3>
+              <div className="text-gaming-text-secondary">
+                Score: {opponentScore}/{targetScore}
+              </div>
+            </div>
+            <div className="flex space-x-6 text-2xl">
+              <span>🪨 {opponentInventory.rock}</span>
+              <span>📄 {opponentInventory.paper}</span>
+              <span>✂️ {opponentInventory.scissors}</span>
             </div>
           </div>
-          <div className="flex space-x-4">
-            <span>🪨 {opponentInventory.rock}</span>
-            <span>📄 {opponentInventory.paper}</span>
-            <span>✂️ {opponentInventory.scissors}</span>
-          </div>
+          <Progress 
+            value={(opponentScore / targetScore) * 100} 
+            className="h-2 bg-gaming-accent"
+          />
         </div>
-        <Progress value={(opponentScore / targetScore) * 100} className="h-2" />
       </Card>
 
       {/* Battle Area */}
-      <div className="h-32 flex items-center justify-center mb-8">
+      <div className="h-48 flex items-center justify-center relative">
+        <div className="absolute inset-0 bg-gaming-accent/5 rounded-lg backdrop-blur-sm" />
         {selectedMove ? (
-          <div className="text-6xl animate-bounce">
+          <div className="text-8xl animate-bounce relative z-10">
             {renderMoveIcon(selectedMove)}
           </div>
         ) : (
-          <div className="text-2xl font-bold text-purple-600">VS</div>
+          <div className="text-3xl font-bold bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent">
+            VS
+          </div>
         )}
       </div>
 
       {/* Player's Side */}
-      <Card className="mt-8 p-4">
-        <div className="h-16 flex items-center justify-center mb-4">
-          {/* Player's played card would go here */}
-        </div>
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="font-semibold">You</h3>
-            <div className="text-sm text-muted-foreground">
-              Score: {playerScore}/{targetScore}
+      <Card className="bg-gaming-card border-gaming-accent shadow-lg backdrop-blur-sm">
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="font-semibold text-gaming-text-primary text-lg">You</h3>
+              <div className="text-gaming-text-secondary">
+                Score: {playerScore}/{targetScore}
+              </div>
+            </div>
+            <div className="flex space-x-4">
+              <Button
+                variant="ghost"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110"
+                disabled={playerInventory.rock === 0}
+                onClick={() => setSelectedMove('rock')}
+              >
+                🪨 {playerInventory.rock}
+              </Button>
+              <Button
+                variant="ghost"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110"
+                disabled={playerInventory.paper === 0}
+                onClick={() => setSelectedMove('paper')}
+              >
+                📄 {playerInventory.paper}
+              </Button>
+              <Button
+                variant="ghost"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110"
+                disabled={playerInventory.scissors === 0}
+                onClick={() => setSelectedMove('scissors')}
+              >
+                ✂️ {playerInventory.scissors}
+              </Button>
             </div>
           </div>
-          <div className="flex space-x-4">
-            <Button
-              variant="ghost"
-              className="hover:bg-purple-100 text-2xl"
-              disabled={playerInventory.rock === 0}
-              onClick={() => setSelectedMove('rock')}
-            >
-              🪨 {playerInventory.rock}
-            </Button>
-            <Button
-              variant="ghost"
-              className="hover:bg-purple-100 text-2xl"
-              disabled={playerInventory.paper === 0}
-              onClick={() => setSelectedMove('paper')}
-            >
-              📄 {playerInventory.paper}
-            </Button>
-            <Button
-              variant="ghost"
-              className="hover:bg-purple-100 text-2xl"
-              disabled={playerInventory.scissors === 0}
-              onClick={() => setSelectedMove('scissors')}
-            >
-              ✂️ {playerInventory.scissors}
-            </Button>
-          </div>
+          <Progress 
+            value={(playerScore / targetScore) * 100} 
+            className="h-2 bg-gaming-accent"
+          />
         </div>
-        <Progress value={(playerScore / targetScore) * 100} className="h-2 mt-2" />
       </Card>
     </div>
   );
