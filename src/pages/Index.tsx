@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import NotificationButton from '@/components/NotificationButton';
-import { Bell } from 'lucide-react';
+import { Bell, Wallet } from 'lucide-react';
+import { usePrivy, useCreateWallet } from '@privy-io/react-auth';
 
 const Index = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [notificationSupported, setNotificationSupported] = useState(false);
+  const { login, ready, authenticated, user } = usePrivy();
+  const { createWallet } = useCreateWallet();
 
   useEffect(() => {
     // Check if running on iOS
@@ -53,6 +56,20 @@ const Index = () => {
     }
   };
 
+  const handleWalletConnect = async () => {
+    if (!authenticated) {
+      await login();
+    } else if (user && !user.wallet) {
+      try {
+        const wallet = await createWallet();
+        toast.success("Wallet created successfully!");
+      } catch (error) {
+        toast.error("Failed to create wallet");
+        console.error('Error creating wallet:', error);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col items-center justify-center p-4 space-y-6">
       <div className="w-full max-w-md space-y-6">
@@ -73,6 +90,27 @@ const Index = () => {
             <Bell className="w-5 h-5" />
             <span>Send Test Notification</span>
           </Button>
+
+          <Button
+            onClick={handleWalletConnect}
+            className="w-full h-12 bg-purple-500 hover:bg-purple-600 transition-all duration-200 flex items-center justify-center space-x-2"
+          >
+            <Wallet className="w-5 h-5" />
+            <span>{authenticated ? 'Create Wallet' : 'Connect Wallet'}</span>
+          </Button>
+
+          {authenticated && user && (
+            <div className="p-4 bg-white rounded-lg shadow space-y-2">
+              <p className="text-sm font-medium text-gray-700">Access Token:</p>
+              <p className="text-xs bg-gray-50 p-2 rounded break-all">{user.accessToken}</p>
+              {user.wallet && (
+                <>
+                  <p className="text-sm font-medium text-gray-700">Wallet Address:</p>
+                  <p className="text-xs bg-gray-50 p-2 rounded break-all">{user.wallet.address}</p>
+                </>
+              )}
+            </div>
+          )}
 
           {!notificationSupported && (
             <div className="text-amber-600 text-sm text-center p-2 bg-amber-50 rounded-lg">
