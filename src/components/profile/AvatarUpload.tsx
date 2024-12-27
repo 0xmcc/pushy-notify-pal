@@ -12,11 +12,43 @@ interface AvatarUploadProps {
   onComplete: (url: string) => void;
 }
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // 2 seconds
+
 const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
   const { user } = usePrivy();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const uploadWithRetry = async (file: File, filePath: string, attempt: number = 1): Promise<boolean> => {
+    try {
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { 
+          upsert: true,
+          contentType: file.type
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      console.log('File uploaded successfully', { data });
+      return true;
+    } catch (error: any) {
+      console.error(`Upload attempt ${attempt} failed:`, error);
+
+      if (attempt < MAX_RETRIES && (error.message.includes('network') || error.message.includes('internet'))) {
+        console.log(`Retrying upload in ${RETRY_DELAY/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return uploadWithRetry(file, filePath, attempt + 1);
+      }
+      
+      throw error;
+    }
+  };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -32,9 +64,9 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
       userId: user.id
     });
 
-    // Create a preview URL for immediate display
     setPreviewUrl(URL.createObjectURL(file));
     setIsUploading(true);
+    setRetryCount(0);
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -42,33 +74,22 @@ const AvatarUpload = ({ onComplete }: AvatarUploadProps) => {
 
       console.log('Uploading file to Supabase storage', { filePath });
 
-      const { data, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { 
-          upsert: true,
-          contentType: file.type
-        });
+      const uploadSuccess = await uploadWithRetry(file, filePath);
 
-      if (uploadError) {
-        console.error('Supabase storage upload error:', uploadError);
-        throw uploadError;
+      if (uploadSuccess) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        console.log('Generated public URL:', publicUrl);
+
+        setAvatarUrl(publicUrl);
+        onComplete(publicUrl);
+        toast.success('Avatar uploaded successfully!');
       }
-
-      console.log('File uploaded successfully', { data });
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      console.log('Generated public URL:', publicUrl);
-
-      setAvatarUrl(publicUrl);
-      onComplete(publicUrl);
-      toast.success('Avatar uploaded successfully!');
     } catch (error) {
       console.error('Detailed error during avatar upload:', error);
-      toast.error('Failed to upload avatar. Please try again.');
-      // Don't clear preview on error so user can see what they selected
+      toast.error('Failed to upload avatar. Please check your internet connection and try again.');
     } finally {
       setIsUploading(false);
     }
