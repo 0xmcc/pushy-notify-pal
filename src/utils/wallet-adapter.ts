@@ -3,11 +3,18 @@ import { Wallet } from '@privy-io/react-auth';
 import { AnchorWallet } from '@solana/wallet-adapter-react';
 import bs58 from 'bs58';
 import { Buffer } from 'buffer';
+import { keccak256 } from '@ethersproject/keccak256';
 
 const convertToSolanaAddress = (ethAddress: string): string => {
+  // Remove '0x' prefix if present
   const cleanAddress = ethAddress.replace('0x', '');
-  const bytes = Buffer.from(cleanAddress, 'hex');
-  return bs58.encode(bytes);
+  
+  // Hash the address using keccak256 to get 32 bytes
+  const hashedAddress = keccak256('0x' + cleanAddress);
+  
+  // Convert to Buffer and encode to base58
+  const buffer = Buffer.from(hashedAddress.slice(2), 'hex');
+  return bs58.encode(buffer);
 };
 
 export const createWalletAdapter = (wallet: Wallet): AnchorWallet => {
