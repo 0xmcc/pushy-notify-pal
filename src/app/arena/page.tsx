@@ -29,6 +29,7 @@ const ArenaPage = () => {
       <GameArena 
         playerInventory={playerInventory}
         opponentInventory={opponentInventory}
+        opponent={opponent}
       />
     </div>
   );
