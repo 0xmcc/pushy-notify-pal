@@ -7,12 +7,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from '@privy-io/react-auth';
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
-import { Chain } from '@privy-io/react-auth';
+import { WalletChain } from '@privy-io/react-auth';
 
 const queryClient = new QueryClient();
 
 // Define Solana chain configuration
-const SOLANA_DEVNET: Chain = {
+const SOLANA_DEVNET: WalletChain = {
   id: 'solana:devnet',
   name: 'Solana Devnet',
   rpcUrls: ['https://api.devnet.solana.com'],
