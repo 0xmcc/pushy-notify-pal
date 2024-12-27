@@ -7,19 +7,23 @@ import { toast } from "sonner";
 
 interface Game {
   id: string;
-  player1_did: string;
+  creator_did: string;
   stake_amount: number;
   created_at: string;
+  selected_move: string;
 }
 
-export const ActiveGames = () => {
+interface ActiveGamesProps {
+  stakeRange: [number, number];
+}
+
+export const ActiveGames = ({ stakeRange }: ActiveGamesProps) => {
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchGames();
     
-    // Subscribe to changes
     const channel = supabase
       .channel('active_games_changes')
       .on('postgres_changes', 
@@ -33,7 +37,7 @@ export const ActiveGames = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [stakeRange]);
 
   const fetchGames = async () => {
     try {
@@ -41,7 +45,9 @@ export const ActiveGames = () => {
         .from('active_games')
         .select('*')
         .eq('status', 'active')
-        .is('player2_did', null)
+        .is('opponent_did', null)
+        .gte('stake_amount', stakeRange[0])
+        .lte('stake_amount', stakeRange[1])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -60,7 +66,7 @@ export const ActiveGames = () => {
       const { error } = await supabase
         .from('active_games')
         .update({ 
-          player2_did: 'test-user-2', // Temporary hardcoded user ID
+          opponent_did: 'test-user-2', // Temporary hardcoded user ID
         })
         .eq('id', gameId);
 
@@ -91,7 +97,7 @@ export const ActiveGames = () => {
           <div>
             <p className="font-medium">Stake: {game.stake_amount}</p>
             <p className="text-sm text-gray-500">
-              Created by: {game.player1_did}
+              Created by: {game.creator_did}
             </p>
           </div>
           <Button onClick={() => joinGame(game.id)}>
