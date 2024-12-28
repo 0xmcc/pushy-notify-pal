@@ -1,3 +1,4 @@
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 
@@ -9,9 +10,10 @@ export const WalletBalance = () => {
     const fetchBalance = async () => {
       if (user?.wallet?.address) {
         try {
-          // TODO: Implement actual balance fetching once we have the complete smart contract documentation
-          // For now, we'll show a mock balance
-          setBalance(2.5);
+          const connection = new Connection('https://api.devnet.solana.com');
+          const publicKey = new PublicKey(user.wallet.address);
+          const balanceInLamports = await connection.getBalance(publicKey);
+          setBalance(balanceInLamports / LAMPORTS_PER_SOL);
         } catch (error) {
           console.error('Error fetching balance:', error);
           setBalance(null);
@@ -20,6 +22,9 @@ export const WalletBalance = () => {
     };
 
     fetchBalance();
+    // Optional: Set up an interval to refresh balance periodically
+    const interval = setInterval(fetchBalance, 30000); // every 30 seconds
+    return () => clearInterval(interval);
   }, [user?.wallet?.address]);
 
   if (!user?.wallet?.address || balance === null) return null;

@@ -11,6 +11,9 @@ import { Header } from "@/components/Header";
 const queryClient = new QueryClient();
 
 // Define Solana chain configuration
+const SOLANA_DEVNET_CLUSTER = [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}]
+
+
 const SOLANA_DEVNET = {
   id: 1,
   name: 'Solana Devnet',
@@ -45,9 +48,9 @@ export default function RootLayout({
               createOnLogin: 'users-without-wallets',
               noPromptOnSignature: true
             },
-            defaultChain: SOLANA_DEVNET,
-            supportedChains: [SOLANA_DEVNET],
+            solanaClusters: [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}],
             appearance: {
+              walletChainType: 'ethereum-and-solana',
               theme: 'light',
               accentColor: '#3b82f6'
             }

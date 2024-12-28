@@ -90,11 +90,13 @@ export const CreateGame = () => {
       console.log('Generated vault PDA:', vaultPda.toString());
 
       console.log('Creating game on-chain...');
+      //timestamp
+      const timestamp = Date.now();
       const tx = await program.methods
-        .createGame(betAmount)
+        .createGame(new BN(timestamp), betAmount)
         .accounts({
           playerOne: new anchor.web3.PublicKey(user.wallet.address),
-          playerTwo: dummyPlayerTwo.publicKey,
+         // playerTwo: dummyPlayerTwo.publicKey,
           gameAccount: gamePda,
           vault: vaultPda,
           systemProgram: anchor.web3.SystemProgram.programId,
