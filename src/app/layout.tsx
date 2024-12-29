@@ -46,11 +46,12 @@ export default function RootLayout({
           config={{
             embeddedWallets: {
               createOnLogin: 'users-without-wallets',
-              noPromptOnSignature: true
+              noPromptOnSignature: true,
+              chainType: 'solana'
             },
             solanaClusters: [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}],
             appearance: {
-              walletChainType: 'ethereum-and-solana',
+              walletChainType: 'solana-only',
               theme: 'light',
               accentColor: '#3b82f6'
             }

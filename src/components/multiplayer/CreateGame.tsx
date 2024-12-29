@@ -59,49 +59,7 @@ export const CreateGame = () => {
     setIsCreating(true);
     try {
       console.log('Getting program instance...');
-      const program = await getProgram(user.wallet);
-      if (!program) {
-        throw new Error("Failed to initialize program");
-      }
-      console.log('Program initialized successfully');
-
-      // TODO: Remove this once we have a real player two
-      // We need to get the opponent's public key from the game 
-      // const dummyPlayerTwo = anchor.web3.Keypair.generate();
-      // console.log('Generated dummy player two:', dummyPlayerTwo.publicKey.toString());
-      
-      const betAmount = new BN(Number(stakeAmount) * LAMPORTS_PER_SOL);
-      console.log('Calculated bet amount in lamports:', betAmount.toString());
-
-      const [gamePda] = anchor.web3.PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("game"),
-          new anchor.web3.PublicKey(user.wallet.address).toBuffer(),
-          //dummyPlayerTwo.publicKey.toBuffer()
-        ],
-        program.programId
-      );
-      console.log('Generated game PDA:', gamePda.toString());
-
-      const [vaultPda] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("vault"), gamePda.toBuffer()],
-        program.programId
-      );
-      console.log('Generated vault PDA:', vaultPda.toString());
-
-      console.log('Creating game on-chain...');
-      //timestamp
-      const timestamp = Date.now();
-      const tx = await program.methods
-        .createGame(new BN(timestamp), betAmount)
-        .accounts({
-          playerOne: new anchor.web3.PublicKey(user.wallet.address),
-         // playerTwo: dummyPlayerTwo.publicKey,
-          gameAccount: gamePda,
-          vault: vaultPda,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
-        .rpc({ commitment: "confirmed" });
+  
       console.log('Game created on-chain. Transaction signature:', tx);
 
       console.log('Storing game in Supabase...');

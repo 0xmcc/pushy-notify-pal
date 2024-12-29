@@ -8,14 +8,18 @@ export const WalletBalance = () => {
 
   useEffect(() => {
     const fetchBalance = async () => {
+
       if (user?.wallet?.address) {
+        console.log("HEY", user.wallet.address)
         try {
           const connection = new Connection('https://api.devnet.solana.com');
           const publicKey = new PublicKey(user.wallet.address);
+          console.log('publicKey', publicKey);
           const balanceInLamports = await connection.getBalance(publicKey);
           setBalance(balanceInLamports / LAMPORTS_PER_SOL);
         } catch (error) {
           console.error('Error fetching balance:', error);
+   
           setBalance(null);
         }
       }

@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import WalletSection from '@/components/WalletSection';
 import NotificationSection from '@/components/NotificationSection';
 import OnboardingFlow from '@/components/OnboardingFlow';
+import { PublicKey } from '@solana/web3.js';
 
 interface LeaderboardUser {
   did: string;
@@ -27,6 +28,7 @@ const HomePage = () => {
   useEffect(() => {
     const addUserToSupabase = async () => {
       if (authenticated && user) {
+
         try {
           const { error } = await supabase
             .from('users')
@@ -53,6 +55,7 @@ const HomePage = () => {
 
   // Check if user has completed profile
   useEffect(() => {
+    
     const checkProfile = async () => {
       if (authenticated && user) {
         try {
