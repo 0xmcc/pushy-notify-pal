@@ -64,6 +64,80 @@ export type Database = {
           },
         ]
       }
+      matches: {
+        Row: {
+          expiration_date: string
+          id: string
+          loser_did: string | null
+          player1_did: string
+          player1_move: string | null
+          player1_move_timestamp: string | null
+          player2_did: string | null
+          player2_move: string | null
+          player2_move_timestamp: string | null
+          stake_amount: number
+          status: string
+          winner_did: string | null
+        }
+        Insert: {
+          expiration_date?: string
+          id?: string
+          loser_did?: string | null
+          player1_did: string
+          player1_move?: string | null
+          player1_move_timestamp?: string | null
+          player2_did?: string | null
+          player2_move?: string | null
+          player2_move_timestamp?: string | null
+          stake_amount: number
+          status?: string
+          winner_did?: string | null
+        }
+        Update: {
+          expiration_date?: string
+          id?: string
+          loser_did?: string | null
+          player1_did?: string
+          player1_move?: string | null
+          player1_move_timestamp?: string | null
+          player2_did?: string | null
+          player2_move?: string | null
+          player2_move_timestamp?: string | null
+          stake_amount?: number
+          status?: string
+          winner_did?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_loser_did_fkey"
+            columns: ["loser_did"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["did"]
+          },
+          {
+            foreignKeyName: "matches_player1_did_fkey"
+            columns: ["player1_did"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["did"]
+          },
+          {
+            foreignKeyName: "matches_player2_did_fkey"
+            columns: ["player2_did"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["did"]
+          },
+          {
+            foreignKeyName: "matches_winner_did_fkey"
+            columns: ["winner_did"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["did"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null

@@ -4,11 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import * as anchor from '@coral-xyz/anchor';
-import BN from 'bn.js';
 import { supabase } from "@/integrations/supabase/client";
-import { getProgram } from "@/services/game-service";
 import { StakeInput } from "./StakeInput";
 import { GameMoveSelector } from "./GameMoveSelector";
 
@@ -58,28 +54,25 @@ export const CreateGame = () => {
 
     setIsCreating(true);
     try {
-      console.log('Getting program instance...');
-  
-      console.log('Game created on-chain. Transaction signature:', tx);
-
-      console.log('Storing game in Supabase...');
+      console.log('Creating match in Supabase...');
       const { error } = await supabase
-        .from('active_games')
+        .from('matches')
         .insert({
-          creator_did: user.id,
+          player1_did: user.id,
+          player1_move: String(moveToNumber(selectedMove)),
+          player1_move_timestamp: new Date().toISOString(),
           stake_amount: Number(stakeAmount),
-          selected_move: String(moveToNumber(selectedMove)),
-          status: 'active'
+          status: 'pending'
         });
 
       if (error) throw error;
       
-      console.log('Game creation completed successfully');
+      console.log('Match creation completed successfully');
       toast.success("Game created successfully!");
       setStakeAmount("");
       setSelectedMove('');
     } catch (error) {
-      console.error('Error creating game:', error);
+      console.error('Error creating match:', error);
       toast.error("Failed to create game");
     } finally {
       setIsCreating(false);
