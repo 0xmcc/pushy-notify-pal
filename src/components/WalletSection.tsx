@@ -2,47 +2,77 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Wallet, LogOut } from 'lucide-react';
 import { usePrivy } from '@privy-io/react-auth';
+import { useSolanaWallets } from '@privy-io/react-auth/solana';
 
 const WalletSection = () => {
-  const { login, authenticated, logout } = usePrivy();
+  const { login, authenticated, user, logout } = usePrivy();
+  const { createWallet } = useSolanaWallets();
 
-  const handleWalletConnect = async () => {
-    if (!authenticated) {
+  const handleLogin = async () => {
+    try {
       await login();
+      toast.success('Successfully logged in');
+    } catch (error) {
+      toast.error('Failed to login');
     }
   };
 
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success("Logged out successfully");
+      toast.success('Successfully logged out');
     } catch (error) {
-      toast.error("Failed to logout");
-      console.error('Error logging out:', error);
+      toast.error('Failed to logout');
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {!authenticated && (
-        <Button
-          onClick={handleWalletConnect}
-          className="w-full h-12 bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 text-white"
-        >
-          <Wallet className="w-5 h-5" />
-          <span>Connect Wallet</span>
-        </Button>
-      )}
+  const handleCreateWallet = async () => {
+    try {
+      const wallet = await createWallet();
+      console.log('Created wallet:', wallet);
+      toast.success('Successfully created wallet');
+    } catch (error) {
+      console.error('Failed to create wallet:', error);
+      toast.error('Failed to create wallet');
+    }
+  };
 
-      {authenticated && (
-        <Button
-          onClick={handleLogout}
-          className="w-full h-12 bg-gradient-to-r from-gaming-danger to-gaming-warning hover:opacity-90 transition-all duration-200 flex items-center justify-center space-x-2 text-white"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
+  if (!authenticated) {
+    return (
+      <Button onClick={handleLogin} className="w-full">
+        Connect Wallet
+      </Button>
+    );
+  }
+
+  // Show Create Wallet button and Logout if user is authenticated but has no wallet
+  if (!user?.wallet) {
+    return (
+      <div className="space-y-2">
+        <Button onClick={handleCreateWallet} className="w-full">
+          Create Wallet
         </Button>
-      )}
+        <Button onClick={handleLogout} variant="outline" className="w-full">
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
+      </div>
+    );
+  }
+
+  // Show connected state and Logout if user has a wallet
+  return (
+    <div className="space-y-2">
+      <div className="text-center">
+        <p className="text-sm text-gaming-text-secondary mb-2">Connected Wallet</p>
+        <p className="font-mono text-xs truncate">
+          {user.wallet.address}
+        </p>
+      </div>
+      <Button onClick={handleLogout} variant="outline" className="w-full">
+        <LogOut className="mr-2 h-4 w-4" />
+        Logout
+      </Button>
     </div>
   );
 };

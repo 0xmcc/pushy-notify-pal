@@ -45,9 +45,8 @@ export default function RootLayout({
           appId="cm51rmjaz04s9ojzwfaopdnzd"
           config={{
             embeddedWallets: {
-              createOnLogin: 'users-without-wallets',
+              createOnLogin: 'off',//'users-without-wallets',
               noPromptOnSignature: true,
-              chainType: 'solana'
             },
             solanaClusters: [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}],
             appearance: {

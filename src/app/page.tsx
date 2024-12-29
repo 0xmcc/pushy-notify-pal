@@ -10,6 +10,7 @@ import WalletSection from '@/components/WalletSection';
 import NotificationSection from '@/components/NotificationSection';
 import OnboardingFlow from '@/components/OnboardingFlow';
 import { PublicKey } from '@solana/web3.js';
+import { useSolanaWallets } from '@privy-io/react-auth/solana';
 
 interface LeaderboardUser {
   did: string;
@@ -20,9 +21,28 @@ interface LeaderboardUser {
 
 const HomePage = () => {
   const { authenticated, user } = usePrivy();
+  const { createWallet } = useSolanaWallets();
   const [hasProfile, setHasProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([]);
+
+  const handleCreateWallet = async () => {
+    try {
+      const wallet = await createWallet();
+      console.log('Created wallet:', wallet);
+      // Update your UI or proceed with next steps
+    } catch (error) {
+      console.error('Failed to create wallet:', error);
+      // Handle error appropriately
+    }
+  };
+
+  // You might want to check if the user has a wallet and create one if they don't
+  useEffect(() => {
+    if (authenticated && user && !user.wallet) {
+      handleCreateWallet();
+    }
+  }, [authenticated, user]);
 
   // Add user to Supabase when authenticated
   useEffect(() => {
