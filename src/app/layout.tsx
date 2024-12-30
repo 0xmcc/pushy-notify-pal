@@ -7,37 +7,23 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PrivyProvider } from '@privy-io/react-auth';
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
+import { usePrivy } from '@privy-io/react-auth';
+import { useEffect, useState } from 'react';
 
 const queryClient = new QueryClient();
-
-// Define Solana chain configuration
-const SOLANA_DEVNET_CLUSTER = [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}]
-
-
-const SOLANA_DEVNET = {
-  id: 1,
-  name: 'Solana Devnet',
-  rpcUrls: {
-    default: {
-      http: ['https://api.devnet.solana.com'],
-    },
-    privyWalletOverride: {
-      http: ['https://api.devnet.solana.com'],
-    }
-  },
-  nativeCurrency: {
-    name: 'SOL',
-    symbol: 'SOL',
-    decimals: 9,
-  },
-  testnet: true,
-};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { authenticated } = usePrivy();
+  const [showNav, setShowNav] = useState(false);
+
+  useEffect(() => {
+    setShowNav(authenticated);
+  }, [authenticated]);
+
   return (
     <html lang="en" className="h-full">
       <body className="flex flex-col min-h-full">
@@ -51,7 +37,7 @@ export default function RootLayout({
             solanaClusters: [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}],
             appearance: {
               walletChainType: 'solana-only',
-              theme: 'light',
+              theme: 'dark',
               accentColor: '#3b82f6'
             }
           }}
@@ -59,11 +45,11 @@ export default function RootLayout({
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
               <div className="flex flex-col min-h-full">
-                <Header className="fixed top-0 left-0 right-0 z-50" />
+                {true && <Header className="fixed top-0 left-0 right-0 z-50" />}
                 <main className="flex-1 overflow-y-auto pt-20 pb-16">
                   {children}
                 </main>
-                <BottomNav className="fixed bottom-0 left-0 right-0 z-50" />
+                {true && <BottomNav className="fixed bottom-0 left-0 right-0 z-50" />}
               </div>
               <Toaster />
               <Sonner />
