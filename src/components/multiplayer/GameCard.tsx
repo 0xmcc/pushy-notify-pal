@@ -21,6 +21,14 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserWinner = user?.id === game.winner_did;
   const canClaim = isGameComplete && isUserWinner && game.status !== 'completed';
 
+  console.log('Game status:', {
+    gameId: game.id,
+    isGameComplete,
+    isUserWinner,
+    gameStatus: game.status,
+    canClaim
+  });
+
   return (
     <div className="relative border border-gaming-accent/20 rounded-xl p-6 bg-[#0A0A0B]/90 backdrop-blur-sm 
                     hover:border-gaming-accent/40 transition-all duration-300 

@@ -39,11 +39,13 @@ export const GameResult = ({
 
   const handleClaim = async () => {
     try {
+      console.log('Claiming reward for game:', gameId);
       // First update the game status
       await onClaim(gameId, 'claim');
 
       // Then update the winner's off-chain balance
       if (winner_did) {
+        console.log('Updating balance for winner:', winner_did);
         const result = await incrementOffChainBalance(winner_did, stakeAmount * 2);
         if (result === null) {
           toast.error('Failed to update balance');
@@ -107,20 +109,19 @@ export const GameResult = ({
           <p className="text-gaming-success text-xl font-bold animate-pulse">
             You won!
           </p>
+          {canClaim && (
+            <button
+              onClick={handleClaim}
+              className="w-full py-3 px-4 bg-gaming-success/10 hover:bg-gaming-success/20 
+                       text-gaming-success border border-gaming-success/20 rounded-lg 
+                       flex items-center justify-center gap-2 transition-all duration-300
+                       hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+            >
+              <Coins className="w-5 h-5" />
+              <span className="font-medium">Claim {stakeAmount * 2} SOL</span>
+            </button>
+          )}
         </div>
-      )}
-      
-      {canClaim && !isDraw && (
-        <button
-          onClick={handleClaim}
-          className="w-full py-3 px-4 bg-gaming-success/10 hover:bg-gaming-success/20 
-                     text-gaming-success border border-gaming-success/20 rounded-lg 
-                     flex items-center justify-center gap-2 transition-all duration-300
-                     hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-        >
-          <Coins className="w-5 h-5" />
-          <span className="font-medium">Claim {stakeAmount * 2} SOL</span>
-        </button>
       )}
     </div>
   );
