@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { StakeInput } from "./StakeInput";
 import { GameMoveSelector } from "./GameMoveSelector";
 
-// Remove the local Move type and use string type for moves
 const moveToNumber = (move: string): string => {
   switch (move) {
     case 'rock': return '0';
@@ -53,18 +52,45 @@ export const CreateGame = () => {
 
     setIsCreating(true);
     try {
+      // First check user's balance
+      const { data: userData, error: balanceError } = await supabase
+        .from('users')
+        .select('off_chain_balance')
+        .eq('did', user.id)
+        .single();
+
+      if (balanceError) throw balanceError;
+
+      const currentBalance = userData.off_chain_balance || 0;
+      const stakeValue = Number(stakeAmount);
+
+      if (currentBalance < stakeValue) {
+        toast.error(`Insufficient balance. You have ${currentBalance} credits`);
+        return;
+      }
+
+      // Start a transaction to create game and update balance
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ 
+          off_chain_balance: currentBalance - stakeValue 
+        })
+        .eq('did', user.id);
+
+      if (updateError) throw updateError;
+
       console.log('Creating match in Supabase...');
-      const { error } = await supabase
+      const { error: matchError } = await supabase
         .from('matches')
         .insert({
           player1_did: user.id,
           player1_move: moveToNumber(selectedMove),
           player1_move_timestamp: new Date().toISOString(),
-          stake_amount: Number(stakeAmount),
+          stake_amount: stakeValue,
           status: 'pending'
         });
 
-      if (error) throw error;
+      if (matchError) throw matchError;
       
       console.log('Match creation completed successfully');
       toast.success("Game created successfully!");
