@@ -75,18 +75,15 @@ export const WalletBalance = () => {
   if (!user?.id) return null;
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="text-sm text-gaming-text-primary">
-        {userStats.rating}
+    <div className="flex flex-col items-end">
+      <div className="flex items-center gap-1 text-sm text-gaming-text-primary">
+        <span>{userStats.off_chain_balance.toFixed(2)}</span>
+        <span className="text-gaming-text-secondary">credits</span>
       </div>
-      <div className="flex flex-col items-end">
-        <div className="flex items-center gap-1 text-sm text-gaming-text-primary">
-          <span>{userStats.off_chain_balance.toFixed(2)}</span>
-          <span className="text-gaming-text-secondary">credits</span>
-        </div>
-        <div className="text-xs text-gaming-text-secondary">
-          {userStats.matches_won}-{userStats.matches_lost}
-        </div>
+      <div className="flex items-center gap-2 text-xs text-gaming-text-secondary">
+        <span>{userStats.matches_won}-{userStats.matches_lost}</span>
+        <span className="text-gaming-text-secondary">•</span>
+        <span>ELO {userStats.rating}</span>
       </div>
     </div>
   );
