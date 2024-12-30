@@ -43,7 +43,7 @@ export const GameResult = ({
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
-  const hasUserClaimed = isUserPlayer1 ? player1_claimed_at : player2_claimed_at;
+  const hasUserClaimed = isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at;
 
   const handleClaim = async () => {
     try {
