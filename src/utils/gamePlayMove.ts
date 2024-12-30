@@ -56,38 +56,39 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       
       toast.success('Reward claimed successfully!');
     } else {
-      // Check inventory
-      const { data: userData, error: inventoryError } = await supabase
-        .from('users')
-        .select('off_chain_balance, rock_count, paper_count, scissors_count, rating')
-        .eq('did', userId)
-        .single();
-
-      if (inventoryError) throw inventoryError;
-
-      const inventoryColumn = getMoveInventoryColumn(move);
-      if (!userData || userData[inventoryColumn] <= 0) {
-        throw new Error(`You don't have any more of this move available!`);
-      }
-
-      // Get game details
+      // Get game details with proper user ratings
       const { data: gameData, error: gameError } = await supabase
         .from('matches')
         .select(`
           *,
-          player1:player1_did(rating),
-          player2:player2_did(rating)
+          player1:users!matches_player1_did_fkey(rating),
+          player2:users!matches_player2_did_fkey(rating)
         `)
         .eq('id', gameId)
         .single();
 
       if (gameError) throw gameError;
 
+      // Get current user's data
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('rating, off_chain_balance, rock_count, paper_count, scissors_count')
+        .eq('did', userId)
+        .single();
+
+      if (userError) throw userError;
+
       const currentBalance = userData.off_chain_balance || 0;
       const stakeAmount = gameData.stake_amount;
 
       if (currentBalance < stakeAmount) {
         throw new Error(`Insufficient balance. You need ${stakeAmount} credits to play.`);
+      }
+
+      // Check inventory
+      const inventoryColumn = getMoveInventoryColumn(move);
+      if (!userData || userData[inventoryColumn] <= 0) {
+        throw new Error(`You don't have any more of this move available!`);
       }
 
       // Update user's balance and inventory

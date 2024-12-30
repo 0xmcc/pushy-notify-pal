@@ -20,9 +20,15 @@ interface GameArenaProps {
   playerInventory: Inventory;
   opponentInventory: Inventory;
   opponent: Opponent | null;
+  playerRating: number;
 }
 
-export const GameArena = ({ playerInventory, opponentInventory, opponent }: GameArenaProps) => {
+export const GameArena = ({ 
+  playerInventory, 
+  opponentInventory, 
+  opponent,
+  playerRating 
+}: GameArenaProps) => {
   const [selectedMove, setSelectedMove] = useState<string | null>(null);
   const [playerScore, setPlayerScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
@@ -88,8 +94,13 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
           <div className="flex justify-between items-center">
             <div>
               <h3 className="font-semibold text-gaming-text-primary text-lg">You</h3>
-              <div className="text-gaming-text-secondary">
-                Score: {playerScore}/{targetScore}
+              <div className="flex flex-col">
+                <div className="text-gaming-text-secondary">
+                  Score: {playerScore}/{targetScore}
+                </div>
+                <div className="text-gaming-text-secondary">
+                  Rating: {playerRating} ELO
+                </div>
               </div>
             </div>
             <div className="flex space-x-4">

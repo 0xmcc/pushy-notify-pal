@@ -3,12 +3,7 @@
 import { useState } from "react";
 import { UserSearch } from "@/components/arena/UserSearch";
 import { GameArena } from "@/components/arena/GameArena";
-
-interface Inventory {
-  rock: number;
-  paper: number;
-  scissors: number;
-}
+import { usePlayerStats } from "@/hooks/usePlayerStats";
 
 interface Opponent {
   did: string;
@@ -17,16 +12,20 @@ interface Opponent {
 
 const ArenaPage = () => {
   const [opponent, setOpponent] = useState<Opponent | null>(null);
-  const [playerInventory, setPlayerInventory] = useState<Inventory>({
+  const playerStats = usePlayerStats();
+  
+  const playerInventory = {
+    rock: playerStats.rock_count,
+    paper: playerStats.paper_count,
+    scissors: playerStats.scissors_count,
+  };
+
+  // For now, we'll keep opponent inventory static
+  const opponentInventory = {
     rock: 3,
     paper: 3,
     scissors: 3,
-  });
-  const [opponentInventory, setOpponentInventory] = useState<Inventory>({
-    rock: 3,
-    paper: 3,
-    scissors: 3,
-  });
+  };
 
   return (
     <div className="min-h-screen bg-gaming-background text-gaming-text-primary pb-20">
@@ -36,6 +35,7 @@ const ArenaPage = () => {
           playerInventory={playerInventory}
           opponentInventory={opponentInventory}
           opponent={opponent}
+          playerRating={playerStats.rating}
         />
       </div>
     </div>
