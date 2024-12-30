@@ -4,23 +4,22 @@ import { cn } from "@/lib/utils";
 interface GameMoveDisplayProps {
   move: string | null;
   isWinner?: boolean;
+  isDraw?: boolean;
 }
 
-export const GameMoveDisplay = ({ move, isWinner }: GameMoveDisplayProps) => {
+export const GameMoveDisplay = ({ move, isWinner, isDraw }: GameMoveDisplayProps) => {
   const getMoveIcon = (move: string | null) => {
+    const iconClassName = cn(
+      "w-8 h-8 transition-all duration-300",
+      isDraw ? "text-gaming-accent" :
+      isWinner ? "text-gaming-success" : 
+      "text-gaming-text-secondary"
+    );
+
     switch (move) {
-      case '0': return <HandMetal className={cn(
-        "w-8 h-8 transition-all duration-300",
-        isWinner ? "text-gaming-success" : "text-gaming-text-secondary"
-      )} />;
-      case '1': return <FileText className={cn(
-        "w-8 h-8 transition-all duration-300",
-        isWinner ? "text-gaming-success" : "text-gaming-text-secondary"
-      )} />;
-      case '2': return <Scissors className={cn(
-        "w-8 h-8 transition-all duration-300",
-        isWinner ? "text-gaming-success" : "text-gaming-text-secondary"
-      )} />;
+      case '0': return <HandMetal className={iconClassName} />;
+      case '1': return <FileText className={iconClassName} />;
+      case '2': return <Scissors className={iconClassName} />;
       default: return <div className="w-8 h-8 rounded-full bg-gaming-accent/20" />;
     }
   };
@@ -28,9 +27,11 @@ export const GameMoveDisplay = ({ move, isWinner }: GameMoveDisplayProps) => {
   return (
     <div className="relative group">
       {getMoveIcon(move)}
-      {isWinner && (
-        <div className="absolute inset-0 bg-gaming-success/10 rounded-full 
-                      animate-ping opacity-75 group-hover:opacity-100" />
+      {(isWinner || isDraw) && (
+        <div className={cn(
+          "absolute inset-0 rounded-full animate-ping opacity-75 group-hover:opacity-100",
+          isDraw ? "bg-gaming-accent/10" : "bg-gaming-success/10"
+        )} />
       )}
     </div>
   );
