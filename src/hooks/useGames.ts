@@ -33,8 +33,7 @@ export const useGames = (stakeRange: [number, number]) => {
             display_name
           )
         `)
-        .eq('status', 'pending')
-        .is('player2_did', null)
+        .or('status.eq.pending,status.eq.in_progress,status.eq.completed')
         .gte('stake_amount', stakeRange[0])
         .lte('stake_amount', stakeRange[1])
         .order('expiration_date', { ascending: false });
@@ -51,7 +50,8 @@ export const useGames = (stakeRange: [number, number]) => {
         player1_move: match.player1_move,
         player2_move: match.player2_move,
         creator_rating: match.player1?.rating,
-        creator_name: match.player1?.display_name || match.player1_did
+        creator_name: match.player1?.display_name || match.player1_did,
+        winner_did: match.winner_did
       }));
 
       console.log("Fetched games:", realGames);

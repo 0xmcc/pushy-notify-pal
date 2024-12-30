@@ -17,12 +17,28 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserPlayer1 = user?.id === game.player1_did;
   const isUserPlayer2 = user?.id === game.player2_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
+  const isUserWinner = user?.id === game.winner_did;
+  const canClaim = isGameComplete && isUserWinner && game.status !== 'completed';
 
-  const renderMoveIcon = (move: string | null, isGreen = true) => {
+  const getMoveResult = () => {
+    if (!isGameComplete) return null;
+    if (isUserPlayer1) {
+      return isUserWinner ? 'You Won!' : game.winner_did ? 'You Lost!' : 'Draw!';
+    }
+    if (isUserPlayer2) {
+      return isUserWinner ? 'You Won!' : game.winner_did ? 'You Lost!' : 'Draw!';
+    }
+    return game.winner_did ? 'Game Completed' : 'Draw';
+  };
+
+  const renderMoveIcon = (move: string | null, isPlayer1 = true) => {
     if (!move) return null;
+    const isWinner = (isPlayer1 && game.winner_did === game.player1_did) || 
+                    (!isPlayer1 && game.winner_did === game.player2_did);
     return (
-      <div className={`relative p-4 rounded-full ${isGreen ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-        <FileIcon className={`w-8 h-8 ${isGreen ? 'text-green-500' : 'text-red-500'}`} />
+      <div className={`relative p-4 rounded-full ${isWinner ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+        <FileIcon className={`w-8 h-8 ${isWinner ? 'text-green-500' : 'text-red-500'}`} />
+        <span className="block text-center mt-2 text-sm text-gaming-text-secondary">{move}</span>
       </div>
     );
   };
@@ -56,12 +72,17 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
 
       {isGameComplete ? (
         <div className="space-y-4">
+          <div className="text-center mb-4">
+            <span className={`text-xl font-bold ${isUserWinner ? 'text-green-500' : game.winner_did ? 'text-red-500' : 'text-gaming-text-primary'}`}>
+              {getMoveResult()}
+            </span>
+          </div>
           <div className="flex items-center justify-center gap-8">
             {renderMoveIcon(game.player1_move, true)}
             <span className="text-2xl font-bold text-gaming-text-primary">VS</span>
             {renderMoveIcon(game.player2_move, false)}
           </div>
-          {isUserInGame && (
+          {canClaim && (
             <button
               onClick={() => onPlayMove(game.id, 'claim')}
               className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"

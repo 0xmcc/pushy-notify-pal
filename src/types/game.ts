@@ -9,4 +9,5 @@ export interface Game {
   player2_move: string | null;
   creator_rating?: number;
   creator_name?: string;
+  winner_did?: string | null;
 }
