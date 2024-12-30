@@ -1,5 +1,5 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { FileIcon, DollarSign, Scissors, Hand, Newspaper } from "lucide-react";
+import { FileIcon, DollarSign } from "lucide-react";
 import { GameActions } from "./GameActions";
 import { Game } from "@/types/game";
 import { usePrivy } from "@privy-io/react-auth";
@@ -31,17 +31,17 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
     return game.winner_did ? 'Game Completed' : 'Draw';
   };
 
-  const getMoveIcon = (move: string | null) => {
+  const getMoveEmoji = (move: string | null) => {
     if (!move) return null;
     switch (move.toLowerCase()) {
       case 'rock':
-        return <Hand className="w-8 h-8" />;
+        return '✊';
       case 'paper':
-        return <Newspaper className="w-8 h-8" />;
+        return '✋';
       case 'scissors':
-        return <Scissors className="w-8 h-8" />;
+        return '✌️';
       default:
-        return <FileIcon className="w-8 h-8" />;
+        return '❓';
     }
   };
 
@@ -51,7 +51,7 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
                     (!isPlayer1 && game.winner_did === game.player2_did);
     return (
       <div className={`relative p-4 rounded-full ${isWinner ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-        {getMoveIcon(move)}
+        <span className="text-4xl">{getMoveEmoji(move)}</span>
         <span className="block text-center mt-2 text-sm text-gaming-text-secondary">
           {move.charAt(0).toUpperCase() + move.slice(1).toLowerCase()}
         </span>
