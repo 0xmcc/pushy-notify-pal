@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import Logo from "./header/Logo";
-import ProfileButton from "./header/ProfileButton";
+import { Logo } from "./header/Logo";
+import { ProfileButton } from "./header/ProfileButton";
 
 interface HeaderProps {
   className?: string;
