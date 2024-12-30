@@ -1,106 +1,25 @@
 'use client';
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
-import { supabase } from "@/integrations/supabase/client";
 import { StakeInput } from "./StakeInput";
 import { GameMoveSelector } from "./GameMoveSelector";
-
-const moveToNumber = (move: string): string => {
-  switch (move) {
-    case 'rock': return '0';
-    case 'paper': return '1';
-    case 'scissors': return '2';
-    default: return '0';
-  }
-};
+import { useCreateGame } from "@/hooks/useCreateGame";
 
 export const CreateGame = () => {
   const { user, authenticated } = usePrivy();
-  const [stakeAmount, setStakeAmount] = useState("");
-  const [selectedMove, setSelectedMove] = useState<string>('');
-  const [isCreating, setIsCreating] = useState(false);
+  const {
+    stakeAmount,
+    setStakeAmount,
+    selectedMove,
+    setSelectedMove,
+    isCreating,
+    handleCreateGame,
+  } = useCreateGame();
 
-  const handleCreateGame = async () => {
-    console.log('Starting game creation process...');
-    
-    if (!authenticated) {
-      console.log('User not authenticated');
-      toast.error("Please sign in to create a game");
-      return;
-    }
-
-    if (!user?.wallet?.address) {
-      console.log('No wallet address found');
-      toast.error("Please connect your wallet to create a game");
-      return;
-    }
-
-    if (!stakeAmount || isNaN(Number(stakeAmount))) {
-      console.log('Invalid stake amount:', stakeAmount);
-      toast.error("Please enter a valid stake amount");
-      return;
-    }
-
-    if (!selectedMove) {
-      console.log('No move selected');
-      toast.error("Please select your move");
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      // First check user's balance
-      const { data: userData, error: balanceError } = await supabase
-        .from('users')
-        .select('off_chain_balance')
-        .eq('did', user.id)
-        .single();
-
-      if (balanceError) throw balanceError;
-
-      const currentBalance = userData.off_chain_balance || 0;
-      const stakeValue = Number(stakeAmount);
-
-      if (currentBalance < stakeValue) {
-        toast.error(`Insufficient balance. You have ${currentBalance} credits`);
-        return;
-      }
-
-      // Start a transaction to create game and update balance
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ 
-          off_chain_balance: currentBalance - stakeValue 
-        })
-        .eq('did', user.id);
-
-      if (updateError) throw updateError;
-
-      console.log('Creating match in Supabase...');
-      const { error: matchError } = await supabase
-        .from('matches')
-        .insert({
-          player1_did: user.id,
-          player1_move: moveToNumber(selectedMove),
-          player1_move_timestamp: new Date().toISOString(),
-          stake_amount: stakeValue,
-          status: 'pending'
-        });
-
-      if (matchError) throw matchError;
-      
-      console.log('Match creation completed successfully');
-      toast.success("Game created successfully!");
-      setStakeAmount("");
-      setSelectedMove('');
-    } catch (error) {
-      console.error('Error creating match:', error);
-      toast.error("Failed to create game");
-    } finally {
-      setIsCreating(false);
+  const onCreateGame = () => {
+    if (user?.id) {
+      handleCreateGame(user.id);
     }
   };
 
@@ -114,7 +33,7 @@ export const CreateGame = () => {
       </div>
       
       <Button 
-        onClick={handleCreateGame}
+        onClick={onCreateGame}
         disabled={isCreating || !authenticated || !user?.wallet?.address}
         className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-white disabled:opacity-50"
       >
