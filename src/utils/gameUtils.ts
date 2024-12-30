@@ -38,19 +38,33 @@ export const fetchGames = async (stakeRange: [number, number]): Promise<Game[]> 
 
 export const playGameMove = async (gameId: string, move: string, userId: string) => {
   try {
-    const { error } = await supabase
-      .from('matches')
-      .update({ 
-        player2_did: userId,
-        player2_move: move,
-        player2_move_timestamp: new Date().toISOString(),
-        status: 'in_progress'
-      })
-      .eq('id', gameId);
+    if (move === 'claim') {
+      // Handle claim action
+      const { error } = await supabase
+        .from('matches')
+        .update({ 
+          status: 'completed',
+          winner_did: userId
+        })
+        .eq('id', gameId);
 
-    if (error) throw error;
-    
-    toast.success(`Move played successfully!`);
+      if (error) throw error;
+      toast.success('Reward claimed successfully!');
+    } else {
+      // Handle regular move
+      const { error } = await supabase
+        .from('matches')
+        .update({ 
+          player2_did: userId,
+          player2_move: move,
+          player2_move_timestamp: new Date().toISOString(),
+          status: 'in_progress'
+        })
+        .eq('id', gameId);
+
+      if (error) throw error;
+      toast.success(`Move played successfully!`);
+    }
   } catch (error) {
     console.error('Error playing move:', error);
     toast.error("Failed to play move");

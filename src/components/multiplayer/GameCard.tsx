@@ -1,5 +1,5 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { LockIcon } from "lucide-react";
+import { FileIcon, DollarSign } from "lucide-react";
 import { GameActions } from "./GameActions";
 import { Game } from "@/types/game";
 import { usePrivy } from "@privy-io/react-auth";
@@ -12,6 +12,20 @@ interface GameCardProps {
 export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const { user, authenticated } = usePrivy();
   const fallbackAvatar = "/placeholder.svg";
+  
+  const isGameComplete = game.player1_move && game.player2_move;
+  const isUserPlayer1 = user?.id === game.player1_did;
+  const isUserPlayer2 = user?.id === game.player2_did;
+  const isUserInGame = isUserPlayer1 || isUserPlayer2;
+
+  const renderMoveIcon = (move: string | null, isGreen = true) => {
+    if (!move) return null;
+    return (
+      <div className={`relative p-4 rounded-full ${isGreen ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+        <FileIcon className={`w-8 h-8 ${isGreen ? 'text-green-500' : 'text-red-500'}`} />
+      </div>
+    );
+  };
 
   return (
     <div className="relative border border-gaming-accent rounded-lg p-6 bg-gaming-card/80 backdrop-blur-sm hover:bg-gaming-card/90 transition-all">
@@ -38,17 +52,33 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
             <span>{game.stake_amount} SOL</span>
           </p>
         </div>
-        <div className="absolute right-6 top-6">
-          <LockIcon className="w-8 h-8 text-gaming-accent opacity-50" />
-        </div>
       </div>
-      
-      <GameActions 
-        game={game}
-        onPlayMove={onPlayMove}
-        authenticated={authenticated}
-        userId={user?.id}
-      />
+
+      {isGameComplete ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-center gap-8">
+            {renderMoveIcon(game.player1_move, true)}
+            <span className="text-2xl font-bold text-gaming-text-primary">VS</span>
+            {renderMoveIcon(game.player2_move, false)}
+          </div>
+          {isUserInGame && (
+            <button
+              onClick={() => onPlayMove(game.id, 'claim')}
+              className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+            >
+              <DollarSign className="w-5 h-5" />
+              <span>Claim {game.stake_amount * 2} SOL</span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <GameActions 
+          game={game}
+          onPlayMove={onPlayMove}
+          authenticated={authenticated}
+          userId={user?.id}
+        />
+      )}
     </div>
   );
 };
