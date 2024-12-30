@@ -1,6 +1,6 @@
 'use client';
 
-import { Trophy } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { GameMoveDisplay } from "./GameMoveDisplay";
 import { cn } from "@/lib/utils";
 
@@ -34,31 +34,21 @@ export const GameResult = ({
   gameId,
 }: GameResultProps) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-center gap-8">
         <div className={cn(
-          "p-4 rounded-xl transition-all duration-300",
-          "bg-gaming-accent/10 backdrop-blur-sm",
-          "border border-gaming-accent/30",
-          winner_did === player1_did && "bg-gaming-primary/10 border-gaming-primary/30",
-          winner_did === player2_did && "bg-gaming-secondary/10 border-gaming-secondary/30"
+          "p-1 rounded-full",
+          isUserWinner && isUserPlayer1 || !isUserWinner && isUserPlayer2 ? "bg-green-500/10" : "bg-red-500/10"
         )}>
           <GameMoveDisplay 
             move={player1Move} 
             isWinner={winner_did === player1_did}
           />
         </div>
-        
-        <span className="text-2xl font-bold bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent">
-          VS
-        </span>
-        
+        <span className="text-2xl font-bold text-gaming-text-primary">VS</span>
         <div className={cn(
-          "p-4 rounded-xl transition-all duration-300",
-          "bg-gaming-accent/10 backdrop-blur-sm",
-          "border border-gaming-accent/30",
-          winner_did === player2_did && "bg-gaming-primary/10 border-gaming-primary/30",
-          winner_did === player1_did && "bg-gaming-secondary/10 border-gaming-secondary/30"
+          "p-1 rounded-full",
+          isUserWinner && isUserPlayer2 || !isUserWinner && isUserPlayer1 ? "bg-green-500/10" : "bg-red-500/10"
         )}>
           <GameMoveDisplay 
             move={player2Move} 
@@ -70,20 +60,10 @@ export const GameResult = ({
       {canClaim && (
         <button
           onClick={() => onClaim(gameId, 'claim')}
-          className={cn(
-            "w-full py-3 px-6",
-            "bg-gaming-primary/20 hover:bg-gaming-primary/30",
-            "border border-gaming-primary/50 hover:border-gaming-primary",
-            "rounded-lg",
-            "flex items-center justify-center gap-3",
-            "transition-all duration-300",
-            "group"
-          )}
+          className="w-full py-2 px-4 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-lg flex items-center justify-center gap-2 transition-colors"
         >
-          <Trophy className="w-5 h-5 text-gaming-primary group-hover:scale-110 transition-transform" />
-          <span className="text-gaming-primary font-semibold">
-            Claim {stakeAmount * 2} SOL
-          </span>
+          <DollarSign className="w-4 h-4" />
+          <span>Claim {stakeAmount * 2} SOL</span>
         </button>
       )}
     </div>
