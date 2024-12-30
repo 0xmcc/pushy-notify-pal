@@ -1,31 +1,31 @@
 interface GameMoveDisplayProps {
   move: string | null;
-  isWinner: boolean;
+  isWinner?: boolean;
 }
 
 export const GameMoveDisplay = ({ move, isWinner }: GameMoveDisplayProps) => {
   const getMoveEmoji = (move: string | null) => {
-    if (!move) return null;
-    switch (move.toLowerCase()) {
-      case 'rock':
-        return '🪨';
-      case 'paper':
-        return '📄';
-      case 'scissors':
-        return '✂️';
-      default:
-        return '❓';
+    switch (move) {
+      case '0': return '🪨';
+      case '1': return '📄';
+      case '2': return '✂️';
+      default: return '❓';
     }
   };
 
-  if (!move) return null;
+  const getMoveLabel = (move: string | null) => {
+    switch (move) {
+      case '0': return 'Rock';
+      case '1': return 'Paper';
+      case '2': return 'Scissors';
+      default: return 'Unknown';
+    }
+  };
 
   return (
-    <div className={`relative p-4 rounded-full ${isWinner ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-      <span className="text-4xl">{getMoveEmoji(move)}</span>
-      <span className="block text-center mt-2 text-sm text-gaming-text-secondary">
-        {move.charAt(0).toUpperCase() + move.slice(1).toLowerCase()}
-      </span>
+    <div className={`text-center ${isWinner ? 'text-green-500' : ''}`}>
+      <div className="text-4xl mb-1">{getMoveEmoji(move)}</div>
+      <div className="text-sm text-gaming-text-secondary">{getMoveLabel(move)}</div>
     </div>
   );
 };

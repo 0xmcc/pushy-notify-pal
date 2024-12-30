@@ -56,7 +56,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         .from('matches')
         .update({ 
           player2_did: userId,
-          player2_move: move,
+          player2_move: move, // Now sending '0', '1', or '2'
           player2_move_timestamp: new Date().toISOString(),
           status: 'in_progress'
         })
