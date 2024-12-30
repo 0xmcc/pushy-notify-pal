@@ -1,12 +1,10 @@
 'use client';
 
-import { incrementOffChainBalance } from "@/utils/supabaseRPC";
-import { toast } from "sonner";
 import { GameMoveComparison } from "./GameMoveComparison";
 import { DrawResult } from "./game-result/DrawResult";
 import { WinResult } from "./game-result/WinResult";
 import { LoseResult } from "./game-result/LoseResult";
-import { useState, useEffect } from "react";
+import { useGameClaim } from "@/hooks/useGameClaim";
 
 interface GameResultProps {
   player1Move: string | null;
@@ -41,49 +39,19 @@ export const GameResult = ({
   player1_claimed_at,
   player2_claimed_at,
 }: GameResultProps) => {
-  const [localClaimStatus, setLocalClaimStatus] = useState(false);
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
 
-  // Determine if the user has already claimed based on their player position
-  const hasUserClaimed = isUserPlayer1 
-    ? Boolean(player1_claimed_at) 
-    : Boolean(player2_claimed_at);
-
-  // Set initial claim status when component mounts or claim status changes
-  useEffect(() => {
-    if (hasUserClaimed) {
-      setLocalClaimStatus(true);
-    }
-  }, [hasUserClaimed, player1_claimed_at, player2_claimed_at]);
-
-  const handleClaim = async () => {
-    // Double-check both local and database claim status
-    if (localClaimStatus || hasUserClaimed) {
-      toast.error('Reward already claimed');
-      return;
-    }
-
-    try {
-      console.log('Claiming reward for game:', gameId);
-      await onClaim(gameId, 'claim');
-
-      if (winner_did) {
-        console.log('Updating balance for winner:', winner_did);
-        const result = await incrementOffChainBalance(winner_did, stakeAmount * 2);
-        if (result === null) {
-          toast.error('Failed to update balance');
-          return;
-        }
-        setLocalClaimStatus(true);
-        toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`);
-      }
-    } catch (error) {
-      console.error('Error in handleClaim:', error);
-      toast.error('Failed to claim reward');
-    }
-  };
+  const { localClaimStatus, hasUserClaimed, handleClaim } = useGameClaim({
+    isUserPlayer1,
+    player1_claimed_at,
+    player2_claimed_at,
+    winner_did,
+    stakeAmount,
+    gameId,
+    onClaim,
+  });
 
   return (
     <div className="space-y-4">
