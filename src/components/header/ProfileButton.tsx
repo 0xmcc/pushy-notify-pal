@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { UserX, LogOut, BellRing, Bell } from 'lucide-react';
+import { UserX, LogOut, BellRing, Bell, Copy, Check } from 'lucide-react';
 import { usePrivy } from '@privy-io/react-auth';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { WalletBalance } from '../wallet/WalletBalance';
 
@@ -23,6 +24,7 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
   const { user, authenticated, logout } = usePrivy();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -33,6 +35,22 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
   const handleAvatarClick = () => {
     if (user) {
       fileInputRef.current?.click();
+    }
+  };
+
+  const truncateAddress = (address: string) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success('Address copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Failed to copy address');
     }
   };
 
@@ -139,17 +157,29 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
         </DropdownMenuTrigger>
         {authenticated && (
           <DropdownMenuContent align="end" className="w-56 bg-gaming-card text-gaming-text-primary border-gaming-accent">
+            {user?.wallet && (
+              <>
+                <DropdownMenuItem 
+                  onClick={() => copyToClipboard(user.wallet.address)}
+                  className="gap-2 cursor-pointer"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{truncateAddress(user.wallet.address)}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gaming-accent" />
+              </>
+            )}
             {permission !== 'granted' && (
-              <DropdownMenuItem onClick={requestPermission} className="gap-2">
+              <DropdownMenuItem onClick={requestPermission} className="gap-2 cursor-pointer">
                 <BellRing className="w-4 h-4" />
                 <span>Enable Notifications</span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={sendTestNotification} className="gap-2">
+            <DropdownMenuItem onClick={sendTestNotification} className="gap-2 cursor-pointer">
               <Bell className="w-4 h-4" />
               <span>Send Test Notification</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout} className="gap-2">
+            <DropdownMenuItem onClick={handleLogout} className="gap-2 cursor-pointer">
               <LogOut className="w-4 h-4" />
               <span>Logout</span>
             </DropdownMenuItem>
