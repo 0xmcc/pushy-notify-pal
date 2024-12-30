@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
+import { Box } from "lucide-react";
 
 interface Inventory {
   rock: number;
@@ -41,6 +42,13 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
     }
   };
 
+  const renderInventoryCount = (count: number) => (
+    <div className="absolute -top-2 -right-2 flex items-center gap-1 bg-gaming-primary/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-xs font-bold text-white">
+      <Box className="w-3 h-3" />
+      <span>{count}</span>
+    </div>
+  );
+
   return (
     <div className="px-4 py-6 space-y-8">
       {/* Opponent's Side */}
@@ -56,9 +64,18 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
               </div>
             </div>
             <div className="flex space-x-6 text-2xl text-gaming-text-primary">
-              <span>🪨 <span className="text-gaming-text-primary">{opponentInventory.rock}</span></span>
-              <span>📄 <span className="text-gaming-text-primary">{opponentInventory.paper}</span></span>
-              <span>✂️ <span className="text-gaming-text-primary">{opponentInventory.scissors}</span></span>
+              <div className="relative">
+                <span>🪨</span>
+                {renderInventoryCount(opponentInventory.rock)}
+              </div>
+              <div className="relative">
+                <span>📄</span>
+                {renderInventoryCount(opponentInventory.paper)}
+              </div>
+              <div className="relative">
+                <span>✂️</span>
+                {renderInventoryCount(opponentInventory.scissors)}
+              </div>
             </div>
           </div>
           <Progress 
@@ -95,27 +112,30 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
             <div className="flex space-x-4">
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed relative"
                 disabled={playerInventory.rock === 0}
                 onClick={() => setSelectedMove('rock')}
               >
-                🪨 <span className="text-sm ml-1">{playerInventory.rock}</span>
+                🪨
+                {renderInventoryCount(playerInventory.rock)}
               </Button>
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed relative"
                 disabled={playerInventory.paper === 0}
                 onClick={() => setSelectedMove('paper')}
               >
-                📄 <span className="text-sm ml-1">{playerInventory.paper}</span>
+                📄
+                {renderInventoryCount(playerInventory.paper)}
               </Button>
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed relative"
                 disabled={playerInventory.scissors === 0}
                 onClick={() => setSelectedMove('scissors')}
               >
-                ✂️ <span className="text-sm ml-1">{playerInventory.scissors}</span>
+                ✂️
+                {renderInventoryCount(playerInventory.scissors)}
               </Button>
             </div>
           </div>
