@@ -21,24 +21,10 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserWinner = user?.id === game.winner_did;
   const canClaim = isGameComplete && isUserWinner && game.status !== 'completed';
 
-  const determineWinner = (move1: string, move2: string) => {
-    const m1 = parseInt(move1);
-    const m2 = parseInt(move2);
-    
-    if (m1 === m2) return null;
-    
-    if (
-      (m1 === 0 && m2 === 2) || // Rock beats Scissors
-      (m1 === 2 && m2 === 1) || // Scissors beats Paper
-      (m1 === 1 && m2 === 0)    // Paper beats Rock
-    ) {
-      return game.player1_did;
-    }
-    return game.player2_did;
-  };
-
   return (
-    <div className="relative border border-gaming-accent rounded-lg p-6 bg-gaming-card/80 backdrop-blur-sm hover:bg-gaming-card/90 transition-all">
+    <div className="relative border border-gaming-accent/20 rounded-xl p-6 bg-[#0A0A0B]/90 backdrop-blur-sm 
+                    hover:border-gaming-accent/40 transition-all duration-300 
+                    shadow-[0_0_15px_rgba(42,42,46,0.2)] hover:shadow-[0_0_25px_rgba(42,42,46,0.3)]">
       <GameHeader 
         playerDid={game.player1_did}
         playerName={game.creator_name}

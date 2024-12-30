@@ -1,6 +1,6 @@
 'use client';
 
-import { DollarSign } from "lucide-react";
+import { Coins } from "lucide-react";
 import { GameMoveDisplay } from "./GameMoveDisplay";
 import { cn } from "@/lib/utils";
 
@@ -37,18 +37,22 @@ export const GameResult = ({
     <div className="space-y-4">
       <div className="flex items-center justify-center gap-8">
         <div className={cn(
-          "p-1 rounded-full",
-          isUserWinner && isUserPlayer1 || !isUserWinner && isUserPlayer2 ? "bg-green-500/10" : "bg-red-500/10"
+          "p-4 rounded-full transition-all duration-300",
+          winner_did === player1_did ? "bg-gaming-success/10 ring-2 ring-gaming-success/20" : 
+          winner_did === player2_did ? "bg-gaming-danger/10 ring-2 ring-gaming-danger/20" : 
+          "bg-gaming-accent/10"
         )}>
           <GameMoveDisplay 
             move={player1Move} 
             isWinner={winner_did === player1_did}
           />
         </div>
-        <span className="text-2xl font-bold text-gaming-text-primary">VS</span>
+        <span className="text-2xl font-bold text-gaming-text-secondary">VS</span>
         <div className={cn(
-          "p-1 rounded-full",
-          isUserWinner && isUserPlayer2 || !isUserWinner && isUserPlayer1 ? "bg-green-500/10" : "bg-red-500/10"
+          "p-4 rounded-full transition-all duration-300",
+          winner_did === player2_did ? "bg-gaming-success/10 ring-2 ring-gaming-success/20" : 
+          winner_did === player1_did ? "bg-gaming-danger/10 ring-2 ring-gaming-danger/20" : 
+          "bg-gaming-accent/10"
         )}>
           <GameMoveDisplay 
             move={player2Move} 
@@ -57,13 +61,24 @@ export const GameResult = ({
         </div>
       </div>
       
+      {isUserWinner && (
+        <div className="text-center space-y-3">
+          <p className="text-gaming-success text-xl font-bold animate-pulse">
+            You won!
+          </p>
+        </div>
+      )}
+      
       {canClaim && (
         <button
           onClick={() => onClaim(gameId, 'claim')}
-          className="w-full py-2 px-4 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-lg flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-3 px-4 bg-gaming-success/10 hover:bg-gaming-success/20 
+                     text-gaming-success border border-gaming-success/20 rounded-lg 
+                     flex items-center justify-center gap-2 transition-all duration-300
+                     hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
         >
-          <DollarSign className="w-4 h-4" />
-          <span>Claim {stakeAmount * 2} SOL</span>
+          <Coins className="w-5 h-5" />
+          <span className="font-medium">Claim {stakeAmount * 2} SOL</span>
         </button>
       )}
     </div>
