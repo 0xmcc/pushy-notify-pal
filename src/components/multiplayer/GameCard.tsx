@@ -18,7 +18,7 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
       <div className="flex items-center gap-4 mb-6">
         <Avatar className="h-12 w-12 border-2 border-gaming-accent">
           <AvatarImage 
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${game.creator_did}`}
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${game.player1_did}`}
             onError={(e) => {
               console.log("Avatar image failed to load, using fallback");
               (e.target as HTMLImageElement).src = fallbackAvatar;
@@ -30,7 +30,7 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
         </Avatar>
         <div>
           <h3 className="text-lg font-bold text-gaming-text-primary">
-            {game.creator_name || game.creator_did}
+            {game.creator_name || game.player1_did}
           </h3>
           <p className="text-gaming-text-secondary flex items-center gap-2">
             <span>{game.creator_rating || 1200} ELO</span>

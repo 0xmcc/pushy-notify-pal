@@ -1,9 +1,12 @@
 export interface Game {
   id: string;
-  creator_did: string;
+  player1_did: string;
+  player2_did: string | null;
   stake_amount: number;
-  created_at: string;
-  selected_move: string;
+  status: string;
+  expiration_date: string;
+  player1_move: string | null;
+  player2_move: string | null;
   creator_rating?: number;
   creator_name?: string;
 }

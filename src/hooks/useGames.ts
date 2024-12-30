@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Game } from "@/types/game";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchGames, mockGames } from "@/utils/gameUtils";
+import { mockGames } from "@/utils/gameUtils";
 
 export const useGames = (stakeRange: [number, number]) => {
   const [games, setGames] = useState<Game[]>([]);
@@ -23,13 +23,39 @@ export const useGames = (stakeRange: [number, number]) => {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Fetching games from Supabase...");
-      const realGames = await fetchGames(stakeRange);
+      console.log("Fetching games from Supabase matches table...");
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          player1:users!matches_player1_did_fkey(
+            rating,
+            display_name
+          )
+        `)
+        .eq('status', 'pending')
+        .is('player2_did', null)
+        .gte('stake_amount', stakeRange[0])
+        .lte('stake_amount', stakeRange[1])
+        .order('expiration_date', { ascending: false });
+
+      if (matchesError) throw matchesError;
+
+      const realGames = (matchesData || []).map(match => ({
+        id: match.id,
+        player1_did: match.player1_did,
+        player2_did: match.player2_did,
+        stake_amount: match.stake_amount,
+        status: match.status,
+        expiration_date: match.expiration_date,
+        player1_move: match.player1_move,
+        player2_move: match.player2_move,
+        creator_rating: match.player1?.rating,
+        creator_name: match.player1?.display_name || match.player1_did
+      }));
+
       console.log("Fetched games:", realGames);
-      const filteredMockGames = mockGames.filter(
-        game => game.stake_amount >= stakeRange[0] && game.stake_amount <= stakeRange[1]
-      );
-      setGames([...realGames, ...filteredMockGames]);
+      setGames(realGames);
     } catch (err) {
       console.error("Error loading games:", err);
       setError("Failed to load games. Using mock data instead.");
@@ -71,11 +97,11 @@ export const useGames = (stakeRange: [number, number]) => {
     loadGames();
     
     if (!isOffline) {
-      console.log("Setting up realtime subscription for active games");
+      console.log("Setting up realtime subscription for matches");
       const channel = supabase
-        .channel('active_games_changes')
+        .channel('matches_changes')
         .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'active_games' }, 
+          { event: '*', schema: 'public', table: 'matches' }, 
           (payload) => {
             console.log("Received realtime update:", payload);
             loadGames();
