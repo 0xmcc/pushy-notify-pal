@@ -8,21 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { StakeInput } from "./StakeInput";
 import { GameMoveSelector } from "./GameMoveSelector";
 
-type Move = 'rock' | 'paper' | 'scissors';
-
-const moveToNumber = (move: Move): number => {
+// Remove the local Move type and use string type for moves
+const moveToNumber = (move: string): string => {
   switch (move) {
-    case 'rock': return 0;
-    case 'paper': return 1;
-    case 'scissors': return 2;
-    default: return 0;
+    case 'rock': return '0';
+    case 'paper': return '1';
+    case 'scissors': return '2';
+    default: return '0';
   }
 };
 
 export const CreateGame = () => {
   const { user, authenticated } = usePrivy();
   const [stakeAmount, setStakeAmount] = useState("");
-  const [selectedMove, setSelectedMove] = useState<Move | ''>('');
+  const [selectedMove, setSelectedMove] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateGame = async () => {
@@ -59,7 +58,7 @@ export const CreateGame = () => {
         .from('matches')
         .insert({
           player1_did: user.id,
-          player1_move: String(moveToNumber(selectedMove)),
+          player1_move: moveToNumber(selectedMove),
           player1_move_timestamp: new Date().toISOString(),
           stake_amount: Number(stakeAmount),
           status: 'pending'

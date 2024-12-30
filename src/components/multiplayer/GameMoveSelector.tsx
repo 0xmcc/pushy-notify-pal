@@ -1,37 +1,39 @@
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-
-type Move = '0' | '1' | '2';
+import { Button } from "@/components/ui/button";
 
 interface GameMoveSelectorProps {
-  selectedMove: Move | '';
-  onMoveSelect: (move: Move) => void;
+  selectedMove: string;
+  onMoveSelect: (move: string) => void;
 }
 
 export const GameMoveSelector = ({ selectedMove, onMoveSelect }: GameMoveSelectorProps) => {
-  const moves = [
-    { value: '0', label: '🪨 Rock' },
-    { value: '1', label: '📄 Paper' },
-    { value: '2', label: '✂️ Scissors' }
-  ];
-
   return (
     <div className="space-y-2">
-      <Label className="block text-sm font-medium text-gaming-text-secondary">
-        Select Your Move
-      </Label>
-      <RadioGroup
-        value={selectedMove}
-        onValueChange={(value) => onMoveSelect(value as Move)}
-        className="flex gap-4"
-      >
-        {moves.map(({ value, label }) => (
-          <div key={value} className="flex items-center space-x-2">
-            <RadioGroupItem value={value} id={value} className="border-gaming-accent text-gaming-primary" />
-            <Label htmlFor={value} className="text-gaming-text-primary">{label}</Label>
-          </div>
-        ))}
-      </RadioGroup>
+      <label className="block text-sm font-medium text-gaming-text-primary">
+        Select your move
+      </label>
+      <div className="flex gap-2">
+        <Button
+          variant={selectedMove === 'rock' ? 'default' : 'outline'}
+          onClick={() => onMoveSelect('rock')}
+          className="flex-1"
+        >
+          🪨 Rock
+        </Button>
+        <Button
+          variant={selectedMove === 'paper' ? 'default' : 'outline'}
+          onClick={() => onMoveSelect('paper')}
+          className="flex-1"
+        >
+          📄 Paper
+        </Button>
+        <Button
+          variant={selectedMove === 'scissors' ? 'default' : 'outline'}
+          onClick={() => onMoveSelect('scissors')}
+          className="flex-1"
+        >
+          ✂️ Scissors
+        </Button>
+      </div>
     </div>
   );
 };
