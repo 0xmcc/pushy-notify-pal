@@ -8,6 +8,7 @@ import { PrivyProvider } from '@privy-io/react-auth';
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 
+
 const queryClient = new QueryClient();
 
 // Define Solana chain configuration
@@ -57,15 +58,16 @@ export default function RootLayout({
           }}
         >
           <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <Header />
-              <main className="pb-16 pt-20">
+              <TooltipProvider>
+                <Header />
+                <main className="pb-16 pt-20">
+                
                 {children}
               </main>
               <BottomNav />
               <Toaster />
               <Sonner />
-            </TooltipProvider>
+              </TooltipProvider>
           </QueryClientProvider>
         </PrivyProvider>
       </body>
