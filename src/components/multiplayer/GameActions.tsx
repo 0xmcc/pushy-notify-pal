@@ -1,6 +1,7 @@
 import { Game } from "@/types/game";
 import { Button } from "@/components/ui/button";
 import { GameMoveSelector } from "./GameMoveSelector";
+import { useState } from "react";
 
 interface GameActionsProps {
   game: Game;
@@ -21,6 +22,7 @@ export const GameActions = ({
   userId,
   playerInventory 
 }: GameActionsProps) => {
+  const [selectedMove, setSelectedMove] = useState('');
   const isCreator = userId === game.player1_did;
   const canJoinGame = authenticated && !isCreator && game.status === 'pending';
 
@@ -44,7 +46,11 @@ export const GameActions = ({
     return (
       <div className="mt-4">
         <GameMoveSelector 
-          onSelectMove={(move) => onPlayMove(game.id, move)} 
+          selectedMove={selectedMove}
+          onMoveSelect={(move) => {
+            setSelectedMove(move);
+            onPlayMove(game.id, move);
+          }}
           inventory={playerInventory}
           stakeAmount={game.stake_amount}
         />

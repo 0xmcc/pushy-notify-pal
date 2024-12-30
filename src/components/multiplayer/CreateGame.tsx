@@ -18,7 +18,7 @@ export const CreateGame = () => {
     handleCreateGame,
   } = useCreateGame();
 
-  const { inventory } = usePlayerStats(user?.id);
+  const stats = usePlayerStats(user?.id);
 
   return (
     <div className="space-y-6">
@@ -30,9 +30,9 @@ export const CreateGame = () => {
           selectedMove={selectedMove}
           onMoveSelect={setSelectedMove}
           inventory={{
-            rock: inventory?.rock_count ?? 0,
-            paper: inventory?.paper_count ?? 0,
-            scissors: inventory?.scissors_count ?? 0,
+            rock: stats.rock_count,
+            paper: stats.paper_count,
+            scissors: stats.scissors_count,
           }}
           stakeAmount={Number(stakeAmount)}
         />

@@ -7,25 +7,36 @@ export interface PlayerStats {
   rock_count: number;
   paper_count: number;
   scissors_count: number;
+  inventory?: {
+    rock: number;
+    paper: number;
+    scissors: number;
+  };
 }
 
-export const usePlayerStats = () => {
+export const usePlayerStats = (userId?: string) => {
   const { user } = usePrivy();
   const [stats, setStats] = useState<PlayerStats>({
     rating: 1200,
     rock_count: 3,
     paper_count: 3,
-    scissors_count: 3
+    scissors_count: 3,
+    inventory: {
+      rock: 3,
+      paper: 3,
+      scissors: 3
+    }
   });
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!user?.id) return;
+      const targetUserId = userId || user?.id;
+      if (!targetUserId) return;
 
       const { data, error } = await supabase
         .from('users')
         .select('rating, rock_count, paper_count, scissors_count')
-        .eq('did', user.id)
+        .eq('did', targetUserId)
         .single();
 
       if (error) {
@@ -34,7 +45,14 @@ export const usePlayerStats = () => {
       }
 
       if (data) {
-        setStats(data);
+        setStats({
+          ...data,
+          inventory: {
+            rock: data.rock_count,
+            paper: data.paper_count,
+            scissors: data.scissors_count
+          }
+        });
       }
     };
 
@@ -49,7 +67,7 @@ export const usePlayerStats = () => {
           event: 'UPDATE',
           schema: 'public',
           table: 'users',
-          filter: `did=eq.${user?.id}`
+          filter: `did=eq.${userId || user?.id}`
         },
         (payload) => {
           console.log('Stats update received:', payload);
@@ -58,7 +76,12 @@ export const usePlayerStats = () => {
               rating: payload.new.rating,
               rock_count: payload.new.rock_count,
               paper_count: payload.new.paper_count,
-              scissors_count: payload.new.scissors_count
+              scissors_count: payload.new.scissors_count,
+              inventory: {
+                rock: payload.new.rock_count,
+                paper: payload.new.paper_count,
+                scissors: payload.new.scissors_count
+              }
             });
           }
         }
@@ -68,7 +91,7 @@ export const usePlayerStats = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, userId]);
 
   return stats;
 };
