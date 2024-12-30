@@ -1,12 +1,20 @@
 import { Home, Swords, Users } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
-export const BottomNav = () => {
+interface BottomNavProps {
+  className?: string;
+}
+
+export const BottomNav = ({ className }: BottomNavProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-12 bg-[#1A1F2C] border-t border-[#222222] flex items-center justify-around px-4 backdrop-blur-sm bg-opacity-95">
+    <div className={cn(
+      "h-16 bg-[#1A1F2C] border-t border-[#222222] flex items-center justify-around px-4 backdrop-blur-sm bg-opacity-95",
+      className
+    )}>
       <button
         onClick={() => navigate("/")}
         className={`flex flex-col items-center ${

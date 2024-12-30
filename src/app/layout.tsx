@@ -8,7 +8,6 @@ import { PrivyProvider } from '@privy-io/react-auth';
 import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 
-
 const queryClient = new QueryClient();
 
 // Define Solana chain configuration
@@ -40,13 +39,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className="h-full">
+      <body className="flex flex-col min-h-full">
         <PrivyProvider
           appId="cm51rmjaz04s9ojzwfaopdnzd"
           config={{
             embeddedWallets: {
-              createOnLogin: 'off',//'users-without-wallets',
+              createOnLogin: 'off',
               noPromptOnSignature: true,
             },
             solanaClusters: [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}],
@@ -58,16 +57,17 @@ export default function RootLayout({
           }}
         >
           <QueryClientProvider client={queryClient}>
-              <TooltipProvider>
-                <Header />
-                <main className="pb-16 pt-20">
-                
-                {children}
-              </main>
-              <BottomNav />
+            <TooltipProvider>
+              <div className="flex flex-col min-h-full">
+                <Header className="fixed top-0 left-0 right-0 z-50" />
+                <main className="flex-1 overflow-y-auto pt-20 pb-16">
+                  {children}
+                </main>
+                <BottomNav className="fixed bottom-0 left-0 right-0 z-50" />
+              </div>
               <Toaster />
               <Sonner />
-              </TooltipProvider>
+            </TooltipProvider>
           </QueryClientProvider>
         </PrivyProvider>
       </body>
