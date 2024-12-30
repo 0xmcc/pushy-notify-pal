@@ -6,7 +6,7 @@ import { GameMoveComparison } from "./GameMoveComparison";
 import { DrawResult } from "./game-result/DrawResult";
 import { WinResult } from "./game-result/WinResult";
 import { LoseResult } from "./game-result/LoseResult";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface GameResultProps {
   player1Move: string | null;
@@ -45,9 +45,25 @@ export const GameResult = ({
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
-  const hasUserClaimed = localClaimStatus || (isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at);
+  
+  // Check both database and local state for claim status
+  const hasUserClaimed = localClaimStatus || 
+    (isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at);
+
+  // Update local state when database claim status changes
+  useEffect(() => {
+    const dbClaimStatus = isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at;
+    if (dbClaimStatus) {
+      setLocalClaimStatus(true);
+    }
+  }, [player1_claimed_at, player2_claimed_at, isUserPlayer1]);
 
   const handleClaim = async () => {
+    if (hasUserClaimed) {
+      toast.error('Reward already claimed');
+      return;
+    }
+
     try {
       console.log('Claiming reward for game:', gameId);
       await onClaim(gameId, 'claim');
