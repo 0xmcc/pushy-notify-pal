@@ -155,7 +155,10 @@ export type Database = {
           matches_played: number | null
           matches_won: number | null
           off_chain_balance: number | null
+          paper_count: number
           rating: number
+          rock_count: number
+          scissors_count: number
           updated_at: string
           wallet_address: string | null
         }
@@ -169,7 +172,10 @@ export type Database = {
           matches_played?: number | null
           matches_won?: number | null
           off_chain_balance?: number | null
+          paper_count?: number
           rating?: number
+          rock_count?: number
+          scissors_count?: number
           updated_at?: string
           wallet_address?: string | null
         }
@@ -183,7 +189,10 @@ export type Database = {
           matches_played?: number | null
           matches_won?: number | null
           off_chain_balance?: number | null
+          paper_count?: number
           rating?: number
+          rock_count?: number
+          scissors_count?: number
           updated_at?: string
           wallet_address?: string | null
         }

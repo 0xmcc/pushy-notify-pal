@@ -18,6 +18,15 @@ const determineWinner = (move1: string, move2: string) => {
   return m1 > m2 ? 1 : 2;
 };
 
+const getMoveInventoryColumn = (move: string): string => {
+  switch (move) {
+    case '0': return 'rock_count';
+    case '1': return 'paper_count';
+    case '2': return 'scissors_count';
+    default: throw new Error('Invalid move');
+  }
+};
+
 export const playGameMove = async (gameId: string, move: string, userId: string) => {
   try {
     if (move === 'claim') {
@@ -52,7 +61,21 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       
       toast.success('Reward claimed successfully!');
     } else {
-      // First, get the game details to check stake amount and current state
+      // First, check if user has the move in inventory
+      const inventoryColumn = getMoveInventoryColumn(move);
+      const { data: userData, error: inventoryError } = await supabase
+        .from('users')
+        .select(`off_chain_balance, ${inventoryColumn}`)
+        .eq('did', userId)
+        .single();
+
+      if (inventoryError) throw inventoryError;
+
+      if (!userData || userData[inventoryColumn] <= 0) {
+        throw new Error(`You don't have any more of this move available!`);
+      }
+
+      // Get the game details to check stake amount and current state
       const { data: gameData, error: gameError } = await supabase
         .from('matches')
         .select('*, player1_did, player1_move')
@@ -61,15 +84,6 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
 
       if (gameError) throw gameError;
 
-      // Get user's current balance
-      const { data: userData, error: balanceError } = await supabase
-        .from('users')
-        .select('off_chain_balance')
-        .eq('did', userId)
-        .single();
-
-      if (balanceError) throw balanceError;
-
       const currentBalance = userData.off_chain_balance || 0;
       const stakeAmount = gameData.stake_amount;
 
@@ -77,15 +91,16 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         throw new Error(`Insufficient balance. You need ${stakeAmount} credits to play.`);
       }
 
-      // Update user's balance
-      const { error: updateBalanceError } = await supabase
+      // Update user's balance and inventory
+      const { error: updateUserError } = await supabase
         .from('users')
         .update({ 
-          off_chain_balance: currentBalance - stakeAmount 
+          off_chain_balance: currentBalance - stakeAmount,
+          [inventoryColumn]: userData[inventoryColumn] - 1
         })
         .eq('did', userId);
 
-      if (updateBalanceError) throw updateBalanceError;
+      if (updateUserError) throw updateUserError;
 
       // Update the game with the player's move
       const updateData: any = {
@@ -99,10 +114,8 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       if (gameData.player1_move) {
         const winner = determineWinner(gameData.player1_move, move);
         if (winner === null) {
-          // It's a draw
           updateData.status = 'completed';
         } else {
-          // Set winner and loser
           updateData.status = 'completed';
           updateData.winner_did = winner === 1 ? gameData.player1_did : userId;
           updateData.loser_did = winner === 1 ? userId : gameData.player1_did;

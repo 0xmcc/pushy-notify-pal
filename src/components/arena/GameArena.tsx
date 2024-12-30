@@ -95,27 +95,27 @@ export const GameArena = ({ playerInventory, opponentInventory, opponent }: Game
             <div className="flex space-x-4">
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={playerInventory.rock === 0}
                 onClick={() => setSelectedMove('rock')}
               >
-                🪨 <span className="text-gaming-text-primary">{playerInventory.rock}</span>
+                🪨 <span className="text-sm ml-1">{playerInventory.rock}</span>
               </Button>
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={playerInventory.paper === 0}
                 onClick={() => setSelectedMove('paper')}
               >
-                📄 <span className="text-gaming-text-primary">{playerInventory.paper}</span>
+                📄 <span className="text-sm ml-1">{playerInventory.paper}</span>
               </Button>
               <Button
                 variant="ghost"
-                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary"
+                className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={playerInventory.scissors === 0}
                 onClick={() => setSelectedMove('scissors')}
               >
-                ✂️ <span className="text-gaming-text-primary">{playerInventory.scissors}</span>
+                ✂️ <span className="text-sm ml-1">{playerInventory.scissors}</span>
               </Button>
             </div>
           </div>
