@@ -21,16 +21,35 @@ const determineWinner = (move1: string, move2: string) => {
 export const playGameMove = async (gameId: string, move: string, userId: string) => {
   try {
     if (move === 'claim') {
-      // Handle claim action
-      const { error } = await supabase
+      // Get the current game state
+      const { data: game, error: gameError } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', gameId)
+        .single();
+
+      if (gameError) throw gameError;
+
+      // Determine which player is claiming
+      const isPlayer1 = userId === game.player1_did;
+      const updateField = isPlayer1 ? 'player1_claimed_at' : 'player2_claimed_at';
+
+      // Check if already claimed
+      if ((isPlayer1 && game.player1_claimed_at) || (!isPlayer1 && game.player2_claimed_at)) {
+        throw new Error('Reward already claimed');
+      }
+
+      // Update the claim timestamp
+      const { error: claimError } = await supabase
         .from('matches')
         .update({ 
-          status: 'completed',
-          winner_did: userId
+          [updateField]: new Date().toISOString(),
+          status: 'completed'
         })
         .eq('id', gameId);
 
-      if (error) throw error;
+      if (claimError) throw claimError;
+      
       toast.success('Reward claimed successfully!');
     } else {
       // First, get the game details to check stake amount and current state
