@@ -71,13 +71,16 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       // First, check if user has the move in inventory
       const { data: userData, error: inventoryError } = await supabase
         .from('users')
-        .select<'users', UserInventory>(`off_chain_balance, ${getMoveInventoryColumn(move)}`)
+        .select('off_chain_balance, rock_count, paper_count, scissors_count')
         .eq('did', userId)
         .single();
 
       if (inventoryError) throw inventoryError;
 
-      if (!userData || userData[getMoveInventoryColumn(move) as keyof UserInventory] <= 0) {
+      const inventory = userData as UserInventory;
+      const inventoryColumn = getMoveInventoryColumn(move);
+      
+      if (!inventory || inventory[inventoryColumn as keyof UserInventory] <= 0) {
         throw new Error(`You don't have any more of this move available!`);
       }
 
@@ -90,7 +93,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
 
       if (gameError) throw gameError;
 
-      const currentBalance = userData.off_chain_balance || 0;
+      const currentBalance = inventory.off_chain_balance || 0;
       const stakeAmount = gameData.stake_amount;
 
       if (currentBalance < stakeAmount) {
@@ -102,7 +105,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         .from('users')
         .update({ 
           off_chain_balance: currentBalance - stakeAmount,
-          [getMoveInventoryColumn(move)]: userData[getMoveInventoryColumn(move) as keyof UserInventory] - 1
+          [inventoryColumn]: inventory[inventoryColumn as keyof UserInventory] - 1
         })
         .eq('did', userId);
 
