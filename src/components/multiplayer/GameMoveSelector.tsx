@@ -1,37 +1,42 @@
-import { useInventory } from "@/hooks/useInventory";
-import { MoveButton } from "./MoveButton";
+import { Button } from "@/components/ui/button";
 
 interface GameMoveSelectorProps {
-  selectedMove: string;
-  onMoveSelect: (move: string) => void;
+  onSelectMove: (move: string) => void;
+  inventory: {
+    rock: number;
+    paper: number;
+    scissors: number;
+  };
+  stakeAmount: number;
 }
 
-export const GameMoveSelector = ({ selectedMove, onMoveSelect }: GameMoveSelectorProps) => {
-  const inventory = useInventory();
-
-  const moves = [
-    { id: 'rock', emoji: '🪨', count: inventory.rock_count },
-    { id: 'paper', emoji: '📄', count: inventory.paper_count },
-    { id: 'scissors', emoji: '✂️', count: inventory.scissors_count }
-  ];
-
+export const GameMoveSelector = ({ onSelectMove, inventory, stakeAmount }: GameMoveSelectorProps) => {
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gaming-text-primary">
-        Select your move
-      </label>
-      <div className="flex gap-2">
-        {moves.map((move) => (
-          <MoveButton
-            key={move.id}
-            move={move.id}
-            emoji={move.emoji}
-            count={move.count}
-            isSelected={selectedMove === move.id}
-            onSelect={onMoveSelect}
-          />
-        ))}
-      </div>
+    <div className="flex justify-center gap-4">
+      <Button
+        variant="ghost"
+        className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => onSelectMove('0')}
+        disabled={inventory.rock === 0}
+      >
+        🪨 <span className="text-sm ml-1">{inventory.rock}</span>
+      </Button>
+      <Button
+        variant="ghost"
+        className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => onSelectMove('1')}
+        disabled={inventory.paper === 0}
+      >
+        📄 <span className="text-sm ml-1">{inventory.paper}</span>
+      </Button>
+      <Button
+        variant="ghost"
+        className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => onSelectMove('2')}
+        disabled={inventory.scissors === 0}
+      >
+        ✂️ <span className="text-sm ml-1">{inventory.scissors}</span>
+      </Button>
     </div>
   );
 };

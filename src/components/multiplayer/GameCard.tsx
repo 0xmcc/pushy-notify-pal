@@ -5,6 +5,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { GameHeader } from "./GameHeader";
 import { GameActions } from "./GameActions";
 import { GameResult } from "./GameResult";
+import { usePlayerStats } from "@/hooks/usePlayerStats";
 
 interface GameCardProps {
   game: Game;
@@ -13,6 +14,7 @@ interface GameCardProps {
 
 export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const { user, authenticated } = usePrivy();
+  const playerStats = usePlayerStats();
   
   const isGameComplete = game.player1_move && game.player2_move;
   const isUserPlayer1 = user?.id === game.player1_did;
@@ -65,6 +67,11 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
           onPlayMove={onPlayMove}
           authenticated={authenticated}
           userId={user?.id}
+          playerInventory={{
+            rock: playerStats.rock_count,
+            paper: playerStats.paper_count,
+            scissors: playerStats.scissors_count
+          }}
         />
       )}
     </div>
