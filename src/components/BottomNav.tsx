@@ -12,7 +12,7 @@ export const BottomNav = ({ className }: BottomNavProps) => {
 
   return (
     <div className={cn(
-      "h-16 bg-[#1A1F2C] border-t border-[#222222] flex items-center justify-around px-4 backdrop-blur-sm bg-opacity-95",
+      "h-20 bg-[#1A1F2C] border-t border-[#222222] flex items-center justify-around px-4 backdrop-blur-sm bg-opacity-95",
       className
     )}>
       <button
@@ -23,8 +23,8 @@ export const BottomNav = ({ className }: BottomNavProps) => {
             : "text-[#8E9196] hover:text-[#D6BCFA]"
         } transition-colors duration-200`}
       >
-        <Home size={20} />
-        <span className="text-[10px] mt-0.5">Home</span>
+        <Home size={24} />
+        <span className="text-xs mt-1">Home</span>
       </button>
       <button
         onClick={() => navigate("/arena")}
@@ -34,8 +34,8 @@ export const BottomNav = ({ className }: BottomNavProps) => {
             : "text-[#8E9196] hover:text-[#D6BCFA]"
         } transition-colors duration-200`}
       >
-        <Swords size={20} />
-        <span className="text-[10px] mt-0.5">Arena</span>
+        <Swords size={24} />
+        <span className="text-xs mt-1">Arena</span>
       </button>
       <button
         onClick={() => navigate("/multiplayer")}
@@ -45,8 +45,8 @@ export const BottomNav = ({ className }: BottomNavProps) => {
             : "text-[#8E9196] hover:text-[#D6BCFA]"
         } transition-colors duration-200`}
       >
-        <Users size={20} />
-        <span className="text-[10px] mt-0.5">Multi</span>
+        <Users size={24} />
+        <span className="text-xs mt-1">Multi</span>
       </button>
     </div>
   );
