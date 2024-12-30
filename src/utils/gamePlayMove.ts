@@ -22,6 +22,41 @@ const determineWinner = (move1: string, move2: string) => {
   return m1 > m2 ? 1 : 2;
 };
 
+const sendPushNotification = async (userId: string, title: string, body: string, gameData?: any) => {
+  try {
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('push_subscription')
+      .eq('did', userId)
+      .single();
+
+    if (userError || !userData?.push_subscription) {
+      console.log('No push subscription found for user:', userId);
+      return;
+    }
+
+    const subscription = JSON.parse(userData.push_subscription);
+    const payload = JSON.stringify({
+      title,
+      body,
+      gameData
+    });
+
+    await fetch('/api/push-notification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        subscription,
+        payload
+      })
+    });
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+  }
+};
+
 export const playGameMove = async (gameId: string, move: string, userId: string) => {
   try {
     if (move === 'claim') {
@@ -61,8 +96,8 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         .from('matches')
         .select(`
           *,
-          player1:users!matches_player1_did_fkey(rating),
-          player2:users!matches_player2_did_fkey(rating)
+          player1:users!matches_player1_did_fkey(rating, display_name),
+          player2:users!matches_player2_did_fkey(rating, display_name)
         `)
         .eq('id', gameId)
         .single();
@@ -72,7 +107,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       // Get current user's data
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('rating, off_chain_balance, rock_count, paper_count, scissors_count')
+        .select('rating, off_chain_balance, rock_count, paper_count, scissors_count, display_name')
         .eq('did', userId)
         .single();
 
@@ -110,6 +145,14 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         status: 'in_progress'
       };
 
+      // Send notification to the opponent (player1)
+      await sendPushNotification(
+        gameData.player1_did,
+        'New Move Played!',
+        `${userData.display_name} has made their move in your game!`,
+        { gameId }
+      );
+
       // If both moves are present, determine winner and calculate ELO changes
       if (gameData.player1_move) {
         const winner = determineWinner(gameData.player1_move, move);
@@ -129,6 +172,24 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
           updateData.loser_did = loserId;
           updateData.winner_rating_change = ratingChange;
           updateData.loser_rating_change = -ratingChange;
+
+          // Send game result notification
+          const winnerName = winner === 1 ? gameData.player1.display_name : userData.display_name;
+          const loserName = winner === 1 ? userData.display_name : gameData.player1.display_name;
+          
+          await sendPushNotification(
+            winnerId,
+            'Victory!',
+            `You won against ${loserName}! Rating +${ratingChange}`,
+            { gameId }
+          );
+          
+          await sendPushNotification(
+            loserId,
+            'Game Over',
+            `You lost against ${winnerName}. Rating -${ratingChange}`,
+            { gameId }
+          );
           
           // Update ratings immediately
           await supabase

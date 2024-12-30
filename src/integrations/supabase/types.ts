@@ -66,9 +66,12 @@ export type Database = {
       }
       matches: {
         Row: {
+          created_at: string
           expiration_date: string
           id: string
+          is_ranked: boolean | null
           loser_did: string | null
+          loser_rating_change: number | null
           player1_claimed_at: string | null
           player1_did: string
           player1_move: string | null
@@ -80,11 +83,15 @@ export type Database = {
           stake_amount: number
           status: string
           winner_did: string | null
+          winner_rating_change: number | null
         }
         Insert: {
+          created_at?: string
           expiration_date?: string
           id?: string
+          is_ranked?: boolean | null
           loser_did?: string | null
+          loser_rating_change?: number | null
           player1_claimed_at?: string | null
           player1_did: string
           player1_move?: string | null
@@ -96,11 +103,15 @@ export type Database = {
           stake_amount: number
           status?: string
           winner_did?: string | null
+          winner_rating_change?: number | null
         }
         Update: {
+          created_at?: string
           expiration_date?: string
           id?: string
+          is_ranked?: boolean | null
           loser_did?: string | null
+          loser_rating_change?: number | null
           player1_claimed_at?: string | null
           player1_did?: string
           player1_move?: string | null
@@ -112,6 +123,7 @@ export type Database = {
           stake_amount?: number
           status?: string
           winner_did?: string | null
+          winner_rating_change?: number | null
         }
         Relationships: [
           {
