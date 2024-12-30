@@ -12,4 +12,7 @@ export interface Game {
   winner_did?: string | null;
   player1_claimed_at?: string | null;
   player2_claimed_at?: string | null;
+  winner_rating_change?: number;
+  loser_rating_change?: number;
+  is_ranked?: boolean;
 }
