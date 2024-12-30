@@ -81,9 +81,9 @@ export const WalletBalance = () => {
         <span className="text-gaming-text-secondary">credits</span>
       </div>
       <div className="flex items-center gap-2 text-xs text-gaming-text-secondary">
-        <span>{userStats.matches_won}-{userStats.matches_lost}</span>
+        <span>{userStats.rating} ELO</span>
         <span className="text-gaming-text-secondary">•</span>
-        <span>ELO {userStats.rating}</span>
+        <span>{userStats.matches_won}-{userStats.matches_lost}</span>
       </div>
     </div>
   );
