@@ -148,6 +148,7 @@ export type Database = {
           matches_lost: number | null
           matches_played: number | null
           matches_won: number | null
+          off_chain_balance: number | null
           rating: number
           updated_at: string
           wallet_address: string | null
@@ -161,6 +162,7 @@ export type Database = {
           matches_lost?: number | null
           matches_played?: number | null
           matches_won?: number | null
+          off_chain_balance?: number | null
           rating?: number
           updated_at?: string
           wallet_address?: string | null
@@ -174,6 +176,7 @@ export type Database = {
           matches_lost?: number | null
           matches_played?: number | null
           matches_won?: number | null
+          off_chain_balance?: number | null
           rating?: number
           updated_at?: string
           wallet_address?: string | null

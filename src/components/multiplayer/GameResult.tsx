@@ -3,6 +3,8 @@
 import { Coins } from "lucide-react";
 import { GameMoveDisplay } from "./GameMoveDisplay";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface GameResultProps {
   player1Move: string | null;
@@ -34,6 +36,34 @@ export const GameResult = ({
   gameId,
 }: GameResultProps) => {
   const isDraw = player1Move && player2Move && !winner_did;
+
+  const handleClaim = async () => {
+    try {
+      // First update the game status
+      await onClaim(gameId, 'claim');
+
+      // Then update the winner's off-chain balance
+      if (winner_did) {
+        const { error } = await supabase
+          .from('users')
+          .update({ 
+            off_chain_balance: supabase.rpc('increment', { amount: stakeAmount * 2 })
+          })
+          .eq('did', winner_did);
+
+        if (error) {
+          console.error('Error updating off-chain balance:', error);
+          toast.error('Failed to update balance');
+          return;
+        }
+
+        toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`);
+      }
+    } catch (error) {
+      console.error('Error in handleClaim:', error);
+      toast.error('Failed to claim reward');
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -74,7 +104,7 @@ export const GameResult = ({
           </p>
           {(isUserPlayer1 || isUserPlayer2) && (
             <p className="text-gaming-text-secondary mt-2">
-              Stakes have been returned
+              Stakes have been returned to your off-chain balance
             </p>
           )}
         </div>
@@ -90,7 +120,7 @@ export const GameResult = ({
       
       {canClaim && !isDraw && (
         <button
-          onClick={() => onClaim(gameId, 'claim')}
+          onClick={handleClaim}
           className="w-full py-3 px-4 bg-gaming-success/10 hover:bg-gaming-success/20 
                      text-gaming-success border border-gaming-success/20 rounded-lg 
                      flex items-center justify-center gap-2 transition-all duration-300
