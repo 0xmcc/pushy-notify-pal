@@ -5,6 +5,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { StakeInput } from "./StakeInput";
 import { GameMoveSelector } from "./GameMoveSelector";
 import { useCreateGame } from "@/hooks/useCreateGame";
+import { usePlayerStats } from "@/hooks/usePlayerStats";
 
 export const CreateGame = () => {
   const { user, authenticated } = usePrivy();
@@ -17,11 +18,7 @@ export const CreateGame = () => {
     handleCreateGame,
   } = useCreateGame();
 
-  const onCreateGame = () => {
-    if (user?.id) {
-      handleCreateGame(user.id);
-    }
-  };
+  const { inventory } = usePlayerStats(user?.id);
 
   return (
     <div className="space-y-6">
@@ -29,11 +26,20 @@ export const CreateGame = () => {
       
       <div className="space-y-4">
         <StakeInput value={stakeAmount} onChange={setStakeAmount} />
-        <GameMoveSelector selectedMove={selectedMove} onMoveSelect={setSelectedMove} />
+        <GameMoveSelector 
+          selectedMove={selectedMove}
+          onMoveSelect={setSelectedMove}
+          inventory={{
+            rock: inventory?.rock_count ?? 0,
+            paper: inventory?.paper_count ?? 0,
+            scissors: inventory?.scissors_count ?? 0,
+          }}
+          stakeAmount={Number(stakeAmount)}
+        />
       </div>
       
       <Button 
-        onClick={onCreateGame}
+        onClick={() => user?.id && handleCreateGame(user.id)}
         disabled={isCreating || !authenticated || !user?.wallet?.address}
         className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-white disabled:opacity-50"
       >
