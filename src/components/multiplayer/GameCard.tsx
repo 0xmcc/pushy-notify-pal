@@ -1,9 +1,12 @@
+'use client';
+
 import { DollarSign } from "lucide-react";
 import { GameActions } from "./GameActions";
 import { Game } from "@/types/game";
 import { usePrivy } from "@privy-io/react-auth";
 import { GameHeader } from "./GameHeader";
 import { GameMoveDisplay } from "./GameMoveDisplay";
+import { cn } from "@/lib/utils";
 
 interface GameCardProps {
   game: Game;
@@ -79,31 +82,46 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
 
       {isGameComplete ? (
         <div className="space-y-4">
-          <div className="text-center mb-4">
-            <span className={`text-xl font-bold ${isUserWinner ? 'text-green-500' : game.winner_did ? 'text-red-500' : 'text-gaming-text-primary'}`}>
+          <div className="flex items-center justify-center gap-8">
+            <div className={cn(
+              "p-1 rounded-full",
+              isUserWinner && isUserPlayer1 || !isUserWinner && isUserPlayer2 ? "bg-green-500/10" : "bg-red-500/10"
+            )}>
+              <GameMoveDisplay 
+                move={game.player1_move} 
+                isWinner={game.winner_did === game.player1_did}
+              />
+            </div>
+            <span className="text-2xl font-bold text-gaming-text-primary">VS</span>
+            <div className={cn(
+              "p-1 rounded-full",
+              isUserWinner && isUserPlayer2 || !isUserWinner && isUserPlayer1 ? "bg-green-500/10" : "bg-red-500/10"
+            )}>
+              <GameMoveDisplay 
+                move={game.player2_move} 
+                isWinner={game.winner_did === game.player2_did}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2 text-center">
+            <span className={cn(
+              "text-sm font-semibold",
+              isUserWinner ? "text-green-500" : game.winner_did ? "text-red-500" : "text-gaming-text-primary"
+            )}>
               {getMoveResult()}
             </span>
+            
+            {canClaim && (
+              <button
+                onClick={() => onPlayMove(game.id, 'claim')}
+                className="w-full py-2 px-4 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-lg flex items-center justify-center gap-2 transition-colors"
+              >
+                <DollarSign className="w-4 h-4" />
+                <span>Claim {game.stake_amount * 2} SOL</span>
+              </button>
+            )}
           </div>
-          <div className="flex items-center justify-center gap-8">
-            <GameMoveDisplay 
-              move={game.player1_move} 
-              isWinner={game.winner_did === game.player1_did}
-            />
-            <span className="text-2xl font-bold text-gaming-text-primary">VS</span>
-            <GameMoveDisplay 
-              move={game.player2_move} 
-              isWinner={game.winner_did === game.player2_did}
-            />
-          </div>
-          {canClaim && (
-            <button
-              onClick={() => onPlayMove(game.id, 'claim')}
-              className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
-            >
-              <DollarSign className="w-5 h-5" />
-              <span>Claim {game.stake_amount * 2} SOL</span>
-            </button>
-          )}
         </div>
       ) : (
         <GameActions 
