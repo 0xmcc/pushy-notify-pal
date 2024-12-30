@@ -3,7 +3,9 @@
 import { incrementOffChainBalance } from "@/utils/supabaseRPC";
 import { toast } from "sonner";
 import { GameMoveComparison } from "./GameMoveComparison";
-import { ClaimButton } from "./ClaimButton";
+import { DrawResult } from "./game-result/DrawResult";
+import { WinResult } from "./game-result/WinResult";
+import { LoseResult } from "./game-result/LoseResult";
 
 interface GameResultProps {
   player1Move: string | null;
@@ -41,8 +43,6 @@ export const GameResult = ({
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
-
-  // Check if the current user has already claimed
   const hasUserClaimed = isUserPlayer1 ? player1_claimed_at : player2_claimed_at;
 
   const handleClaim = async () => {
@@ -76,42 +76,18 @@ export const GameResult = ({
         player2_did={player2_did}
       />
       
-      {isDraw && (
-        <div className="text-center">
-          <p className="text-gaming-accent text-xl font-bold animate-pulse">
-            Draw!
-          </p>
-          {(isUserPlayer1 || isUserPlayer2) && (
-            <p className="text-gaming-text-secondary mt-2">
-              Stakes have been returned to your off-chain balance
-            </p>
-          )}
-        </div>
-      )}
+      {isDraw && <DrawResult isUserInGame={isUserInGame} />}
       
       {isUserWinner && !isDraw && (
-        <div className="text-center space-y-3">
-          <p className="text-gaming-success text-xl font-bold animate-pulse">
-            You won!
-          </p>
-          {canClaim && !hasUserClaimed && (
-            <ClaimButton onClaim={handleClaim} stakeAmount={stakeAmount} />
-          )}
-          {hasUserClaimed && (
-            <p className="text-gaming-text-secondary">
-              Reward already claimed
-            </p>
-          )}
-        </div>
+        <WinResult
+          canClaim={canClaim}
+          hasUserClaimed={hasUserClaimed}
+          handleClaim={handleClaim}
+          stakeAmount={stakeAmount}
+        />
       )}
 
-      {hasLost && (
-        <div className="text-center">
-          <p className="text-gaming-danger text-xl font-bold animate-pulse">
-            You lost!
-          </p>
-        </div>
-      )}
+      {hasLost && <LoseResult />}
     </div>
   );
 };
