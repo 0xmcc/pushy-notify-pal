@@ -51,23 +51,60 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       if (error) throw error;
       toast.success('Reward claimed successfully!');
     } else {
-      // Handle regular move
-      const { error } = await supabase
+      // First, get the game details to check stake amount
+      const { data: gameData, error: gameError } = await supabase
+        .from('matches')
+        .select('stake_amount')
+        .eq('id', gameId)
+        .single();
+
+      if (gameError) throw gameError;
+
+      // Get user's current balance
+      const { data: userData, error: balanceError } = await supabase
+        .from('users')
+        .select('off_chain_balance')
+        .eq('did', userId)
+        .single();
+
+      if (balanceError) throw balanceError;
+
+      const currentBalance = userData.off_chain_balance || 0;
+      const stakeAmount = gameData.stake_amount;
+
+      if (currentBalance < stakeAmount) {
+        throw new Error(`Insufficient balance. You need ${stakeAmount} credits to play.`);
+      }
+
+      // Update user's balance
+      const { error: updateBalanceError } = await supabase
+        .from('users')
+        .update({ 
+          off_chain_balance: currentBalance - stakeAmount 
+        })
+        .eq('did', userId);
+
+      if (updateBalanceError) throw updateBalanceError;
+
+      // Update the game with the player's move
+      const { error: moveError } = await supabase
         .from('matches')
         .update({ 
           player2_did: userId,
-          player2_move: move, // Now sending '0', '1', or '2'
+          player2_move: move,
           player2_move_timestamp: new Date().toISOString(),
           status: 'in_progress'
         })
         .eq('id', gameId);
 
-      if (error) throw error;
+      if (moveError) throw moveError;
+      
       toast.success(`Move played successfully!`);
     }
   } catch (error) {
     console.error('Error playing move:', error);
-    toast.error("Failed to play move");
+    toast.error(error instanceof Error ? error.message : "Failed to play move");
+    throw error;
   }
 };
 
