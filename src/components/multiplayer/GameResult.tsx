@@ -36,6 +36,7 @@ export const GameResult = ({
   gameId,
 }: GameResultProps) => {
   const [isExiting, setIsExiting] = useState(false);
+  const [showSparkles, setShowSparkles] = useState(false);
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
@@ -53,19 +54,18 @@ export const GameResult = ({
           return;
         }
         
+        // Show sparkles animation
+        setShowSparkles(true);
+        
         // Show success animation and message
         toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`, {
           duration: 3000,
         });
         
-        // Trigger exit animation
-        setIsExiting(true);
-        
-        // Remove from list after animation
+        // Trigger exit animation after a brief delay
         setTimeout(() => {
-          // The parent component will handle removal from the list
-          // through the realtime subscription
-        }, 500);
+          setIsExiting(true);
+        }, 800);
       }
     } catch (error) {
       console.error('Error in handleClaim:', error);
@@ -74,8 +74,16 @@ export const GameResult = ({
   };
 
   return (
-    <div className={`space-y-4 transition-all duration-500 
-                    ${isExiting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+    <div className={`relative space-y-4 transition-all duration-500 
+                    ${isExiting ? 'animate-claim-success' : 'opacity-100 scale-100'}`}>
+      {showSparkles && (
+        <>
+          <div className="absolute -top-2 -left-2 w-4 h-4 bg-gaming-success animate-sparkle delay-100" />
+          <div className="absolute top-2 -right-2 w-4 h-4 bg-gaming-success animate-sparkle delay-300" />
+          <div className="absolute -bottom-2 left-1/2 w-4 h-4 bg-gaming-success animate-sparkle delay-500" />
+        </>
+      )}
+      
       <GameMoveComparison
         player1Move={player1Move}
         player2Move={player2Move}
