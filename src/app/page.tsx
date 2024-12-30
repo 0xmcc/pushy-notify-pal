@@ -4,9 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Trophy, Sparkles } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
 
 interface LeaderboardUser {
   did: string;
@@ -48,7 +46,6 @@ const HomePage = () => {
     checkProfile();
   }, [authenticated, user]);
 
-  // Fetch leaderboard data
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -79,78 +76,11 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gaming-background via-gaming-background/95 to-gaming-background relative overflow-hidden">
-      {/* Animated background elements */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),rgba(139,92,246,0.05))] pointer-events-none" />
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20" />
       
       <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="gaming-card backdrop-blur-sm bg-gaming-card/80 border-gaming-accent/50 shadow-[0_0_15px_rgba(139,92,246,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(139,92,246,0.2)] group">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-2 rounded-lg bg-gaming-accent/20 group-hover:bg-gaming-accent/30 transition-colors">
-              <Trophy className="w-8 h-8 text-gaming-warning" />
-            </div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-gaming-warning to-gaming-primary bg-clip-text text-transparent">
-              Top Warriors
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {leaderboardUsers.map((player, index) => (
-              <div 
-                key={player.did}
-                className={cn(
-                  "flex items-center gap-4 p-4 rounded-lg transition-all duration-300",
-                  "bg-gaming-accent/10 hover:bg-gaming-accent/20",
-                  "border border-gaming-accent/30 hover:border-gaming-accent/50",
-                  "group/player relative overflow-hidden"
-                )}
-              >
-                {/* Top 3 indicator */}
-                {index < 3 && (
-                  <div className="absolute top-0 right-0 p-1">
-                    <Sparkles className="w-4 h-4 text-gaming-warning animate-pulse" />
-                  </div>
-                )}
-                
-                <span className={cn(
-                  "text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full",
-                  index === 0 && "bg-yellow-500/20 text-yellow-500",
-                  index === 1 && "bg-gray-300/20 text-gray-300",
-                  index === 2 && "bg-amber-600/20 text-amber-600",
-                  index > 2 && "bg-gaming-accent/20 text-gaming-text-secondary"
-                )}>
-                  #{index + 1}
-                </span>
-                
-                <Avatar className={cn(
-                  "h-10 w-10 border-2 transition-all duration-300",
-                  "group-hover/player:scale-110",
-                  index === 0 && "border-yellow-500 ring-2 ring-yellow-500/20",
-                  index === 1 && "border-gray-300 ring-2 ring-gray-300/20",
-                  index === 2 && "border-amber-600 ring-2 ring-amber-600/20",
-                  index > 2 && "border-gaming-accent"
-                )}>
-                  <AvatarImage 
-                    src={player.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${player.did}`} 
-                    alt={player.display_name || player.did} 
-                  />
-                  <AvatarFallback>
-                    {(player.display_name || player.did).slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1">
-                  <p className="font-medium text-gaming-text-primary group-hover/player:text-white transition-colors">
-                    {player.display_name || player.did}
-                  </p>
-                  <p className="text-sm text-gaming-text-secondary flex items-center gap-2">
-                    <span className="font-mono">{player.rating}</span>
-                    <span className="text-xs text-gaming-accent">ELO</span>
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <LeaderboardList users={leaderboardUsers} />
       </div>
     </div>
   );
