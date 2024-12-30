@@ -2,29 +2,43 @@ import { useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from "@/integrations/supabase/client";
 
+interface UserStats {
+  off_chain_balance: number;
+  matches_won: number;
+  matches_lost: number;
+}
+
 export const WalletBalance = () => {
   const { user } = usePrivy();
-  const [offChainBalance, setOffChainBalance] = useState<number>(0);
+  const [userStats, setUserStats] = useState<UserStats>({
+    off_chain_balance: 0,
+    matches_won: 0,
+    matches_lost: 0
+  });
 
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchStats = async () => {
       if (user?.id) {
         const { data: userData, error } = await supabase
           .from('users')
-          .select('off_chain_balance')
+          .select('off_chain_balance, matches_won, matches_lost')
           .eq('did', user.id)
           .single();
 
         if (error) {
-          console.error('Error fetching off-chain balance:', error);
+          console.error('Error fetching user stats:', error);
         } else {
-          setOffChainBalance(userData.off_chain_balance || 0);
+          setUserStats({
+            off_chain_balance: userData.off_chain_balance || 0,
+            matches_won: userData.matches_won || 0,
+            matches_lost: userData.matches_lost || 0
+          });
         }
       }
     };
 
     // Initial fetch
-    fetchBalance();
+    fetchStats();
 
     // Set up real-time subscription
     const channel = supabase
@@ -38,9 +52,12 @@ export const WalletBalance = () => {
           filter: `did=eq.${user?.id}`
         },
         (payload) => {
-          console.log('Balance update received:', payload);
-          const newBalance = payload.new.off_chain_balance || 0;
-          setOffChainBalance(newBalance);
+          console.log('Stats update received:', payload);
+          setUserStats({
+            off_chain_balance: payload.new.off_chain_balance || 0,
+            matches_won: payload.new.matches_won || 0,
+            matches_lost: payload.new.matches_lost || 0
+          });
         }
       )
       .subscribe();
@@ -54,9 +71,14 @@ export const WalletBalance = () => {
   if (!user?.id) return null;
 
   return (
-    <div className="flex items-center gap-1 text-sm text-gaming-text-primary">
-      <span>{offChainBalance.toFixed(2)}</span>
-      <span className="text-gaming-text-secondary">credits</span>
+    <div className="flex flex-col items-end">
+      <div className="flex items-center gap-1 text-sm text-gaming-text-primary">
+        <span>{userStats.off_chain_balance.toFixed(2)}</span>
+        <span className="text-gaming-text-secondary">credits</span>
+      </div>
+      <div className="text-xs text-gaming-text-secondary">
+        {userStats.matches_won}-{userStats.matches_lost}
+      </div>
     </div>
   );
 };
