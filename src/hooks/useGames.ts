@@ -100,11 +100,17 @@ export const useGames = (stakeRange: [number, number]) => {
       console.log("Setting up realtime subscription for matches");
       const channel = supabase
         .channel('matches_changes')
-        .on('postgres_changes', 
-          { event: '*', schema: 'public', table: 'matches' }, 
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'matches',
+            filter: `stake_amount=gte.${stakeRange[0]}&stake_amount=lte.${stakeRange[1]}`
+          },
           (payload) => {
             console.log("Received realtime update:", payload);
-            loadGames();
+            loadGames(); // Reload the entire games list when any change occurs
           }
         )
         .subscribe((status) => {
