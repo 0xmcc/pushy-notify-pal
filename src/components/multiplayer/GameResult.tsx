@@ -45,21 +45,17 @@ export const GameResult = ({
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
-  
-  // Check both database and local state for claim status
-  const hasUserClaimed = localClaimStatus || 
-    (isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at);
 
-  // Update local state when database claim status changes
+  // Check if the user has already claimed based on their player position
+  const hasUserClaimed = isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at;
+
+  // Set initial claim status on component mount
   useEffect(() => {
-    const dbClaimStatus = isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at;
-    if (dbClaimStatus) {
-      setLocalClaimStatus(true);
-    }
-  }, [player1_claimed_at, player2_claimed_at, isUserPlayer1]);
+    setLocalClaimStatus(hasUserClaimed);
+  }, [hasUserClaimed]);
 
   const handleClaim = async () => {
-    if (hasUserClaimed) {
+    if (localClaimStatus || hasUserClaimed) {
       toast.error('Reward already claimed');
       return;
     }
@@ -100,7 +96,7 @@ export const GameResult = ({
       {isUserWinner && !isDraw && (
         <WinResult
           canClaim={canClaim}
-          hasUserClaimed={hasUserClaimed}
+          hasUserClaimed={localClaimStatus || hasUserClaimed}
           handleClaim={handleClaim}
           stakeAmount={stakeAmount}
         />
