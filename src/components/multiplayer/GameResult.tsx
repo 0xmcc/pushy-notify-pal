@@ -4,6 +4,7 @@ import { incrementOffChainBalance } from "@/utils/supabaseRPC";
 import { toast } from "sonner";
 import { GameMoveComparison } from "./GameMoveComparison";
 import { ClaimButton } from "./ClaimButton";
+import { useState } from "react";
 
 interface GameResultProps {
   player1Move: string | null;
@@ -34,6 +35,7 @@ export const GameResult = ({
   onClaim,
   gameId,
 }: GameResultProps) => {
+  const [isExiting, setIsExiting] = useState(false);
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
@@ -50,7 +52,20 @@ export const GameResult = ({
           toast.error('Failed to update balance');
           return;
         }
-        toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`);
+        
+        // Show success animation and message
+        toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`, {
+          duration: 3000,
+        });
+        
+        // Trigger exit animation
+        setIsExiting(true);
+        
+        // Remove from list after animation
+        setTimeout(() => {
+          // The parent component will handle removal from the list
+          // through the realtime subscription
+        }, 500);
       }
     } catch (error) {
       console.error('Error in handleClaim:', error);
@@ -59,7 +74,8 @@ export const GameResult = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 transition-all duration-500 
+                    ${isExiting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
       <GameMoveComparison
         player1Move={player1Move}
         player2Move={player2Move}
@@ -70,7 +86,7 @@ export const GameResult = ({
       />
       
       {isDraw && (
-        <div className="text-center">
+        <div className="text-center animate-fade-in">
           <p className="text-gaming-accent text-xl font-bold animate-pulse">
             Draw!
           </p>
@@ -83,7 +99,7 @@ export const GameResult = ({
       )}
       
       {isUserWinner && !isDraw && (
-        <div className="text-center space-y-3">
+        <div className="text-center space-y-3 animate-fade-in">
           <p className="text-gaming-success text-xl font-bold animate-pulse">
             You won!
           </p>
@@ -94,7 +110,7 @@ export const GameResult = ({
       )}
 
       {hasLost && (
-        <div className="text-center">
+        <div className="text-center animate-fade-in">
           <p className="text-gaming-danger text-xl font-bold animate-pulse">
             You lost!
           </p>
