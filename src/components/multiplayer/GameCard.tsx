@@ -1,5 +1,5 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { FileIcon, DollarSign, Scissors, Rock, Scroll } from "lucide-react";
+import { FileIcon, DollarSign, Scissors, Hand, Newspaper } from "lucide-react";
 import { GameActions } from "./GameActions";
 import { Game } from "@/types/game";
 import { usePrivy } from "@privy-io/react-auth";
@@ -35,9 +35,9 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
     if (!move) return null;
     switch (move.toLowerCase()) {
       case 'rock':
-        return <Rock className="w-8 h-8" />;
+        return <Hand className="w-8 h-8" />;
       case 'paper':
-        return <Scroll className="w-8 h-8" />;
+        return <Newspaper className="w-8 h-8" />;
       case 'scissors':
         return <Scissors className="w-8 h-8" />;
       default:
