@@ -6,6 +6,7 @@ import { GameMoveComparison } from "./GameMoveComparison";
 import { DrawResult } from "./game-result/DrawResult";
 import { WinResult } from "./game-result/WinResult";
 import { LoseResult } from "./game-result/LoseResult";
+import { useState } from "react";
 
 interface GameResultProps {
   player1Move: string | null;
@@ -40,10 +41,11 @@ export const GameResult = ({
   player1_claimed_at,
   player2_claimed_at,
 }: GameResultProps) => {
+  const [localClaimStatus, setLocalClaimStatus] = useState(false);
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
-  const hasUserClaimed = isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at;
+  const hasUserClaimed = localClaimStatus || (isUserPlayer1 ? !!player1_claimed_at : !!player2_claimed_at);
 
   const handleClaim = async () => {
     try {
@@ -57,6 +59,7 @@ export const GameResult = ({
           toast.error('Failed to update balance');
           return;
         }
+        setLocalClaimStatus(true);
         toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`);
       }
     } catch (error) {
