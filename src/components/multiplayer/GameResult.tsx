@@ -18,6 +18,8 @@ interface GameResultProps {
   canClaim: boolean;
   onClaim: (gameId: string, move: string) => Promise<void>;
   gameId: string;
+  player1_claimed_at?: string | null;
+  player2_claimed_at?: string | null;
 }
 
 export const GameResult = ({
@@ -33,10 +35,15 @@ export const GameResult = ({
   canClaim,
   onClaim,
   gameId,
+  player1_claimed_at,
+  player2_claimed_at,
 }: GameResultProps) => {
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
+
+  // Check if the current user has already claimed
+  const hasUserClaimed = isUserPlayer1 ? player1_claimed_at : player2_claimed_at;
 
   const handleClaim = async () => {
     try {
@@ -87,8 +94,13 @@ export const GameResult = ({
           <p className="text-gaming-success text-xl font-bold animate-pulse">
             You won!
           </p>
-          {canClaim && (
+          {canClaim && !hasUserClaimed && (
             <ClaimButton onClaim={handleClaim} stakeAmount={stakeAmount} />
+          )}
+          {hasUserClaimed && (
+            <p className="text-gaming-text-secondary">
+              Reward already claimed
+            </p>
           )}
         </div>
       )}

@@ -10,4 +10,6 @@ export interface Game {
   creator_rating?: number;
   creator_name?: string;
   winner_did?: string | null;
+  player1_claimed_at?: string | null;
+  player2_claimed_at?: string | null;
 }

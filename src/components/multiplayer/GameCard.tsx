@@ -19,7 +19,6 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserPlayer2 = user?.id === game.player2_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const isUserWinner = user?.id === game.winner_did;
-  // Changed this line to allow claiming when status is 'completed' and user is winner
   const canClaim = isGameComplete && isUserWinner;
 
   console.log('Game status:', {
@@ -27,7 +26,9 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
     isGameComplete,
     isUserWinner,
     gameStatus: game.status,
-    canClaim
+    canClaim,
+    player1_claimed_at: game.player1_claimed_at,
+    player2_claimed_at: game.player2_claimed_at
   });
 
   return (
@@ -55,6 +56,8 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
           canClaim={canClaim}
           onClaim={onPlayMove}
           gameId={game.id}
+          player1_claimed_at={game.player1_claimed_at}
+          player2_claimed_at={game.player2_claimed_at}
         />
       ) : (
         <GameActions 

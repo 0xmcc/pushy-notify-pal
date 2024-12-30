@@ -69,9 +69,11 @@ export type Database = {
           expiration_date: string
           id: string
           loser_did: string | null
+          player1_claimed_at: string | null
           player1_did: string
           player1_move: string | null
           player1_move_timestamp: string | null
+          player2_claimed_at: string | null
           player2_did: string | null
           player2_move: string | null
           player2_move_timestamp: string | null
@@ -83,9 +85,11 @@ export type Database = {
           expiration_date?: string
           id?: string
           loser_did?: string | null
+          player1_claimed_at?: string | null
           player1_did: string
           player1_move?: string | null
           player1_move_timestamp?: string | null
+          player2_claimed_at?: string | null
           player2_did?: string | null
           player2_move?: string | null
           player2_move_timestamp?: string | null
@@ -97,9 +101,11 @@ export type Database = {
           expiration_date?: string
           id?: string
           loser_did?: string | null
+          player1_claimed_at?: string | null
           player1_did?: string
           player1_move?: string | null
           player1_move_timestamp?: string | null
+          player2_claimed_at?: string | null
           player2_did?: string | null
           player2_move?: string | null
           player2_move_timestamp?: string | null
