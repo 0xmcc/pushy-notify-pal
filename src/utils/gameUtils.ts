@@ -2,6 +2,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Game } from "@/types/game";
 import { toast } from "sonner";
 
+interface UserInventory {
+  off_chain_balance: number;
+  rock_count: number;
+  paper_count: number;
+  scissors_count: number;
+}
+
 const determineWinner = (move1: string, move2: string) => {
   // Convert moves to numbers for easier comparison
   const m1 = parseInt(move1);
@@ -62,16 +69,15 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       toast.success('Reward claimed successfully!');
     } else {
       // First, check if user has the move in inventory
-      const inventoryColumn = getMoveInventoryColumn(move);
       const { data: userData, error: inventoryError } = await supabase
         .from('users')
-        .select(`off_chain_balance, ${inventoryColumn}`)
+        .select<'users', UserInventory>(`off_chain_balance, ${getMoveInventoryColumn(move)}`)
         .eq('did', userId)
         .single();
 
       if (inventoryError) throw inventoryError;
 
-      if (!userData || userData[inventoryColumn] <= 0) {
+      if (!userData || userData[getMoveInventoryColumn(move) as keyof UserInventory] <= 0) {
         throw new Error(`You don't have any more of this move available!`);
       }
 
@@ -96,7 +102,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         .from('users')
         .update({ 
           off_chain_balance: currentBalance - stakeAmount,
-          [inventoryColumn]: userData[inventoryColumn] - 1
+          [getMoveInventoryColumn(move)]: userData[getMoveInventoryColumn(move) as keyof UserInventory] - 1
         })
         .eq('did', userId);
 
