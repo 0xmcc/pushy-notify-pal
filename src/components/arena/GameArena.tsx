@@ -107,26 +107,26 @@ export const GameArena = ({
               <Button
                 variant="ghost"
                 className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={playerInventory.rock === 0}
+                disabled={!playerInventory || playerInventory.rock === 0}
                 onClick={() => setSelectedMove('rock')}
               >
-                🪨 <span className="text-sm ml-1">{playerInventory.rock}</span>
+                🪨 <span className="text-sm ml-1">{playerInventory?.rock || 0}</span>
               </Button>
               <Button
                 variant="ghost"
                 className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={playerInventory.paper === 0}
+                disabled={!playerInventory || playerInventory.paper === 0}
                 onClick={() => setSelectedMove('paper')}
               >
-                📄 <span className="text-sm ml-1">{playerInventory.paper}</span>
+                📄 <span className="text-sm ml-1">{playerInventory?.paper || 0}</span>
               </Button>
               <Button
                 variant="ghost"
                 className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={playerInventory.scissors === 0}
+                disabled={!playerInventory || playerInventory.scissors === 0}
                 onClick={() => setSelectedMove('scissors')}
               >
-                ✂️ <span className="text-sm ml-1">{playerInventory.scissors}</span>
+                ✂️ <span className="text-sm ml-1">{playerInventory?.scissors || 0}</span>
               </Button>
             </div>
           </div>
