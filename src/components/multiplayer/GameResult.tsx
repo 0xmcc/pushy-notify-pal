@@ -35,6 +35,8 @@ export const GameResult = ({
   gameId,
 }: GameResultProps) => {
   const isDraw = player1Move && player2Move && !winner_did;
+  const isUserInGame = isUserPlayer1 || isUserPlayer2;
+  const hasLost = isUserInGame && !isUserWinner && !isDraw;
 
   const handleClaim = async () => {
     try {
@@ -88,6 +90,14 @@ export const GameResult = ({
           {canClaim && (
             <ClaimButton onClaim={handleClaim} stakeAmount={stakeAmount} />
           )}
+        </div>
+      )}
+
+      {hasLost && (
+        <div className="text-center">
+          <p className="text-gaming-danger text-xl font-bold animate-pulse">
+            You lost!
+          </p>
         </div>
       )}
     </div>
