@@ -7,10 +7,7 @@ import { toast } from "sonner";
 import { Trophy, Swords, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import WalletSection from '@/components/WalletSection';
-import NotificationSection from '@/components/NotificationSection';
 import OnboardingFlow from '@/components/OnboardingFlow';
-import { PublicKey } from '@solana/web3.js';
-import { useSolanaWallets } from '@privy-io/react-auth/solana';
 import { cn } from "@/lib/utils";
 
 interface LeaderboardUser {
@@ -22,59 +19,10 @@ interface LeaderboardUser {
 
 const HomePage = () => {
   const { authenticated, user } = usePrivy();
-  const { createWallet } = useSolanaWallets();
   const [hasProfile, setHasProfile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([]);
 
-  const handleCreateWallet = async () => {
-    try {
-      const wallet = await createWallet();
-      console.log('Created wallet:', wallet);
-      // Update your UI or proceed with next steps
-    } catch (error) {
-      console.error('Failed to create wallet:', error);
-      // Handle error appropriately
-    }
-  };
-
-  // You might want to check if the user has a wallet and create one if they don't
-  useEffect(() => {
-    if (authenticated && user && !user.wallet) {
-      handleCreateWallet();
-    }
-  }, [authenticated, user]);
-
-  // Add user to Supabase when authenticated
-  useEffect(() => {
-    const addUserToSupabase = async () => {
-      if (authenticated && user) {
-
-        try {
-          const { error } = await supabase
-            .from('users')
-            .upsert({ 
-              did: user.id,
-              rating: 1200 
-            }, { 
-              onConflict: 'did'
-            });
-
-          if (error) {
-            console.error('Error adding user to Supabase:', error);
-            toast.error('Failed to sync user data');
-          }
-        } catch (error) {
-          console.error('Error in addUserToSupabase:', error);
-          toast.error('Failed to sync user data');
-        }
-      }
-    };
-
-    addUserToSupabase();
-  }, [authenticated, user]);
-
-  // Check if user has completed profile
   useEffect(() => {
     
     const checkProfile = async () => {
@@ -156,11 +104,7 @@ const HomePage = () => {
                 </h2>
               </div>
               <WalletSection />
-              {authenticated && !hasProfile ? (
-                <OnboardingFlow />
-              ) : (
-                <NotificationSection />
-              )}
+              {authenticated && !hasProfile && <OnboardingFlow />}
             </div>
           </div>
 
