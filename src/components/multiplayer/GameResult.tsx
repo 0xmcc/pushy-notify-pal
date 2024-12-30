@@ -3,7 +3,7 @@
 import { Coins } from "lucide-react";
 import { GameMoveDisplay } from "./GameMoveDisplay";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { incrementOffChainBalance } from "@/utils/supabaseRPC";
 import { toast } from "sonner";
 
 interface GameResultProps {
@@ -44,19 +44,11 @@ export const GameResult = ({
 
       // Then update the winner's off-chain balance
       if (winner_did) {
-        const { error } = await supabase
-          .from('users')
-          .update({ 
-            off_chain_balance: supabase.rpc('increment', { amount: stakeAmount * 2 })
-          })
-          .eq('did', winner_did);
-
-        if (error) {
-          console.error('Error updating off-chain balance:', error);
+        const result = await incrementOffChainBalance(winner_did, stakeAmount * 2);
+        if (result === null) {
           toast.error('Failed to update balance');
           return;
         }
-
         toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`);
       }
     } catch (error) {
