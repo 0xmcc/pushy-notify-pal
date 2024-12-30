@@ -1,8 +1,9 @@
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { FileIcon, DollarSign } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { GameActions } from "./GameActions";
 import { Game } from "@/types/game";
 import { usePrivy } from "@privy-io/react-auth";
+import { GameHeader } from "./GameHeader";
+import { GameMoveDisplay } from "./GameMoveDisplay";
 
 interface GameCardProps {
   game: Game;
@@ -11,7 +12,6 @@ interface GameCardProps {
 
 export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const { user, authenticated } = usePrivy();
-  const fallbackAvatar = "/placeholder.svg";
   
   const isGameComplete = game.player1_move && game.player2_move;
   const isUserPlayer1 = user?.id === game.player1_did;
@@ -31,60 +31,14 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
     return game.winner_did ? 'Game Completed' : 'Draw';
   };
 
-  const getMoveEmoji = (move: string | null) => {
-    if (!move) return null;
-    switch (move.toLowerCase()) {
-      case 'rock':
-        return '✊';
-      case 'paper':
-        return '✋';
-      case 'scissors':
-        return '✌️';
-      default:
-        return '❓';
-    }
-  };
-
-  const renderMoveIcon = (move: string | null, isPlayer1 = true) => {
-    if (!move) return null;
-    const isWinner = (isPlayer1 && game.winner_did === game.player1_did) || 
-                    (!isPlayer1 && game.winner_did === game.player2_did);
-    return (
-      <div className={`relative p-4 rounded-full ${isWinner ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-        <span className="text-4xl">{getMoveEmoji(move)}</span>
-        <span className="block text-center mt-2 text-sm text-gaming-text-secondary">
-          {move.charAt(0).toUpperCase() + move.slice(1).toLowerCase()}
-        </span>
-      </div>
-    );
-  };
-
   return (
     <div className="relative border border-gaming-accent rounded-lg p-6 bg-gaming-card/80 backdrop-blur-sm hover:bg-gaming-card/90 transition-all">
-      <div className="flex items-center gap-4 mb-6">
-        <Avatar className="h-12 w-12 border-2 border-gaming-accent">
-          <AvatarImage 
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${game.player1_did}`}
-            onError={(e) => {
-              console.log("Avatar image failed to load, using fallback");
-              (e.target as HTMLImageElement).src = fallbackAvatar;
-            }}
-          />
-          <AvatarFallback>
-            {game.creator_name?.slice(0, 2).toUpperCase() || 'XX'}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <h3 className="text-lg font-bold text-gaming-text-primary">
-            {game.creator_name || game.player1_did}
-          </h3>
-          <p className="text-gaming-text-secondary flex items-center gap-2">
-            <span>{game.creator_rating || 1200} ELO</span>
-            <span className="text-gaming-accent">•</span>
-            <span>{game.stake_amount} SOL</span>
-          </p>
-        </div>
-      </div>
+      <GameHeader 
+        playerDid={game.player1_did}
+        playerName={game.creator_name}
+        playerRating={game.creator_rating}
+        stakeAmount={game.stake_amount}
+      />
 
       {isGameComplete ? (
         <div className="space-y-4">
@@ -94,9 +48,15 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
             </span>
           </div>
           <div className="flex items-center justify-center gap-8">
-            {renderMoveIcon(game.player1_move, true)}
+            <GameMoveDisplay 
+              move={game.player1_move} 
+              isWinner={game.winner_did === game.player1_did}
+            />
             <span className="text-2xl font-bold text-gaming-text-primary">VS</span>
-            {renderMoveIcon(game.player2_move, false)}
+            <GameMoveDisplay 
+              move={game.player2_move} 
+              isWinner={game.winner_did === game.player2_did}
+            />
           </div>
           {canClaim && (
             <button
