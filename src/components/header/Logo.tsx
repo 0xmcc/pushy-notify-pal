@@ -1,10 +1,10 @@
-import { Gamepad2 } from 'lucide-react';
+import { Swords } from 'lucide-react';
 
 export const Logo = () => {
   return (
     <div className="flex items-center gap-2">
-      <Gamepad2 className="w-6 h-6 text-gaming-primary" />
-      <span className="font-semibold text-gaming-text-primary">GameArena</span>
+      <Swords className="w-6 h-6 text-gaming-primary" />
+      <span className="font-semibold text-gaming-text-primary">Rock Paper Scissors</span>
     </div>
   );
 };
