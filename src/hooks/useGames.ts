@@ -55,7 +55,9 @@ export const useGames = (stakeRange: [number, number]) => {
       }));
 
       console.log("Fetched games:", realGames);
-      setGames(realGames);
+      setGames(realGames.filter(game => 
+        game.stake_amount >= stakeRange[0] && game.stake_amount <= stakeRange[1]
+      ));
     } catch (err) {
       console.error("Error loading games:", err);
       setError("Failed to load games. Using mock data instead.");
@@ -105,8 +107,7 @@ export const useGames = (stakeRange: [number, number]) => {
           { 
             event: '*', 
             schema: 'public', 
-            table: 'matches',
-            filter: `stake_amount=gte.${stakeRange[0]}&stake_amount=lte.${stakeRange[1]}`
+            table: 'matches'
           },
           (payload) => {
             console.log("Received realtime update:", payload);
