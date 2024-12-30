@@ -144,6 +144,10 @@ export type Database = {
           created_at: string
           did: string
           display_name: string | null
+          matches_drawn: number | null
+          matches_lost: number | null
+          matches_played: number | null
+          matches_won: number | null
           rating: number
           updated_at: string
           wallet_address: string | null
@@ -153,6 +157,10 @@ export type Database = {
           created_at?: string
           did: string
           display_name?: string | null
+          matches_drawn?: number | null
+          matches_lost?: number | null
+          matches_played?: number | null
+          matches_won?: number | null
           rating?: number
           updated_at?: string
           wallet_address?: string | null
@@ -162,6 +170,10 @@ export type Database = {
           created_at?: string
           did?: string
           display_name?: string | null
+          matches_drawn?: number | null
+          matches_lost?: number | null
+          matches_played?: number | null
+          matches_won?: number | null
           rating?: number
           updated_at?: string
           wallet_address?: string | null
