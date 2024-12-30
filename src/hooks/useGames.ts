@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Game } from "@/types/game";
 import { supabase } from "@/integrations/supabase/client";
 import { mockGames } from "@/utils/gameUtils";
+import { toast } from "sonner";
 
 export const useGames = (stakeRange: [number, number]) => {
   const [games, setGames] = useState<Game[]>([]);
@@ -111,6 +112,7 @@ export const useGames = (stakeRange: [number, number]) => {
           },
           (payload) => {
             console.log("Received realtime update:", payload);
+            toast.info("Game updated!");
             loadGames(); // Reload the entire games list when any change occurs
           }
         )
