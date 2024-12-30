@@ -2,38 +2,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Game } from "@/types/game";
 import { toast } from "sonner";
 
-export const fetchGames = async (stakeRange: [number, number]): Promise<Game[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('matches')
-      .select('*, player1:users!matches_player1_did_fkey(rating, display_name)')
-      .eq('status', 'pending')
-      .is('player2_did', null)
-      .gte('stake_amount', stakeRange[0])
-      .lte('stake_amount', stakeRange[1])
-      .order('expiration_date', { ascending: false });
-
-    if (error) throw error;
-    
-    const realGames = (data || []).map(game => ({
-      id: game.id,
-      player1_did: game.player1_did,
-      player2_did: game.player2_did,
-      stake_amount: game.stake_amount,
-      status: game.status,
-      expiration_date: game.expiration_date,
-      player1_move: game.player1_move,
-      player2_move: game.player2_move,
-      creator_rating: game.player1?.rating,
-      creator_name: game.player1?.display_name || game.player1_did
-    }));
-    
-    return realGames;
-  } catch (error) {
-    console.error('Error fetching games:', error);
-    toast.error("Failed to load games");
-    return [];
-  }
+const determineWinner = (move1: string, move2: string) => {
+  // Convert moves to numbers for easier comparison
+  const m1 = parseInt(move1);
+  const m2 = parseInt(move2);
+  
+  // 0 = rock, 1 = paper, 2 = scissors
+  if (m1 === m2) return null; // Draw
+  
+  // Rock beats Scissors
+  if (m1 === 0 && m2 === 2) return 1;
+  if (m1 === 2 && m2 === 0) return 2;
+  
+  // Higher number wins in all other cases
+  return m1 > m2 ? 1 : 2;
 };
 
 export const playGameMove = async (gameId: string, move: string, userId: string) => {
@@ -51,10 +33,10 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       if (error) throw error;
       toast.success('Reward claimed successfully!');
     } else {
-      // First, get the game details to check stake amount
+      // First, get the game details to check stake amount and current state
       const { data: gameData, error: gameError } = await supabase
         .from('matches')
-        .select('stake_amount')
+        .select('*, player1_did, player1_move')
         .eq('id', gameId)
         .single();
 
@@ -87,14 +69,30 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       if (updateBalanceError) throw updateBalanceError;
 
       // Update the game with the player's move
+      const updateData: any = {
+        player2_did: userId,
+        player2_move: move,
+        player2_move_timestamp: new Date().toISOString(),
+        status: 'in_progress'
+      };
+
+      // If both moves are present, determine the winner
+      if (gameData.player1_move) {
+        const winner = determineWinner(gameData.player1_move, move);
+        if (winner === null) {
+          // It's a draw
+          updateData.status = 'completed';
+        } else {
+          // Set winner and loser
+          updateData.status = 'completed';
+          updateData.winner_did = winner === 1 ? gameData.player1_did : userId;
+          updateData.loser_did = winner === 1 ? userId : gameData.player1_did;
+        }
+      }
+
       const { error: moveError } = await supabase
         .from('matches')
-        .update({ 
-          player2_did: userId,
-          player2_move: move,
-          player2_move_timestamp: new Date().toISOString(),
-          status: 'in_progress'
-        })
+        .update(updateData)
         .eq('id', gameId);
 
       if (moveError) throw moveError;
