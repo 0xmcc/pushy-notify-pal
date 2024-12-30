@@ -23,9 +23,32 @@ export const WalletBalance = () => {
       }
     };
 
+    // Initial fetch
     fetchBalance();
-    const interval = setInterval(fetchBalance, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `did=eq.${user?.id}`
+        },
+        (payload) => {
+          console.log('Balance update received:', payload);
+          const newBalance = payload.new.off_chain_balance || 0;
+          setOffChainBalance(newBalance);
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
 
   if (!user?.id) return null;
