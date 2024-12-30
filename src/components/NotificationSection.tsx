@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { Bell } from 'lucide-react';
 import NotificationButton from '@/components/NotificationButton';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const NotificationSection = () => {
   const [isIOS, setIsIOS] = useState(false);
-  const [notificationSupported, setNotificationSupported] = useState(false);
+  const { supported, sendTestNotification } = useNotifications();
 
   useEffect(() => {
     // Check if running on iOS
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsIOS(ios);
-    
-    // Check if notifications are supported
-    setNotificationSupported('Notification' in window);
     
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -28,31 +25,6 @@ const NotificationSection = () => {
     }
   }, []);
 
-  const sendTestNotification = async () => {
-    if (!('Notification' in window)) {
-      toast.error("Notifications not supported");
-      return;
-    }
-
-    if (Notification.permission !== 'granted') {
-      toast.error("Please enable notifications first");
-      return;
-    }
-
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification('Test Notification', {
-        body: 'This is a test notification from your PWA!',
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
-      });
-      toast.success("Test notification sent!");
-    } catch (error) {
-      toast.error("Failed to send notification");
-      console.error('Error sending notification:', error);
-    }
-  };
-
   return (
     <div className="space-y-4 mt-6">
       <NotificationButton />
@@ -65,7 +37,7 @@ const NotificationSection = () => {
         <span>Send Test Notification</span>
       </Button>
 
-      {!notificationSupported && (
+      {!supported && (
         <div className="text-gaming-warning text-sm text-center p-2 bg-gaming-card/50 rounded-lg">
           Your browser doesn't support notifications
         </div>

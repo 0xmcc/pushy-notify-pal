@@ -1,32 +1,9 @@
-import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { BellRing } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const NotificationButton = () => {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
-
-  useEffect(() => {
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
-    }
-  }, []);
-
-  const requestPermission = async () => {
-    try {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      
-      if (result === 'granted') {
-        toast.success("Notifications enabled!");
-      } else if (result === 'denied') {
-        toast.error("Notifications blocked");
-      }
-    } catch (error) {
-      toast.error("Error requesting permission");
-      console.error('Error requesting notification permission:', error);
-    }
-  };
+  const { permission, requestPermission } = useNotifications();
 
   if (permission === 'granted') {
     return (

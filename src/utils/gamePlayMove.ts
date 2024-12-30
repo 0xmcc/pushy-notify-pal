@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateEloChange } from "./eloCalculator";
+import { sendPushNotification, createGameNotification } from "./pushNotifications";
 
 const getMoveInventoryColumn = (move: string): string => {
   switch (move) {
@@ -20,41 +21,6 @@ const determineWinner = (move1: string, move2: string) => {
   if (m1 === 2 && m2 === 0) return 2;
   
   return m1 > m2 ? 1 : 2;
-};
-
-const sendPushNotification = async (userId: string, title: string, body: string, gameData?: any) => {
-  try {
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('push_subscription')
-      .eq('did', userId)
-      .single();
-
-    if (userError || !userData?.push_subscription) {
-      console.log('No push subscription found for user:', userId);
-      return;
-    }
-
-    const subscription = JSON.parse(userData.push_subscription);
-    const payload = JSON.stringify({
-      title,
-      body,
-      gameData
-    });
-
-    await fetch('/api/push-notification', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        subscription,
-        payload
-      })
-    });
-  } catch (error) {
-    console.error('Error sending push notification:', error);
-  }
 };
 
 export const playGameMove = async (gameId: string, move: string, userId: string) => {
@@ -148,9 +114,11 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       // Send notification to the opponent (player1)
       await sendPushNotification(
         gameData.player1_did,
-        'New Move Played!',
-        `${userData.display_name} has made their move in your game!`,
-        { gameId }
+        createGameNotification(
+          gameId,
+          userData.display_name,
+          'move'
+        )
       );
 
       // If both moves are present, determine winner and calculate ELO changes
@@ -159,9 +127,24 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         
         if (winner === null) {
           updateData.status = 'completed';
+          
+          // Send draw notifications
+          await Promise.all([
+            sendPushNotification(
+              gameData.player1_did,
+              createGameNotification(gameId, userData.display_name, 'draw')
+            ),
+            sendPushNotification(
+              userId,
+              createGameNotification(gameId, gameData.player1.display_name, 'draw')
+            )
+          ]);
         } else {
           const winnerId = winner === 1 ? gameData.player1_did : userId;
           const loserId = winner === 1 ? userId : gameData.player1_did;
+          const winnerName = winner === 1 ? gameData.player1.display_name : userData.display_name;
+          const loserName = winner === 1 ? userData.display_name : gameData.player1.display_name;
+          
           const winnerRating = winner === 1 ? gameData.player1.rating : userData.rating;
           const loserRating = winner === 1 ? userData.rating : gameData.player1.rating;
           
@@ -173,23 +156,17 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
           updateData.winner_rating_change = ratingChange;
           updateData.loser_rating_change = -ratingChange;
 
-          // Send game result notification
-          const winnerName = winner === 1 ? gameData.player1.display_name : userData.display_name;
-          const loserName = winner === 1 ? userData.display_name : gameData.player1.display_name;
-          
-          await sendPushNotification(
-            winnerId,
-            'Victory!',
-            `You won against ${loserName}! Rating +${ratingChange}`,
-            { gameId }
-          );
-          
-          await sendPushNotification(
-            loserId,
-            'Game Over',
-            `You lost against ${winnerName}. Rating -${ratingChange}`,
-            { gameId }
-          );
+          // Send game result notifications
+          await Promise.all([
+            sendPushNotification(
+              winnerId,
+              createGameNotification(gameId, loserName, 'win')
+            ),
+            sendPushNotification(
+              loserId,
+              createGameNotification(gameId, winnerName, 'lose')
+            )
+          ]);
           
           // Update ratings immediately
           await supabase

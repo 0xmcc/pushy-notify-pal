@@ -1,3 +1,4 @@
+// Installation and activation handlers
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -6,29 +7,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
-self.addEventListener('push', (event) => {
-  const data = event.data?.json() ?? { title: 'New Move', body: 'A move has been played!' };
-  
-  const options = {
-    body: data.body,
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
-    data: data.gameData,
-    vibrate: [200, 100, 200],
-    tag: 'game-move',
-    actions: [
-      {
-        action: 'view',
-        title: 'View Game'
-      }
-    ]
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
-});
-
+// Notification click handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
@@ -48,4 +27,33 @@ self.addEventListener('notificationclick', (event) => {
       })
     );
   }
+});
+
+// Push event handler
+self.addEventListener('push', (event) => {
+  const defaultData = { 
+    title: 'New Move', 
+    body: 'A move has been played!' 
+  };
+  
+  const data = event.data?.json() ?? defaultData;
+  
+  const options = {
+    body: data.body,
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    data: data.gameData,
+    vibrate: [200, 100, 200],
+    tag: 'game-move',
+    actions: [
+      {
+        action: 'view',
+        title: 'View Game'
+      }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
 });
