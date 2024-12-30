@@ -21,7 +21,7 @@ interface ProfileButtonProps {
 }
 
 export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps) => {
-  const { user, authenticated, logout } = usePrivy();
+  const { user, authenticated, logout, login } = usePrivy();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [copied, setCopied] = useState(false);
@@ -139,53 +139,64 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
   return (
     <div className="flex items-center gap-4">
       <WalletBalance />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            {authenticated ? (
-              <AvatarPreview 
-                previewUrl={null} 
-                avatarUrl={avatarUrl}
-                size="xs"
-              />
-            ) : (
-              <div className="w-8 h-8 flex items-center justify-center text-gaming-text-secondary">
-                <UserX className="w-5 h-5" />
-              </div>
-            )}
+      <div className="flex items-center gap-2">
+        {!authenticated && (
+          <Button 
+            variant="ghost" 
+            onClick={login}
+            className="text-gaming-text-primary hover:text-gaming-text-primary/80"
+          >
+            Login
           </Button>
-        </DropdownMenuTrigger>
-        {authenticated && (
-          <DropdownMenuContent align="end" className="w-56 bg-gaming-card text-gaming-text-primary border-gaming-accent">
-            {user?.wallet && (
-              <>
-                <DropdownMenuItem 
-                  onClick={() => copyToClipboard(user.wallet.address)}
-                  className="gap-2 cursor-pointer"
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  <span>{truncateAddress(user.wallet.address)}</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-gaming-accent" />
-              </>
-            )}
-            {permission !== 'granted' && (
-              <DropdownMenuItem onClick={requestPermission} className="gap-2 cursor-pointer">
-                <BellRing className="w-4 h-4" />
-                <span>Enable Notifications</span>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={sendTestNotification} className="gap-2 cursor-pointer">
-              <Bell className="w-4 h-4" />
-              <span>Send Test Notification</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout} className="gap-2 cursor-pointer">
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
         )}
-      </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              {authenticated ? (
+                <AvatarPreview 
+                  previewUrl={null} 
+                  avatarUrl={avatarUrl}
+                  size="xs"
+                />
+              ) : (
+                <div className="w-8 h-8 flex items-center justify-center text-gaming-text-secondary">
+                  <UserX className="w-5 h-5" />
+                </div>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          {authenticated && (
+            <DropdownMenuContent align="end" className="w-56 bg-gaming-card text-gaming-text-primary border-gaming-accent">
+              {user?.wallet && (
+                <>
+                  <DropdownMenuItem 
+                    onClick={() => copyToClipboard(user.wallet.address)}
+                    className="gap-2 cursor-pointer"
+                  >
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    <span>{truncateAddress(user.wallet.address)}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-gaming-accent" />
+                </>
+              )}
+              {permission !== 'granted' && (
+                <DropdownMenuItem onClick={requestPermission} className="gap-2 cursor-pointer">
+                  <BellRing className="w-4 h-4" />
+                  <span>Enable Notifications</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={sendTestNotification} className="gap-2 cursor-pointer">
+                <Bell className="w-4 h-4" />
+                <span>Send Test Notification</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="gap-2 cursor-pointer">
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          )}
+        </DropdownMenu>
+      </div>
       <input
         ref={fileInputRef}
         type="file"
