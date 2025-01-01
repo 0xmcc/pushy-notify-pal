@@ -43,6 +43,7 @@ export default function RootLayout({
           }}
         >
           <QueryClientProvider client={queryClient}>
+            <RPSProvider>
             <TooltipProvider>
               <div className="flex flex-col min-h-full">
                 {true && <Header className="fixed top-0 left-0 right-0 z-50" />}
@@ -54,6 +55,7 @@ export default function RootLayout({
               <Toaster />
               <Sonner />
             </TooltipProvider>
+            </RPSProvider>
           </QueryClientProvider>
         </PrivyProvider>
       </body>
