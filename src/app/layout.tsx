@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Header } from "@/components/Header";
 import { usePrivy } from '@privy-io/react-auth';
 import { useEffect, useState } from 'react';
+import { RPSProvider } from '@/providers/RPSProvider';
 
 const queryClient = new QueryClient();
 

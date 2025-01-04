@@ -23,15 +23,15 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserWinner = user?.id === game.winner_did;
   const canClaim = isGameComplete && isUserWinner;
 
-  console.log('Game status:', {
-    gameId: game.id,
-    isGameComplete,
-    isUserWinner,
-    gameStatus: game.status,
-    canClaim,
-    player1_claimed_at: game.player1_claimed_at,
-    player2_claimed_at: game.player2_claimed_at
-  });
+  // console.log('Game status:', {
+  //   gameId: game.id,
+  //   isGameComplete,
+  //   isUserWinner,
+  //   gameStatus: game.status,
+  //   canClaim,
+  //   player1_claimed_at: game.player1_claimed_at,
+  //   player2_claimed_at: game.player2_claimed_at
+  // });
 
   return (
     <div className="relative border border-gaming-accent/20 rounded-xl p-6 bg-[#0A0A0B]/90 backdrop-blur-sm 
@@ -68,9 +68,9 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
           authenticated={authenticated}
           userId={user?.id}
           playerInventory={{
-            rock: playerStats.rock_count,
-            paper: playerStats.paper_count,
-            scissors: playerStats.scissors_count
+            rock_count: playerStats.rock_count,
+            paper_count: playerStats.paper_count,
+            scissors_count: playerStats.scissors_count
           }}
         />
       )}

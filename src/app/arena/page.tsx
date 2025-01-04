@@ -15,16 +15,16 @@ const ArenaPage = () => {
   const playerStats = usePlayerStats();
   
   const playerInventory = {
-    rock: playerStats.rock_count,
-    paper: playerStats.paper_count,
-    scissors: playerStats.scissors_count,
+    rock_count: playerStats.rock_count,
+    paper_count: playerStats.paper_count,
+    scissors_count: playerStats.scissors_count,
   };
 
   // For now, we'll keep opponent inventory static
   const opponentInventory = {
-    rock: 3,
-    paper: 3,
-    scissors: 3,
+    rock_count: 3,
+    paper_count: 3,
+    scissors_count: 3,
   };
 
   return (

@@ -9,9 +9,9 @@ interface GameActionsProps {
   authenticated: boolean;
   userId?: string;
   playerInventory: {
-    rock: number;
-    paper: number;
-    scissors: number;
+    rock_count: number;
+    paper_count: number;
+    scissors_count: number;
   };
 }
 

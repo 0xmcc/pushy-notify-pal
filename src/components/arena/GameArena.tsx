@@ -6,9 +6,9 @@ import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 
 interface Inventory {
-  rock: number;
-  paper: number;
-  scissors: number;
+  rock_count: number;
+  paper_count: number;
+  scissors_count: number;
 }
 
 interface Opponent {

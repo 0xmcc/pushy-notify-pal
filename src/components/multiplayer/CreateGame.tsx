@@ -6,8 +6,11 @@ import { StakeInput } from "./StakeInput";
 import { GameMoveSelector } from "./GameMoveSelector";
 import { useCreateGame } from "@/hooks/useCreateGame";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
+import { useEffect, useMemo } from "react";
 
 export const CreateGame = () => {
+
+
   const { user, authenticated } = usePrivy();
   const {
     stakeAmount,
@@ -18,8 +21,25 @@ export const CreateGame = () => {
     handleCreateGame,
   } = useCreateGame();
 
+
+
   const stats = usePlayerStats(user?.id);
 
+  // Memoize the inventory object to prevent unnecessary re-renders
+  const inventory = useMemo(() => ({
+    rock_count: stats.rock_count,
+    paper_count: stats.paper_count,
+    scissors_count: stats.scissors_count
+  }), [stats.rock_count, stats.paper_count, stats.scissors_count]);
+
+  useEffect(() => {
+    console.group('Stats Update in CreateGame');
+    console.log('Stats object reference:', stats);
+    console.log('Memoized inventory:', inventory);
+    console.log('Selected move:', selectedMove);
+    console.log('Timestamp:', new Date().toISOString());
+    console.groupEnd();
+  }, [stats, inventory]);
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gaming-text-primary">Create New Game</h2>
@@ -29,10 +49,10 @@ export const CreateGame = () => {
         <GameMoveSelector 
           selectedMove={selectedMove}
           onMoveSelect={setSelectedMove}
-          inventory={{
-            rock: stats.rock_count,
-            paper: stats.paper_count,
-            scissors: stats.scissors_count,
+          inventory={ {
+            rock_count: stats.rock_count,
+            paper_count: stats.paper_count,
+            scissors_count: stats.scissors_count
           }}
           stakeAmount={Number(stakeAmount)}
         />
