@@ -2,21 +2,43 @@ import { supabase } from "@/integrations/supabase/client";
 import { Game } from "@/types/game";
 import { toast } from "sonner";
 
-export const fetchGamesFromSupabase = async (stakeRange: [number, number]): Promise<Game[]> => {
-  const { data: matchesData, error: matchesError } = await supabase
-    .from('matches')
-    .select(`
-      *,
-      player1:users!matches_player1_did_fkey(
-        rating,
-        display_name
-      )
-    `)
-    .or('status.eq.pending,status.eq.in_progress,status.eq.completed')
-    .gte('stake_amount', stakeRange[0])
-    .lte('stake_amount', stakeRange[1])
-    .order('expiration_date', { ascending: false });
 
+
+
+export const fetchGamesFromSupabase = async (stakeRange: [number, number], userDid: string | null): Promise<Game[]> => {
+  console.log("fetchGamesFromSupabase", stakeRange, userDid);
+  // if (!userDid) {
+  //   console.error('User did not find');
+  //   return [];
+  // }
+  const { data: matchesData, error: matchesError } = await supabase
+  .from('matches')
+  .select(`
+    *,
+    player1:users!matches_player1_did_fkey(
+      rating,
+      display_name
+    ),
+    player2:users!matches_player2_did_fkey(
+      rating,
+      display_name
+    )
+  `)
+  .or(userDid 
+    ? `
+    status.eq.pending,
+      player2_did.is.null,
+      stake_amount.gte.${stakeRange[0]},
+      stake_amount.lte.${stakeRange[1]},
+    or(player1_did.eq.${userDid},and(status.neq.pending,player1_hidden.eq.false)),
+    or(player2_did.eq.${userDid},and(status.neq.pending,player2_hidden.eq.false))`
+    : `
+    status.eq.pending,player2_did.is.null,stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]}`)
+    .order('status', { ascending: true }) // Completed before pending
+    .order('player2_move_timestamp', { ascending: false }) // Most recent completed games
+    .order('created_at', { ascending: true }); // Oldest pending games first
+  
+ 
   if (matchesError) throw matchesError;
 
   return (matchesData || []).map(match => ({
@@ -59,3 +81,21 @@ export const setupRealtimeSubscription = (
 
   return channel;
 };
+
+
+// .or(`status.eq.pending.and(player2_did.is.null).and(stake_amount.gte.${stakeRange[0]}).and(stake_amount.lte.${stakeRange[1]})`)
+  //  .or(`(status.eq.pending)`)
+  // .or(
+  //   false
+  //     ? `(status.eq.pending,player2_did.is.null,stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]}),(status.neq.pending,player1_did.eq.${userDid},player1_hidden.eq.false),(status.neq.pending,player2_did.eq.${userDid},player2_hidden.eq.false)`
+  //     : `(status.eq.pending,player2_did.is.null,stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]})`
+  // )
+  // .or(
+  //   `
+  //       (status.eq.pending,player2_did.is.null,stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]}),
+  //       (status.neq.pending,player1_did.eq.${userDid},player1_hidden.eq.false),
+  //       (status.neq.pending,player2_did.eq.${userDid},player2_hidden.eq.false)
+  //     `
+      
+  // )
+  

@@ -14,9 +14,9 @@ export const StakeRange = ({ value, onChange }: StakeRangeProps) => {
       <div className="space-y-2">
         <Slider
           defaultValue={value}
-          max={1000}
+          max={100}
           min={0}
-          step={10}
+          step={1}
           onValueChange={(value) => onChange(value as [number, number])}
           className="py-4"
         />

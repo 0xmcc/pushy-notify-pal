@@ -3,13 +3,14 @@ import { Game } from "@/types/game";
 import { fetchGamesFromSupabase, setupRealtimeSubscription } from "@/utils/gameApi";
 import { getOfflineGames } from "@/utils/offlineGames";
 import { supabase } from "@/integrations/supabase/client";
+import { usePrivy } from "@privy-io/react-auth";
 
 export const useGames = (stakeRange: [number, number]) => {
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-
+  const { user } = usePrivy();
   const loadGames = async () => {
     if (isOffline) {
       setGames(getOfflineGames(stakeRange));
@@ -21,7 +22,7 @@ export const useGames = (stakeRange: [number, number]) => {
     setError(null);
     
     try {
-      const games = await fetchGamesFromSupabase(stakeRange);
+      const games = await fetchGamesFromSupabase(stakeRange, user?.id);
       setGames(games.filter(game => 
         game.stake_amount >= stakeRange[0] && game.stake_amount <= stakeRange[1]
       ));

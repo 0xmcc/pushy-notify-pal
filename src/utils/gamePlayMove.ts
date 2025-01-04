@@ -37,19 +37,25 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
 
       // Determine which player is claiming
       const isPlayer1 = userId === game.player1_did;
-      const updateField = isPlayer1 ? 'player1_claimed_at' : 'player2_claimed_at';
+      const isPlayer2 = userId === game.player2_did;
+      const updateField = isPlayer1 ? 'player1_claimed_at' : isPlayer2 ? 'player2_claimed_at' : null;
+      const updateField2 = isPlayer1 ? 'player1_hidden' : isPlayer2 ? 'player2_hidden' : null;
+      if (!updateField) throw new Error('User is not a player in this game');
 
       // Check if already claimed
-      if ((isPlayer1 && game.player1_claimed_at) || (!isPlayer1 && game.player2_claimed_at)) {
+      if ((isPlayer1 && game.player1_claimed_at) || (isPlayer2 && game.player2_claimed_at)) {
         throw new Error('Reward already claimed');
       }
-
+      
+      console.log("updateField", updateField);
+      console.log("updateField2", updateField2);
       // Update the claim timestamp
       const { error: claimError } = await supabase
         .from('matches')
         .update({ 
           [updateField]: new Date().toISOString(),
-          status: 'completed'
+          status: 'completed',
+          [updateField2]: true
         })
         .eq('id', gameId);
 

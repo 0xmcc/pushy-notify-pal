@@ -20,7 +20,7 @@ export const GameMoveSelector = ({ selectedMove, onMoveSelect, inventory, stakeA
     <div className="flex justify-center gap-4">
       <Button
         variant="ghost"
-        className={`hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed ${selectedMove === '0' ? 'bg-gaming-accent/20' : ''}`}
+        className={`hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed ${selectedMove === '0' ? 'bg-gaming-accent/80' : ''}`}
         onClick={() => onMoveSelect('0')}
         disabled={inventory.rock_count === 0}
       >
