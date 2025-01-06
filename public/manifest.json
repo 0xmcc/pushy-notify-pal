@@ -1,6 +1,6 @@
 {
   "name": "ROI: Rock, paper, scissors on Internet",
-  "short_name": "ROI",
+  "short_name": "ROI: Rock Paper Scissors on Internet",
   "description": "Rock Paper Scissors with a Betting Component",
   "start_url": "/",
   "display": "standalone",
