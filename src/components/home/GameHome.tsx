@@ -76,8 +76,14 @@ const HomePage = () => {
           .from('matches')
           .select(`
             *,
-            creator:player1_did(display_name, rating),
-            opponent:player2_did(display_name, rating)
+            creator:player1_did(
+              display_name,
+              rating
+            ),
+            opponent:player2_did(
+              display_name,
+              rating
+            )
           `)
           .eq('status', 'pending')
           .limit(1)
