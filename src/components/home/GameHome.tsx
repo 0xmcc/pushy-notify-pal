@@ -1,111 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useHomeData } from './useHomeData';
+import { HeroSection } from './HeroSection';
+import { FeaturedGameSection } from './FeaturedGameSection';
 import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
-import { GameCard } from '@/components/multiplayer/GameCard';
-import { MatrixRain } from '@/components/effects/MatrixRain';
-import type { Game } from '@/types/game';
-
-interface LeaderboardUser {
-  did: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  rating: number;
-}
 
 const HomePage = () => {
-  const { authenticated, user } = usePrivy();
-  const [isLoading, setIsLoading] = useState(true);
-  const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([]);
-  const [featuredGame, setFeaturedGame] = useState<Game | null>(null);
-
-  useEffect(() => {
-    const checkProfile = async () => {
-      if (authenticated && user) {
-        try {
-          const { error } = await supabase
-            .from('users')
-            .select('display_name, avatar_url')
-            .eq('did', user.id)
-            .maybeSingle();
-
-          if (error) {
-            console.error('Error checking profile:', error);
-            toast.error('Failed to load profile');
-          }
-        } catch (error) {
-          console.error('Error in checkProfile:', error);
-          toast.error('Failed to load profile');
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setIsLoading(false);
-      }
-    };
-
-    checkProfile();
-  }, [authenticated, user]);
-
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('did, display_name, avatar_url, rating')
-          .order('rating', { ascending: false })
-          .limit(5);
-
-        if (error) throw error;
-        setLeaderboardUsers(data || []);
-      } catch (error) {
-        console.error('Error fetching leaderboard:', error);
-        toast.error('Failed to load leaderboard');
-      }
-    };
-
-    fetchLeaderboard();
-  }, []);
-
-  useEffect(() => {
-    const fetchFeaturedGame = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('matches')
-          .select(`
-            *,
-            creator:player1_did(
-              display_name,
-              rating
-            ),
-            opponent:player2_did(
-              display_name,
-              rating
-            )
-          `)
-          .eq('status', 'pending')
-          .limit(1)
-          .single();
-
-        if (error) throw error;
-        if (data) {
-          const gameWithNames: Game = {
-            ...data,
-            creator_name: data.creator?.display_name || data.player1_did.slice(0, 8),
-            creator_rating: data.creator?.rating || 1200
-          };
-          setFeaturedGame(gameWithNames);
-        }
-      } catch (error) {
-        console.error('Error fetching featured game:', error);
-      }
-    };
-
-    fetchFeaturedGame();
-  }, []);
+  const { isLoading, leaderboardUsers, featuredGame } = useHomeData();
 
   if (isLoading) {
     return (
@@ -124,32 +25,10 @@ const HomePage = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),rgba(139,92,246,0.05))] pointer-events-none" />
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20" />
       
-      {/* Full-width Matrix Rain */}
-      <div className="relative w-full h-96 overflow-hidden bg-black">
-        <MatrixRain />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gaming-background" />
-      </div>
+      <HeroSection />
 
-      <div className="container mx-auto px-4 py-8 relative z-10 -mt-32">
-        {/* Hero Section */}
-        <div className="text-center mb-16 space-y-6">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent animate-float">
-            Rock Paper Scissors
-          </h1>
-          <p className="text-xl text-gaming-text-secondary max-w-2xl mx-auto px-8 whitespace-pre-line">
-            With crypto
-          </p>
-        </div>
-
-        {/* Featured Game */}
-        {featuredGame && (
-          <div className="mb-16">
-            <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary text-center">Your move</h2>
-            <GameCard game={featuredGame} onPlayMove={handlePlayMove} />
-          </div>
-        )}
-
-        {/* Leaderboard */}
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <FeaturedGameSection game={featuredGame} onPlayMove={handlePlayMove} />
         <LeaderboardList users={leaderboardUsers} />
       </div>
     </div>
