@@ -31,7 +31,7 @@
   }
  
   body {
-    @apply bg-gaming-background text-gaming-text-primary antialiased;
+    @apply bg-black text-gaming-text-primary antialiased;
     font-feature-settings: "ss01" on, "ss02" on, "cv01" on, "cv02" on;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
