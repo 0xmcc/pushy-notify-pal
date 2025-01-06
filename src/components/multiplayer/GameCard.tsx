@@ -6,6 +6,7 @@ import { GameHeader } from "./GameHeader";
 import { GameActions } from "./GameActions";
 import { GameResult } from "./GameResult";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
+import { Lock } from "lucide-react";
 
 interface GameCardProps {
   game: Game;
@@ -23,16 +24,6 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserWinner = user?.id === game.winner_did;
   const canClaim = isGameComplete && isUserWinner;
 
-  // console.log('Game statous:', {
-  //   gameId: game.id,
-  //   isGameComplete,
-  //   isUserWinner,
-  //   gameStatus: game.status,
-  //   canClaim,
-  //   player1_claimed_at: game.player1_claimed_at,
-  //   player2_claimed_at: game.player2_claimed_at
-  // });
-
   return (
     <div className="relative border border-gaming-accent/20 rounded-xl p-6 bg-[#0A0A0B]/90 backdrop-blur-sm 
                     hover:border-gaming-accent/40 transition-all duration-300 
@@ -43,6 +34,12 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
         playerRating={game.creator_rating}
         stakeAmount={game.stake_amount}
       />
+
+      {!isGameComplete && game.status === 'pending' && (
+        <div className="flex justify-center items-center py-4">
+          <Lock className="w-6 h-6 text-gaming-text-secondary animate-pulse" />
+        </div>
+      )}
 
       {isGameComplete ? (
         <GameResult 
