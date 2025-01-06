@@ -125,7 +125,7 @@ const HomePage = () => {
             Rock Paper Scissors
           </h1>
           <p className="text-xl text-gaming-text-secondary max-w-2xl mx-auto px-8 whitespace-pre-line">
-            With a competitive twist.{'\n'}Each move counts.
+            With crypto
           </p>
     
         </div>
