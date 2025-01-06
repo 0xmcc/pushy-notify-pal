@@ -62,9 +62,9 @@ export const GameArena = ({
               </div>
             </div>
             <div className="flex space-x-6 text-2xl text-gaming-text-primary">
-              <span>🪨 <span className="text-gaming-text-primary">{opponentInventory.rock}</span></span>
-              <span>📄 <span className="text-gaming-text-primary">{opponentInventory.paper}</span></span>
-              <span>✂️ <span className="text-gaming-text-primary">{opponentInventory.scissors}</span></span>
+              <span>🪨 <span className="text-gaming-text-primary">{opponentInventory.rock_count}</span></span>
+              <span>📄 <span className="text-gaming-text-primary">{opponentInventory.paper_count}</span></span>
+              <span>✂️ <span className="text-gaming-text-primary">{opponentInventory.scissors_count}</span></span>
             </div>
           </div>
           <Progress 
@@ -107,26 +107,26 @@ export const GameArena = ({
               <Button
                 variant="ghost"
                 className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!playerInventory || playerInventory.rock === 0}
+                disabled={!playerInventory || playerInventory.rock_count === 0}
                 onClick={() => setSelectedMove('rock')}
               >
-                🪨 <span className="text-sm ml-1">{playerInventory?.rock || 0}</span>
+                🪨 <span className="text-sm ml-1">{playerInventory?.rock_count || 0}</span>
               </Button>
               <Button
                 variant="ghost"
                 className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!playerInventory || playerInventory.paper === 0}
+                disabled={!playerInventory || playerInventory.paper_count === 0}
                 onClick={() => setSelectedMove('paper')}
               >
-                📄 <span className="text-sm ml-1">{playerInventory?.paper || 0}</span>
+                📄 <span className="text-sm ml-1">{playerInventory?.paper_count || 0}</span>
               </Button>
               <Button
                 variant="ghost"
                 className="hover:bg-gaming-accent/20 text-3xl h-16 w-16 rounded-xl transition-all duration-200 transform hover:scale-110 text-gaming-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!playerInventory || playerInventory.scissors === 0}
+                disabled={!playerInventory || playerInventory.scissors_count === 0}
                 onClick={() => setSelectedMove('scissors')}
               >
-                ✂️ <span className="text-sm ml-1">{playerInventory?.scissors || 0}</span>
+                ✂️ <span className="text-sm ml-1">{playerInventory?.scissors_count || 0}</span>
               </Button>
             </div>
           </div>

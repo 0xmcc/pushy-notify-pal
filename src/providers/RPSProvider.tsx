@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { 
+  Connection, 
+  PublicKey, 
+  SystemProgram, 
+  Transaction, 
+  TransactionInstruction 
+} from '@solana/web3.js';
 import { usePrivy, useSolanaWallets } from '@privy-io/react-auth';
 
 // Simple Move enum for MVP

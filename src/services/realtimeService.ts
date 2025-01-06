@@ -1,5 +1,5 @@
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { supabase } from './supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 
 type SubscriptionConfig = {
   table: string;
