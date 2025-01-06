@@ -109,7 +109,6 @@ const HomePage = () => {
   }
 
   const handlePlayMove = async (gameId: string, move: string) => {
-    // This is just a placeholder function since GameCard requires it
     console.log('Move played:', gameId, move);
   };
 
@@ -121,7 +120,7 @@ const HomePage = () => {
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Hero Section */}
         <div className="text-center mb-16 space-y-6">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent animate-float">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-gaming-primary to-gaming-secondary bg-clip-text text-transparent animate-float">
             High-Stakes Rock Paper Scissors
           </h1>
           <p className="text-xl text-gaming-text-secondary max-w-2xl mx-auto">
@@ -132,7 +131,7 @@ const HomePage = () => {
         {/* Featured Game */}
         {featuredGame && (
           <div className="mb-16">
-            <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary text-center">Which will you move?</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary text-center">Featured Game</h2>
             <GameCard game={featuredGame} onPlayMove={handlePlayMove} />
           </div>
         )}
