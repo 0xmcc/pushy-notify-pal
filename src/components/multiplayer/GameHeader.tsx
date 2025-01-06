@@ -23,7 +23,7 @@ export const GameHeader = ({ playerDid, playerName, playerRating, stakeAmount }:
         </Avatar>
         <div>
           <h3 className="text-lg font-bold text-white">
-            {playerName || playerDid.slice(0, 8)}
+            {playerName || playerDid.slice(0, 8)} 
           </h3>
           <p className="text-gaming-text-secondary text-sm">
             {playerRating || 1200} ELO

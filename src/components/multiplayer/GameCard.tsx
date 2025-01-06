@@ -23,7 +23,7 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserWinner = user?.id === game.winner_did;
   const canClaim = isGameComplete && isUserWinner;
 
-  // console.log('Game status:', {
+  // console.log('Game statous:', {
   //   gameId: game.id,
   //   isGameComplete,
   //   isUserWinner,

@@ -24,15 +24,15 @@ export const GameActions = ({
 }: GameActionsProps) => {
   const [selectedMove, setSelectedMove] = useState('');
   const isCreator = userId === game.player1_did;
-  const canJoinGame = authenticated && !isCreator && game.status === 'pending';
+  const canJoinGame = !isCreator && game.status === 'pending';
 
-  if (!authenticated) {
-    return (
-      <div className="mt-4 text-center text-gaming-text-secondary">
-        Sign in to play
-      </div>
-    );
-  }
+  // if (!authenticated) {
+  //   return (
+  //     <div className="mt-4 text-center text-gaming-text-secondary">
+  //       Sign in to play
+  //     </div>
+  //   );
+  // }
 
   if (isCreator) {
     return (

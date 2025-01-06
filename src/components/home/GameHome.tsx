@@ -122,17 +122,17 @@ const HomePage = () => {
         {/* Hero Section */}
         <div className="text-center mb-16 space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent animate-float">
-            Rock Paper Scissors
+            High-Stakes Rock Paper Scissors
           </h1>
           <p className="text-xl text-gaming-text-secondary max-w-2xl mx-auto">
-            Experience the classic game with a competitive twist. Stake items, climb the ranks, and become a champion.
+            Use each move wisely 😈
           </p>
         </div>
 
         {/* Featured Game */}
         {featuredGame && (
           <div className="mb-16">
-            <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary text-center">Featured Game</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary text-center">Which will you move?</h2>
             <GameCard game={featuredGame} onPlayMove={handlePlayMove} />
           </div>
         )}
