@@ -1,7 +1,7 @@
 {
-  "name": "PWA Push Notifications Demo",
-  "short_name": "Push Demo",
-  "description": "Demo app for testing push notifications",
+  "name": "ROI: Rock, paper, scissors on Internet",
+  "short_name": "ROI",
+  "description": "Rock Paper Scissors with a Betting Component",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
