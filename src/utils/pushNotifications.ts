@@ -1,77 +1,33 @@
-interface PushNotificationData {
-  title: string;
-  body: string;
-  gameData?: {
-    gameId?: string;
-    [key: string]: any;
-  };
-}
+import { supabase } from "@/integrations/supabase/client";
 
-export const sendPushNotification = async (userId: string, notificationData: PushNotificationData) => {
+// Function to send a push notification
+export const sendPushNotification = async (userId: string, message: string) => {
   try {
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('push_subscription')
-      .eq('did', userId)
-      .single();
+    const { error } = await supabase
+      .from('notifications')
+      .insert([{ user_id: userId, message }]);
 
-    if (userError) {
-      console.error('Error fetching user subscription:', userError);
-      return;
+    if (error) {
+      throw new Error('Failed to send notification');
     }
-
-    if (!userData?.push_subscription) {
-      console.log('No push subscription found for user:', userId);
-      return;
-    }
-
-    const subscription = JSON.parse(userData.push_subscription);
-    const payload = JSON.stringify(notificationData);
-
-    await fetch('/api/push-notification', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        subscription,
-        payload
-      })
-    });
   } catch (error) {
     console.error('Error sending push notification:', error);
   }
 };
 
-export const createGameNotification = (
-  gameId: string,
-  playerName: string,
-  type: 'move' | 'win' | 'lose' | 'draw'
-): PushNotificationData => {
-  switch (type) {
-    case 'move':
-      return {
-        title: 'New Move Played!',
-        body: `${playerName} has made their move in your game!`,
-        gameData: { gameId }
-      };
-    case 'win':
-      return {
-        title: 'Victory!',
-        body: `You won against ${playerName}!`,
-        gameData: { gameId }
-      };
-    case 'lose':
-      return {
-        title: 'Game Over',
-        body: `You lost against ${playerName}.`,
-        gameData: { gameId }
-      };
-    case 'draw':
-      return {
-        title: 'Game Draw',
-        body: `Your game with ${playerName} ended in a draw.`,
-        gameData: { gameId }
-      };
-  }
+// Function to listen for notifications
+export const listenForNotifications = (userId: string, onNotification: (message: string) => void) => {
+  const channel = supabase
+    .channel('notifications')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
+      const notification = payload.new;
+      if (notification.user_id === userId) {
+        onNotification(notification.message);
+      }
+    })
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 };

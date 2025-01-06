@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { 
+  Connection, 
+  PublicKey, 
+  SystemProgram, 
+  Transaction, 
+  TransactionInstruction 
+} from '@solana/web3.js';
 import { usePrivy, useSolanaWallets } from '@privy-io/react-auth';
 
 // Simple Move enum for MVP
@@ -17,7 +23,7 @@ class GameClient {
         readonly programId = new PublicKey(PROGRAM_ID)
     ) {}
 
-    async initializePlayer(): Promise<string> {
+    async initializePlayer(): Promise<Transaction> {
         // Find PDAs for player account and vault
         const [playerPDA] = PublicKey.findProgramAddressSync(
             [
@@ -56,7 +62,7 @@ class GameClient {
         return tx;
     }
 
-    async createGame(betAmount: number): Promise<string> {
+    async createGame(betAmount: number): Promise<Transaction> {
         const timestamp = Math.floor(Date.now() / 1000);
         
         // Create game instruction
@@ -153,7 +159,7 @@ export function RPSProvider({ children }: { children: React.ReactNode }) {
 
         try {
             const tx = await client.createGame(betAmount);
-            const signature = await wallets[0].sendTransaction!(tx, connection);
+            const signature = await wallets[0].sendTransaction(tx, connection!);
             await connection?.confirmTransaction(signature);
             return signature;
         } catch (err) {
@@ -175,7 +181,7 @@ export function RPSProvider({ children }: { children: React.ReactNode }) {
 
         try {
             const tx = await client.initializePlayer();
-            const signature = await wallets[0].sendTransaction!(tx, connection);
+            const signature = await wallets[0].sendTransaction(tx, connection!);
             await connection?.confirmTransaction(signature);
             return signature;
         } catch (err) {

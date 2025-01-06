@@ -76,8 +76,14 @@ const HomePage = () => {
           .from('matches')
           .select(`
             *,
-            player1:player1_did(display_name, avatar_url, rating),
-            player2:player2_did(display_name, avatar_url, rating)
+            creator:player1_did(
+              display_name,
+              rating
+            ),
+            opponent:player2_did(
+              display_name,
+              rating
+            )
           `)
           .eq('status', 'pending')
           .limit(1)
@@ -87,8 +93,8 @@ const HomePage = () => {
         if (data) {
           const gameWithNames: Game = {
             ...data,
-            creator_name: data.player1?.display_name || data.player1_did.slice(0, 8),
-            creator_rating: data.player1?.rating || 1200
+            creator_name: data.creator?.display_name || data.player1_did.slice(0, 8),
+            creator_rating: data.creator?.rating || 1200
           };
           setFeaturedGame(gameWithNames);
         }
@@ -109,7 +115,6 @@ const HomePage = () => {
   }
 
   const handlePlayMove = async (gameId: string, move: string) => {
-    // This is just a placeholder function since GameCard requires it
     console.log('Move played:', gameId, move);
   };
 
