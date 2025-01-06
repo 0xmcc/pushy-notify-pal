@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
 import { GameCard } from '@/components/multiplayer/GameCard';
+import { MatrixRain } from '@/components/effects/MatrixRain';
 import type { Game } from '@/types/game';
 
 interface LeaderboardUser {
@@ -124,14 +125,9 @@ const HomePage = () => {
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20" />
       
       <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* Hero Image */}
-        <div className="relative w-full h-48 md:h-64 mb-8 overflow-hidden rounded-xl">
-          <img
-            src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5"
-            alt="Matrix-style digital background"
-            className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700 ease-in-out"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-gaming-background via-transparent to-transparent" />
+        {/* Hero Canvas */}
+        <div className="relative w-full h-48 md:h-64 mb-8 overflow-hidden rounded-xl bg-black">
+          <MatrixRain />
         </div>
 
         {/* Hero Section */}
