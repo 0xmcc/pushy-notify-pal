@@ -16,7 +16,7 @@ export const GameResultButton = ({ onClick, variant, stakeAmount }: GameResultBu
                 flex items-center justify-center gap-2 transition-all duration-300
                 ${isClaimVariant 
                   ? "bg-gaming-success/10 hover:bg-gaming-success/20 text-gaming-success border border-gaming-success/20 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-                  : "bg-gaming-accent/10 hover:bg-gaming-accent/20 text-gaming-accent border border-gaming-accent/20 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                  : "bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                 }`}
     >
       {isClaimVariant ? (
@@ -32,4 +32,4 @@ export const GameResultButton = ({ onClick, variant, stakeAmount }: GameResultBu
       )}
     </button>
   );
-}; 
+};
