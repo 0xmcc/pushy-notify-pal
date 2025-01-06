@@ -124,6 +124,16 @@ const HomePage = () => {
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20" />
       
       <div className="container mx-auto px-4 py-8 relative z-10">
+        {/* Hero Image */}
+        <div className="relative w-full h-48 md:h-64 mb-8 overflow-hidden rounded-xl">
+          <img
+            src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5"
+            alt="Matrix-style digital background"
+            className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700 ease-in-out"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gaming-background via-transparent to-transparent" />
+        </div>
+
         {/* Hero Section */}
         <div className="text-center mb-16 space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent animate-float">
@@ -132,7 +142,6 @@ const HomePage = () => {
           <p className="text-xl text-gaming-text-secondary max-w-2xl mx-auto px-8 whitespace-pre-line">
             With crypto
           </p>
-    
         </div>
 
         {/* Featured Game */}
