@@ -11,40 +11,17 @@ export const useGames = (stakeRange: [number, number]) => {
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const { user } = usePrivy();
-  const loadGames = async () => {
-    if (isOffline) {
-      setGames(getOfflineGames(stakeRange));
-      setIsLoading(false);
-      return;
-    }
 
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const games = await fetchGamesFromSupabase(stakeRange, user?.id);
-      setGames(games.filter(game => 
-        game.stake_amount >= stakeRange[0] && game.stake_amount <= stakeRange[1]
-      ));
-    } catch (err) {
-      console.error("Error loading games:", err);
-      setError("Failed to load games. Using mock data instead.");
-      setGames(getOfflineGames(stakeRange));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      console.log("App is online, refreshing games...");
+   // Handle online/offline status
+   useEffect(() => {
+    const handleOnline = async () => {
+      console.log("MCC App is online, refreshing games...");
       setIsOffline(false);
-      loadGames();
+      await loadGames();
     };
 
     const handleOffline = () => {
-      console.log("App is offline, showing cached/mock data");
+      console.log("MCC App is offline, showing cached/mock data");
       setIsOffline(true);
       setGames(getOfflineGames(stakeRange));
     };
@@ -60,6 +37,7 @@ export const useGames = (stakeRange: [number, number]) => {
 
   // Handle initial load and realtime updates
   useEffect(() => {
+    console.log("MCC useEffect CHANGES",stakeRange, isOffline);
     loadGames();
     
     if (!isOffline) {
@@ -70,6 +48,33 @@ export const useGames = (stakeRange: [number, number]) => {
       };
     }
   }, [stakeRange, isOffline]);
+  
+  const loadGames = async () => {
+    console.log("MCC loadGames",stakeRange, isOffline);
+ 
+
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log("MCC fetch games from supabase",user?.id);
+      setTimeout(async () => {
+        console.log("MCC fetch games from supabase 2",user?.id);
+        const games = await fetchGamesFromSupabase(stakeRange, user?.id);
+        setGames(games.filter(game => 
+          game.stake_amount >= stakeRange[0] && game.stake_amount <= stakeRange[1]
+        ));
+      }, 1000);
+    } catch (err) {
+      console.error("Error loading games:", err);
+      setError("Failed to load games. Using mock data instead.");
+      setGames(getOfflineGames(stakeRange));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+ 
 
   return { games, isLoading, error, isOffline };
 };

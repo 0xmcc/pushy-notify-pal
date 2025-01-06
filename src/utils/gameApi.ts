@@ -6,39 +6,59 @@ import { toast } from "sonner";
 
 
 export const fetchGamesFromSupabase = async (stakeRange: [number, number], userDid: string | null): Promise<Game[]> => {
-  console.log("fetchGamesFromSupabase", stakeRange, userDid);
-  // if (!userDid) {
-  //   console.error('User did not find');
-  //   return [];
-  // }
-  const { data: matchesData, error: matchesError } = await supabase
-  .from('matches')
-  .select(`
-    *,
-    player1:users!matches_player1_did_fkey(
-      rating,
-      display_name
-    ),
-    player2:users!matches_player2_did_fkey(
-      rating,
-      display_name
-    )
-  `)
-  .or(userDid 
-    ? `
-    status.eq.pending,
-      player2_did.is.null,
-      stake_amount.gte.${stakeRange[0]},
-      stake_amount.lte.${stakeRange[1]},
-    or(player1_did.eq.${userDid},and(status.neq.pending,player1_hidden.eq.false)),
-    or(player2_did.eq.${userDid},and(status.neq.pending,player2_hidden.eq.false))`
-    : `
-    status.eq.pending,player2_did.is.null,stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]}`)
-    .order('status', { ascending: true }) // Completed before pending
-    .order('player2_move_timestamp', { ascending: false }) // Most recent completed games
-    .order('created_at', { ascending: true }); // Oldest pending games first
-  
- 
+  console.log("MCC fetchGamesFromSupabase", stakeRange, userDid);
+  if (!userDid) {
+    console.log("MCC fetchGamesFromSupabase", stakeRange, userDid);
+    return [];
+  }
+
+
+  // Basic pending game conditions
+// Basic pending game conditions
+const isPendingGame = `and(status.eq.pending,player2_did.is.null)`; // This and() is correct, keep it
+
+// User-specific conditions for pending games
+const userNotPlayer1 = `player1_did.neq.${userDid}`;
+
+// Stake range conditions for pending games
+const withinStakeRange = `and(stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]})`; // This and() is correct, keep it
+
+// Combine pending game conditions
+const pendingGamesFilter = `and(${isPendingGame},${userNotPlayer1},${withinStakeRange})`;
+
+// Non-pending games with hidden criteria
+const nonPendingBasic = `status.neq.pending`;
+const notHiddenAsPlayer1 = `and(player1_did.eq.${userDid},or(player1_hidden.is.null,player1_hidden.eq.false))`;
+const notHiddenAsPlayer2 = `and(player2_did.eq.${userDid},or(player2_hidden.is.null,player2_hidden.eq.false))`;
+const notHiddenGamesFilter = `or(${notHiddenAsPlayer1},${notHiddenAsPlayer2})`;
+const nonPendingGamesFilter = `and(${nonPendingBasic},${notHiddenGamesFilter})`;
+
+// Combine filters with simple comma (no extra space)
+const fullFilter = `${pendingGamesFilter},${nonPendingGamesFilter}`; // Changed this line back
+
+  console.log('MCC FULL FILTER:', fullFilter);
+
+  let query = supabase
+    .from('matches')
+    .select(`
+      *,
+      player1:users!matches_player1_did_fkey(
+        rating,
+        display_name
+      ),
+      player2:users!matches_player2_did_fkey(
+        rating,
+        display_name
+      )
+    `)
+    .or(fullFilter)
+//  .or(`and(status.eq.pending,player2_did.is.null,player1_did.neq.${userDid},stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]}),status.neq.pending`)
+
+  const { data: matchesData, error: matchesError } = await query
+    .order('status', { ascending: true })
+    .order('player2_move_timestamp', { ascending: false })
+    .order('created_at', { ascending: true });
+  console.log("MCC matchesData", matchesData);
   if (matchesError) throw matchesError;
 
   return (matchesData || []).map(match => ({
