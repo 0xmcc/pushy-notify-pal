@@ -36,6 +36,16 @@ export const MatrixRain: React.FC = () => {
 
     // Setting up the draw function
     const draw = () => {
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      
+      // Apply gradient background
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add semi-transparent black overlay for fade effect
       ctx.fillStyle = 'rgba(0, 0, 0, .1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
