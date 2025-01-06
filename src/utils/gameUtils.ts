@@ -48,10 +48,15 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
 
       // Determine which player is claiming
       const isPlayer1 = userId === game.player1_did;
-      const updateField = isPlayer1 ? 'player1_claimed_at' : 'player2_claimed_at';
+      const isPlayer2 = userId === game.player2_did;
+      const updateField = isPlayer1 ? 'player1_claimed_at' : isPlayer2 ? 'player2_claimed_at' : null;
+      const updateField2 = isPlayer1 ? 'player1_hidden' : isPlayer2 ? 'player2_hidden' : null;
+
+      if (!updateField || !updateField2) throw new Error('User is not a player in this game');
+
 
       // Check if already claimed
-      if ((isPlayer1 && game.player1_claimed_at) || (!isPlayer1 && game.player2_claimed_at)) {
+      if ((isPlayer1 && game.player1_claimed_at) || (isPlayer2 && game.player2_claimed_at)) {
         throw new Error('Reward already claimed');
       }
 
@@ -60,7 +65,9 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
         .from('matches')
         .update({ 
           [updateField]: new Date().toISOString(),
-          status: 'completed'
+          status: 'completed',
+          [updateField2]: true
+
         })
         .eq('id', gameId);
 
@@ -143,6 +150,42 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
   } catch (error) {
     console.error('Error playing move:', error);
     toast.error(error instanceof Error ? error.message : "Failed to play move");
+    throw error;
+  }
+};
+
+export const hideGame = async (gameId: string, userId: string) => {
+  try {
+    // Get the current game state
+    const { data: game, error: gameError } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('id', gameId)
+      .single();
+
+    if (gameError) throw gameError;
+
+    // Determine which player is hiding
+    const isPlayer1 = userId === game.player1_did;
+    const isPlayer2 = userId === game.player2_did;
+    const updateField = isPlayer1 ? 'player1_hidden' : isPlayer2 ? 'player2_hidden' : null;
+
+    if (!updateField) {
+      throw new Error('User is not a player in this game');
+    }
+
+    // Update the hidden status
+    const { error: hideError } = await supabase
+      .from('matches')
+      .update({ [updateField]: true })
+      .eq('id', gameId);
+
+    if (hideError) throw hideError;
+    
+    toast.success('Game hidden successfully');
+  } catch (error) {
+    console.error('Error hiding game:', error);
+    toast.error(error instanceof Error ? error.message : "Failed to hide game");
     throw error;
   }
 };

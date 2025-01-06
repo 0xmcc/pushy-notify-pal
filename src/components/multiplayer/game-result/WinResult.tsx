@@ -1,4 +1,4 @@
-import { ClaimButton } from "../ClaimButton";
+import { GameResultButton } from "./GameResultButton";
 
 interface WinResultProps {
   canClaim: boolean;
@@ -19,7 +19,11 @@ export const WinResult = ({
         You won!
       </p>
       {canClaim && !hasUserClaimed && (
-        <ClaimButton onClaim={handleClaim} stakeAmount={stakeAmount} />
+        <GameResultButton 
+          onClick={handleClaim} 
+          variant="claim" 
+          stakeAmount={stakeAmount} 
+        />
       )}
       {hasUserClaimed && (
         <p className="text-gaming-text-secondary">

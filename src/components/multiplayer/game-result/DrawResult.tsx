@@ -1,18 +1,19 @@
+import { GameResultButton } from "./GameResultButton";
+
 interface DrawResultProps {
-  isUserInGame: boolean;
+  handleHideGame: () => Promise<void>;
 }
 
-export const DrawResult = ({ isUserInGame }: DrawResultProps) => {
+export const DrawResult = ({ handleHideGame }: DrawResultProps) => {
   return (
-    <div className="text-center">
+    <div className="text-center space-y-3">
       <p className="text-gaming-accent text-xl font-bold animate-pulse">
         Draw!
       </p>
-      {isUserInGame && (
-        <p className="text-gaming-text-secondary mt-2">
-          Stakes have been returned to your off-chain balance
-        </p>
-      )}
+      <GameResultButton 
+        onClick={handleHideGame} 
+        variant="hide" 
+      />
     </div>
   );
 };

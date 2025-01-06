@@ -14,27 +14,26 @@ export const fetchGamesFromSupabase = async (stakeRange: [number, number], userD
 
 
   // Basic pending game conditions
-// Basic pending game conditions
-const isPendingGame = `and(status.eq.pending,player2_did.is.null)`; // This and() is correct, keep it
+  const isPendingGame = `and(status.eq.pending,player2_did.is.null)`; // This and() is correct, keep it
 
-// User-specific conditions for pending games
-const userNotPlayer1 = `player1_did.neq.${userDid}`;
+  // User-specific conditions for pending games
+  const userNotPlayer1 = `player1_did.neq.${userDid}`;
 
-// Stake range conditions for pending games
-const withinStakeRange = `and(stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]})`; // This and() is correct, keep it
+  // Stake range conditions for pending games
+  const withinStakeRange = `and(stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]})`; // This and() is correct, keep it
 
-// Combine pending game conditions
-const pendingGamesFilter = `and(${isPendingGame},${userNotPlayer1},${withinStakeRange})`;
+  // Combine pending game conditions
+  const pendingGamesFilter = `and(${isPendingGame},${userNotPlayer1},${withinStakeRange})`;
 
-// Non-pending games with hidden criteria
-const nonPendingBasic = `status.neq.pending`;
-const notHiddenAsPlayer1 = `and(player1_did.eq.${userDid},or(player1_hidden.is.null,player1_hidden.eq.false))`;
-const notHiddenAsPlayer2 = `and(player2_did.eq.${userDid},or(player2_hidden.is.null,player2_hidden.eq.false))`;
-const notHiddenGamesFilter = `or(${notHiddenAsPlayer1},${notHiddenAsPlayer2})`;
-const nonPendingGamesFilter = `and(${nonPendingBasic},${notHiddenGamesFilter})`;
+  // Non-pending games with hidden criteria
+  const nonPendingBasic = `status.neq.pending`;
+  const notHiddenAsPlayer1 = `and(player1_did.eq.${userDid},or(player1_hidden.is.null,player1_hidden.eq.false))`;
+  const notHiddenAsPlayer2 = `and(player2_did.eq.${userDid},or(player2_hidden.is.null,player2_hidden.eq.false))`;
+  const notHiddenGamesFilter = `or(${notHiddenAsPlayer1},${notHiddenAsPlayer2})`;
+  const nonPendingGamesFilter = `and(${nonPendingBasic},${notHiddenGamesFilter})`;
 
-// Combine filters with simple comma (no extra space)
-const fullFilter = `${pendingGamesFilter},${nonPendingGamesFilter}`; // Changed this line back
+  // Combine filters with simple comma (no extra space)
+  const fullFilter = `${pendingGamesFilter},${nonPendingGamesFilter}`; // Changed this line back
 
   console.log('MCC FULL FILTER:', fullFilter);
 
@@ -52,7 +51,7 @@ const fullFilter = `${pendingGamesFilter},${nonPendingGamesFilter}`; // Changed 
       )
     `)
     .or(fullFilter)
-//  .or(`and(status.eq.pending,player2_did.is.null,player1_did.neq.${userDid},stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]}),status.neq.pending`)
+
 
   const { data: matchesData, error: matchesError } = await query
     .order('status', { ascending: true })

@@ -5,6 +5,8 @@ import { DrawResult } from "./game-result/DrawResult";
 import { WinResult } from "./game-result/WinResult";
 import { LoseResult } from "./game-result/LoseResult";
 import { useGameClaim } from "@/hooks/useGameClaim";
+import { hideGame } from "@/utils/gameUtils";
+import { usePrivy } from "@privy-io/react-auth";
 
 interface GameResultProps {
   player1Move: string | null;
@@ -39,6 +41,8 @@ export const GameResult = ({
   player1_claimed_at,
   player2_claimed_at,
 }: GameResultProps) => {
+  const { user } = usePrivy();
+
   const isDraw = player1Move && player2Move && !winner_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const hasLost = isUserInGame && !isUserWinner && !isDraw;
@@ -51,7 +55,12 @@ export const GameResult = ({
     stakeAmount,
     gameId,
     onClaim,
+
   });
+  const handleHideGame = async () => {
+    if (!user?.id) return;
+    await hideGame(gameId, user.id);
+  };
 
   return (
     <div className="space-y-4">
@@ -64,7 +73,7 @@ export const GameResult = ({
         player2_did={player2_did}
       />
       
-      {isDraw && <DrawResult isUserInGame={isUserInGame} />}
+      {isDraw && <DrawResult handleHideGame={handleHideGame} />}
       
       {isUserWinner && !isDraw && (
         <WinResult
@@ -75,7 +84,7 @@ export const GameResult = ({
         />
       )}
 
-      {hasLost && <LoseResult />}
+      {hasLost && <LoseResult handleHideGame={handleHideGame} />}
     </div>
   );
 };
