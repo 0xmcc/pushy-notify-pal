@@ -4,6 +4,7 @@ import { useHomeData } from './useHomeData';
 import { HeroSection } from './HeroSection';
 import { FeaturedGameSection } from './FeaturedGameSection';
 import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
+import { MatrixRain } from '@/components/effects/MatrixRain';
 
 const HomePage = () => {
   const { isLoading, leaderboardUsers, featuredGame } = useHomeData();
@@ -22,14 +23,24 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),rgba(139,92,246,0.05))] pointer-events-none" />
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20" />
-      
-      <HeroSection />
+      {/* Matrix Rain Background */}
+      <div className="fixed inset-0 z-0">
+        <MatrixRain />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black" />
+      </div>
 
-      <div className="container mx-auto px-4 -mt-32 relative z-10">
-        <FeaturedGameSection game={featuredGame} onPlayMove={handlePlayMove} />
-        <LeaderboardList users={leaderboardUsers} />
+      {/* Gradient and Grid Overlays */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),rgba(139,92,246,0.05))] pointer-events-none z-10" />
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20 z-10" />
+      
+      {/* Content */}
+      <div className="relative z-20">
+        <HeroSection />
+
+        <div className="container mx-auto px-4 space-y-0 pb-16">
+          <FeaturedGameSection game={featuredGame} onPlayMove={handlePlayMove} />
+          <LeaderboardList users={leaderboardUsers} />
+        </div>
       </div>
     </div>
   );

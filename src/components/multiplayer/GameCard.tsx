@@ -35,11 +35,11 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
         stakeAmount={game.stake_amount}
       />
 
-      {!isGameComplete && game.status === 'pending' && (
+      {/* {!isGameComplete && game.status === 'pending' && (
         <div className="flex justify-center items-center py-4">
           <Lock className="w-6 h-6 text-gaming-text-secondary animate-pulse" />
         </div>
-      )}
+      )} */}
 
       {isGameComplete ? (
         <GameResult 

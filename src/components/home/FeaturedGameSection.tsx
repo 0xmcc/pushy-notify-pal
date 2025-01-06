@@ -10,7 +10,7 @@ export const FeaturedGameSection = ({ game, onPlayMove }: FeaturedGameSectionPro
   if (!game) return null;
 
   return (
-    <div className="mt-16">
+    <div className="mt-16 mb-4">
       <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary text-center">Your move</h2>
       <GameCard game={game} onPlayMove={onPlayMove} />
     </div>
