@@ -25,7 +25,7 @@ export const MatrixRain: React.FC = () => {
     const letterArray = letters.split('');
 
     // Setting up the columns
-    const fontSize = 10;
+    const fontSize = 14; // Increased font size
     const columns = canvas.width / fontSize;
 
     // Setting up the drops
@@ -42,17 +42,21 @@ export const MatrixRain: React.FC = () => {
       ctx.font = `${fontSize}px monospace`;
       for (let i = 0; i < drops.length; i++) {
         const text = letterArray[Math.floor(Math.random() * letterArray.length)];
-        ctx.fillStyle = '#0f0';
+        
+        // Calculate gradient opacity based on vertical position
+        const gradientOpacity = 1 - (drops[i] * fontSize / canvas.height);
+        ctx.fillStyle = `rgba(0, 255, 0, ${Math.max(0.1, gradientOpacity)})`;
+        
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
         drops[i]++;
-        if (drops[i] * fontSize > canvas.height && Math.random() > .95) {
+        if (drops[i] * fontSize > canvas.height && Math.random() > .98) { // Slowed down reset probability
           drops[i] = 0;
         }
       }
     };
 
-    // Loop the animation
-    const interval = setInterval(draw, 33);
+    // Loop the animation with slower interval
+    const interval = setInterval(draw, 50); // Increased interval for slower animation
 
     // Cleanup
     return () => {
@@ -64,7 +68,7 @@ export const MatrixRain: React.FC = () => {
   return (
     <canvas 
       ref={canvasRef} 
-      className="w-full h-full absolute inset-0 opacity-70"
+      className="w-full h-full absolute inset-0"
     />
   );
 };

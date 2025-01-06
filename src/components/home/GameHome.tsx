@@ -124,12 +124,13 @@ const HomePage = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.1),rgba(139,92,246,0.05))] pointer-events-none" />
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20" />
       
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* Hero Canvas */}
-        <div className="relative w-full h-48 md:h-64 mb-8 overflow-hidden rounded-xl bg-black">
-          <MatrixRain />
-        </div>
+      {/* Full-width Matrix Rain */}
+      <div className="relative w-full h-96 overflow-hidden bg-black">
+        <MatrixRain />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gaming-background" />
+      </div>
 
+      <div className="container mx-auto px-4 py-8 relative z-10 -mt-32">
         {/* Hero Section */}
         <div className="text-center mb-16 space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent animate-float">
