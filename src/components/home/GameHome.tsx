@@ -84,7 +84,14 @@ const HomePage = () => {
           .single();
 
         if (error) throw error;
-        if (data) setFeaturedGame(data as unknown as Game);
+        if (data) {
+          const gameWithNames: Game = {
+            ...data,
+            creator_name: data.player1?.display_name || data.player1_did.slice(0, 8),
+            creator_rating: data.player1?.rating || 1200
+          };
+          setFeaturedGame(gameWithNames);
+        }
       } catch (error) {
         console.error('Error fetching featured game:', error);
       }
@@ -125,7 +132,7 @@ const HomePage = () => {
         {/* Featured Game */}
         {featuredGame && (
           <div className="mb-16">
-            <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary">Featured Game</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gaming-text-primary text-center">Featured Game</h2>
             <GameCard game={featuredGame} onPlayMove={handlePlayMove} />
           </div>
         )}
