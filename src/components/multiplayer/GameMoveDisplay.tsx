@@ -11,7 +11,7 @@ export const GameMoveDisplay = ({ move, isWinner, isDraw }: GameMoveDisplayProps
   const getMoveIcon = (move: string | null) => {
     const iconClassName = cn(
       "w-8 h-8 transition-all duration-300",
-      isDraw ? "text-gaming-accent" :
+      isDraw ? "text-gaming-primary" :
       isWinner ? "text-gaming-success" : 
       "text-gaming-text-secondary"
     );
@@ -30,7 +30,7 @@ export const GameMoveDisplay = ({ move, isWinner, isDraw }: GameMoveDisplayProps
       {(isWinner || isDraw) && (
         <div className={cn(
           "absolute inset-0 rounded-full animate-ping opacity-75 group-hover:opacity-100",
-          isDraw ? "bg-gaming-accent/10" : "bg-gaming-success/10"
+          isDraw ? "bg-gaming-primary/10" : "bg-gaming-success/10"
         )} />
       )}
     </div>
