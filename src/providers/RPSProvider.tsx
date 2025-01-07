@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState, useEffect, createContext, useContext } from 'react';
 
 import { Connection, PublicKey } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
@@ -13,6 +15,16 @@ import { IDL, RpsGame } from '@/types/rps_game';
 
 const DEVNET_ENDPOINT = 'https://api.devnet.solana.com';
 const PROGRAM_ID = 'HhQS1b126xUXvVpQ6qbZPhSi2PhDgtBFTe7hqNfkXeWZ';
+
+export const RPSContext = createContext<anchor.Program<RpsGame> | null>(null);
+
+export function useRPS() {
+  const context = useContext(RPSContext);
+  if (!context) {
+    throw new Error('useRPS must be used within RPSProvider');
+  }
+  return context;
+}
 
 export function RPSProvider({ children }: { children: React.ReactNode }) {
   const [program, setProgram] = useState<anchor.Program<RpsGame> | null>(null);

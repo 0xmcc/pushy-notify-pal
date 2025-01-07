@@ -12,15 +12,14 @@ export const useHomeData = () => {
       const { data: matches, error } = await supabase
         .from('matches')
         .select(`
-          .select('
           *,
           player1:player1_did(did, display_name, rating),
           player2:player2_did(did, display_name, rating)
         `)
-        .order('created_at', { ascending: false })
-        .limit(10);
         .eq('status', 'pending')
         .neq('player1_did', user?.id || '')
+        .order('created_at', { ascending: false })
+        .limit(10);
 
 
       if (error) throw error;

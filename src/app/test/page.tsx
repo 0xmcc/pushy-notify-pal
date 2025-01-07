@@ -7,12 +7,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
 export default function TestPage() {
-  const { createGame, initializePlayer, client, connected } = useRPS();
+  const program = useRPS();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
+  const isConnected = !!program;
+
   const handleCreatePlayer = async () => {
-    if (!connected) {
+    if (!isConnected) {
       toast({
         title: "Not connected",
         description: "Please connect your wallet first",
@@ -40,7 +42,7 @@ export default function TestPage() {
   };
 
   const handleCreateGame = async () => {
-    if (!connected) {
+    if (!isConnected) {
       toast({
         title: "Not connected",
         description: "Please connect your wallet first",
@@ -79,7 +81,7 @@ export default function TestPage() {
           <h2 className="text-lg font-semibold mb-4">Player Management</h2>
           <Button
             onClick={handleCreatePlayer}
-            disabled={isLoading || !connected}
+            disabled={isLoading || !isConnected}
             className="w-full"
           >
             {isLoading ? (
@@ -93,7 +95,7 @@ export default function TestPage() {
           <h2 className="text-lg font-semibold mb-4">Game Management</h2>
           <Button
             onClick={handleCreateGame}
-            disabled={isLoading || !connected}
+            disabled={isLoading || !isConnected}
             className="w-full"
           >
             {isLoading ? (
@@ -109,10 +111,10 @@ export default function TestPage() {
         <div className="flex items-center gap-2">
           <div
             className={`w-3 h-3 rounded-full ${
-              connected ? "bg-green-500" : "bg-red-500"
+              isConnected ? "bg-green-500" : "bg-red-500"
             }`}
           />
-          <span>{connected ? "Connected" : "Not connected"}</span>
+          <span>{isConnected ? "Connected" : "Not connected"}</span>
         </div>
       </div>
     </div>
