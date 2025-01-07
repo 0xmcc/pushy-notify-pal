@@ -18,6 +18,7 @@ export const useHomeData = () => {
             rating
           )
         `)
+        .eq('status', 'pending')
         .neq('player1_did', user?.id || '')
         .order('created_at', { ascending: false })
         .limit(10);
