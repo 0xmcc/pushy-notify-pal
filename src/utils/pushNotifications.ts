@@ -1,33 +1,36 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
-// Function to send a push notification
-export const sendPushNotification = async (userId: string, message: string) => {
+export const createGameNotification = async (userId: string, message: string) => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('notifications')
-      .insert([{ user_id: userId, message }]);
+      .insert([
+        {
+          user_id: userId,
+          message: message
+        }
+      ]);
 
-    if (error) {
-      throw new Error('Failed to send notification');
-    }
+    if (error) throw error;
+    return data;
   } catch (error) {
-    console.error('Error sending push notification:', error);
+    console.error('Error creating notification:', error);
+    throw error;
   }
 };
 
-// Function to listen for notifications
-export const listenForNotifications = (userId: string, onNotification: (message: string) => void) => {
-  const channel = supabase
-    .channel('notifications')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
-      const notification = payload.new;
-      if (notification.user_id === userId) {
-        onNotification(notification.message);
-      }
-    })
-    .subscribe();
+export const getNotifications = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;
+  }
 };

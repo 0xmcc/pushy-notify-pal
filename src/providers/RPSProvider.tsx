@@ -8,6 +8,17 @@ import {
 } from '@solana/web3.js';
 import { usePrivy, useSolanaWallets } from '@privy-io/react-auth';
 
+// Context type
+interface RPSContextType {
+  client: GameClient | null;
+  connection: Connection | null;
+  connected: boolean;
+  createGame: (betAmount: number) => Promise<string>;
+  initializePlayer: () => Promise<string>;
+  loading: boolean;
+  error: string | null;
+}
+
 // Simple Move enum for MVP
 enum Move {
     Rock = 0,
@@ -102,21 +113,17 @@ class GameClient {
     }
 }
 
-// Context type
-interface RPSContextType {
-    client: GameClient | null;
-    connection: Connection | null;
-    connected: boolean;
-}
-
-// Create context
+// Create context with default values
 const RPSContext = createContext<RPSContextType>({
-    client: null,
-    connection: null,
-    connected: false
+  client: null,
+  connection: null,
+  connected: false,
+  createGame: async () => { throw new Error('Not implemented'); },
+  initializePlayer: async () => { throw new Error('Not implemented'); },
+  loading: false,
+  error: null
 });
 
-// Hook to use RPS context
 export function useRPS() {
     return useContext(RPSContext);
 }

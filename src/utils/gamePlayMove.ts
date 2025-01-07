@@ -1,204 +1,106 @@
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { calculateEloChange } from "./eloCalculator";
-import { sendPushNotification, createGameNotification } from "./pushNotifications";
+import { supabase } from '@/integrations/supabase/client';
+import { createGameNotification } from './pushNotifications';
 
-const getMoveInventoryColumn = (move: string): string => {
-  switch (move) {
-    case '0': return 'rock_count';
-    case '1': return 'paper_count';
-    case '2': return 'scissors_count';
-    default: throw new Error('Invalid move');
+export const playMove = async (gameId: string, userId: string, move: string) => {
+  try {
+    // Get the game details first
+    const { data: game, error: gameError } = await supabase
+      .from('active_games')
+      .select('*')
+      .eq('id', gameId)
+      .single();
+
+    if (gameError) throw gameError;
+
+    // Update the game with the player's move
+    const { data, error } = await supabase
+      .from('active_games')
+      .update({ selected_move: move })
+      .eq('id', gameId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Send notification to opponent
+    const opponentId = game.creator_did === userId ? game.opponent_did : game.creator_did;
+    if (opponentId) {
+      await createGameNotification(
+        opponentId,
+        `Your opponent has made their move in game ${gameId.slice(0, 8)}...`
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error playing move:', error);
+    throw error;
   }
 };
 
-const determineWinner = (move1: string, move2: string) => {
-  const m1 = parseInt(move1);
-  const m2 = parseInt(move2);
-  
-  if (m1 === m2) return null;
-  if (m1 === 0 && m2 === 2) return 1;
-  if (m1 === 2 && m2 === 0) return 2;
-  
-  return m1 > m2 ? 1 : 2;
-};
-
-export const playGameMove = async (gameId: string, move: string, userId: string) => {
+export const resolveGame = async (gameId: string, winnerId: string | null) => {
   try {
-    if (move === 'claim') {
-      // Get the current game state
-      const { data: game, error: gameError } = await supabase
-        .from('matches')
-        .select('*')
-        .eq('id', gameId)
-        .single();
+    const { data: game, error: gameError } = await supabase
+      .from('active_games')
+      .select('*')
+      .eq('id', gameId)
+      .single();
 
-      if (gameError) throw gameError;
+    if (gameError) throw gameError;
 
-      // Determine which player is claiming
-      const isPlayer1 = userId === game.player1_did;
-      const isPlayer2 = userId === game.player2_did;
-      const updateField = isPlayer1 ? 'player1_claimed_at' : isPlayer2 ? 'player2_claimed_at' : null;
-      const updateField2 = isPlayer1 ? 'player1_hidden' : isPlayer2 ? 'player2_hidden' : null;
-      if (!updateField) throw new Error('User is not a player in this game');
+    // Update game status and winner
+    const { data, error } = await supabase
+      .from('active_games')
+      .update({
+        status: 'completed',
+        winner_did: winnerId
+      })
+      .eq('id', gameId)
+      .select()
+      .single();
 
-      // Check if already claimed
-      if ((isPlayer1 && game.player1_claimed_at) || (isPlayer2 && game.player2_claimed_at)) {
-        throw new Error('Reward already claimed');
-      }
-      
-      console.log("updateField", updateField);
-      console.log("updateField2", updateField2);
-      // Update the claim timestamp
-      const { error: claimError } = await supabase
-        .from('matches')
-        .update({ 
-          [updateField]: new Date().toISOString(),
-          status: 'completed',
-          [updateField2]: true
-        })
-        .eq('id', gameId);
+    if (error) throw error;
 
-      if (claimError) throw claimError;
-      
-      toast.success('Reward claimed successfully!');
-    } else {
-      // Get game details with proper user ratings
-      const { data: gameData, error: gameError } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          player1:users!matches_player1_did_fkey(rating, display_name),
-          player2:users!matches_player2_did_fkey(rating, display_name)
-        `)
-        .eq('id', gameId)
-        .single();
-
-      if (gameError) throw gameError;
-
-      // Get current user's data
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('rating, off_chain_balance, rock_count, paper_count, scissors_count, display_name')
-        .eq('did', userId)
-        .single();
-
-      if (userError) throw userError;
-
-      const currentBalance = userData.off_chain_balance || 0;
-      const stakeAmount = gameData.stake_amount;
-
-      if (currentBalance < stakeAmount) {
-        throw new Error(`Insufficient balance. You need ${stakeAmount} credits to play.`);
-      }
-
-      // Check inventory
-      const inventoryColumn = getMoveInventoryColumn(move);
-      if (!userData || userData[inventoryColumn] <= 0) {
-        throw new Error(`You don't have any more of this move available!`);
-      }
-
-      // Update user's balance and inventory
-      const { error: updateUserError } = await supabase
-        .from('users')
-        .update({ 
-          off_chain_balance: currentBalance - stakeAmount,
-          [inventoryColumn]: userData[inventoryColumn] - 1
-        })
-        .eq('did', userId);
-
-      if (updateUserError) throw updateUserError;
-
-      // Update game with player's move
-      const updateData: any = {
-        player2_did: userId,
-        player2_move: move,
-        player2_move_timestamp: new Date().toISOString(),
-        status: 'in_progress'
-      };
-
-      // Send notification to the opponent (player1)
-      await sendPushNotification(
-        gameData.player1_did,
+    // Send notifications to both players
+    const notificationPromises = [];
+    if (winnerId) {
+      // Notify winner
+      notificationPromises.push(
         createGameNotification(
-          gameId,
-          userData.display_name,
-          'move'
+          winnerId,
+          `Congratulations! You won game ${gameId.slice(0, 8)}...`
         )
       );
-
-      // If both moves are present, determine winner and calculate ELO changes
-      if (gameData.player1_move) {
-        const winner = determineWinner(gameData.player1_move, move);
-        
-        if (winner === null) {
-          updateData.status = 'completed';
-          
-          // Send draw notifications
-          await Promise.all([
-            sendPushNotification(
-              gameData.player1_did,
-              createGameNotification(gameId, userData.display_name, 'draw')
-            ),
-            sendPushNotification(
-              userId,
-              createGameNotification(gameId, gameData.player1.display_name, 'draw')
-            )
-          ]);
-        } else {
-          const winnerId = winner === 1 ? gameData.player1_did : userId;
-          const loserId = winner === 1 ? userId : gameData.player1_did;
-          const winnerName = winner === 1 ? gameData.player1.display_name : userData.display_name;
-          const loserName = winner === 1 ? userData.display_name : gameData.player1.display_name;
-          
-          const winnerRating = winner === 1 ? gameData.player1.rating : userData.rating;
-          const loserRating = winner === 1 ? userData.rating : gameData.player1.rating;
-          
-          const ratingChange = calculateEloChange(winnerRating, loserRating);
-          
-          updateData.status = 'completed';
-          updateData.winner_did = winnerId;
-          updateData.loser_did = loserId;
-          updateData.winner_rating_change = ratingChange;
-          updateData.loser_rating_change = -ratingChange;
-
-          // Send game result notifications
-          await Promise.all([
-            sendPushNotification(
-              winnerId,
-              createGameNotification(gameId, loserName, 'win')
-            ),
-            sendPushNotification(
-              loserId,
-              createGameNotification(gameId, winnerName, 'lose')
-            )
-          ]);
-          
-          // Update ratings immediately
-          await supabase
-            .from('users')
-            .update({ rating: winnerRating + ratingChange })
-            .eq('did', winnerId);
-            
-          await supabase
-            .from('users')
-            .update({ rating: loserRating - ratingChange })
-            .eq('did', loserId);
-        }
-      }
-
-      const { error: moveError } = await supabase
-        .from('matches')
-        .update(updateData)
-        .eq('id', gameId);
-
-      if (moveError) throw moveError;
       
-      toast.success(`Move played successfully!`);
+      // Notify loser
+      const loserId = game.creator_did === winnerId ? game.opponent_did : game.creator_did;
+      if (loserId) {
+        notificationPromises.push(
+          createGameNotification(
+            loserId,
+            `Game Over. You lost game ${gameId.slice(0, 8)}...`
+          )
+        );
+      }
+    } else {
+      // It's a draw - notify both players
+      notificationPromises.push(
+        createGameNotification(
+          game.creator_did,
+          `Game ${gameId.slice(0, 8)}... ended in a draw!`
+        ),
+        createGameNotification(
+          game.opponent_did,
+          `Game ${gameId.slice(0, 8)}... ended in a draw!`
+        )
+      );
     }
+
+    await Promise.all(notificationPromises);
+
+    return data;
   } catch (error) {
-    console.error('Error playing move:', error);
-    toast.error(error instanceof Error ? error.message : "Failed to play move");
+    console.error('Error resolving game:', error);
     throw error;
   }
 };
