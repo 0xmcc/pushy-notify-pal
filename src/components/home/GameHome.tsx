@@ -68,14 +68,7 @@ const HomePage = () => {
               You need to be logged in to play a move.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowLoginDialog(false)}
-              className="text-gaming-text-primary border-gaming-accent"
-            >
-              Cancel
-            </Button>
+          <div className="flex justify-end mt-4">
             <Button 
               onClick={() => {
                 setShowLoginDialog(false);
