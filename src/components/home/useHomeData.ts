@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Game } from '@/types/game';
+import { usePrivy } from '@privy-io/react-auth';
 
 export const useHomeData = () => {
+  const { user } = usePrivy();
+  
   return useQuery({
     queryKey: ['home-data'],
     queryFn: async () => {
@@ -15,6 +18,7 @@ export const useHomeData = () => {
             rating
           )
         `)
+        .neq('player1_did', user?.id || '')
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -25,6 +29,7 @@ export const useHomeData = () => {
         creator_name: match.creator?.display_name || match.player1_did,
         creator_rating: match.creator?.rating
       }));
-    }
+    },
+    enabled: !!user
   });
 };
