@@ -1,11 +1,16 @@
 'use client';
 
+import { Buffer } from 'buffer';
 import { createContext, useContext, ReactNode } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { Program, AnchorProvider, Idl } from '@coral-xyz/anchor';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
-import { IDL } from '@/types/rps_game';
-import { usePrivy } from '@privy-io/react-auth';
+import * as anchor from '@coral-xyz/anchor';
+import { clusterApiUrl, Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { IDL, RpsGame } from '@/types/rps_game';
+import { createWalletAdapter } from '@/utils/wallet-adapter';
+import { usePrivy, useSolanaWallets } from '@privy-io/react-auth';
+
+
+const PROGRAM_ID = "AdNRN8coBzuAPKiKPz4uxEQrgDDp2ZxXjtXfu6NnYKSg";
+
 
 export interface RPSContextType {
   createGame: (stakeAmount: number) => Promise<string>;
@@ -30,22 +35,46 @@ interface RPSProviderProps {
 }
 
 export const RPSProvider = ({ children }: RPSProviderProps) => {
-  const wallet = useWallet();
-  const { user } = usePrivy();
+  const { user, authenticated, logout, login } = usePrivy();
+	const { ready, wallets, createWallet } = useSolanaWallets();
+	const connection = new Connection(clusterApiUrl('devnet'));
 
   const getProgram = () => {
-    if (!wallet.publicKey) throw new Error('Wallet not connected');
+    if (!user) throw new Error('User not authenticated!');
+    if (wallets.length < 1) throw new Error('Wallet not connected');
 
-    const connection = new Connection('http://localhost:8899', 'confirmed');
-    const provider = new AnchorProvider(connection, wallet as any, {
-      commitment: 'confirmed',
-    });
+    const walletAdapter = createWalletAdapter(wallets[0]);
+		const provider = new anchor.AnchorProvider<RpsGame>(
+		  connection,
+		  walletAdapter,
+		  { commitment: 'processed' }
+		);
 
-    return new Program(IDL as unknown as Idl, new PublicKey('RPS1111111111111111111111111111111111111111'), provider);
+    anchor.setProvider(provider);
+
+    console.log('provider: ', provider);
+
+		const program = new anchor.Program(
+		  IDL,
+		  new PublicKey(PROGRAM_ID),
+		  provider
+		);
+
+    console.log('program: ', program);
+
+    // const connection = new Connection('http://localhost:8899', 'confirmed');
+    // const provider = new AnchorProvider(connection, wallet as any, {
+    //   commitment: 'confirmed',
+    // });
+
+    // return new Program(IDL as unknown as Idl, new PublicKey('RPS1111111111111111111111111111111111111111'), provider);
+
+    return program;
   };
 
   const createGame = async (stakeAmount: number): Promise<string> => {
     try {
+      const wallet = wallets[0];
       const program = getProgram();
       const tx = new Transaction();
       // Add game creation instruction
@@ -58,23 +87,67 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
   };
 
   const initializePlayer = async (): Promise<string> => {
-    try {
-      const program = getProgram();
-      const tx = new Transaction();
-      // Add player initialization instruction
-      const signature = await wallet.sendTransaction(tx, program.provider.connection);
-      return signature;
-    } catch (error) {
-      console.error('Error initializing player:', error);
+    if (!user) return;
+		const publicKey = new PublicKey(user.wallet?.address || '');
+		console.log("publicKey: ", publicKey.toString());
+
+		const program = getProgram();
+    console.log("program: ", program);
+		if (!program) return;
+
+		// Derive player PDAs
+		const [playerPda] = PublicKey.findProgramAddressSync(
+		  [Buffer.from("player"), publicKey.toBuffer()],
+		  program.programId
+		);
+
+    console.log("pDA: ", playerPda.toString());
+
+		const [playerOneVaultPda] = PublicKey.findProgramAddressSync(
+		  [Buffer.from("vault"), publicKey.toBuffer()],
+		  program.programId
+		);
+
+		console.log("vaultPDA: ", playerOneVaultPda.toString());
+
+		try {
+		  // Create player one PDA
+		  const tx = await program.methods
+        .createPlayer()
+        .accounts({
+          playerAccount: playerPda,
+          vault: playerOneVaultPda,
+          user: publicKey,
+        })
+        // .signers([publicKey])
+        .rpc({ commitment: "confirmed" });
+
+      return tx;
+
+		  console.log("Created player one! Transaction signature:", tx);
+		} catch (error) {
+		  console.error("Error creating player: ", error);
       throw error;
-    }
+		}
+
+    // try {
+    //   const wallet = wallets[0];
+    //   const program = getProgram();
+    //   const tx = new Transaction();
+    //   // Add player initialization instruction
+    //   const signature = await wallet.sendTransaction(tx, program.provider.connection);
+    //   return signature;
+    // } catch (error) {
+    //   console.error('Error initializing player:', error);
+    //   throw error;
+    // }
   };
 
   const value = {
     createGame,
     initializePlayer,
     client: getProgram,
-    connected: !!wallet.publicKey && !!user,
+    connected: authenticated,
   };
 
   return <RPSContext.Provider value={value}>{children}</RPSContext.Provider>;

@@ -1,10 +1,13 @@
 'use client';
 
+import { Buffer } from 'buffer';
 import { Terminal, Loader2 } from "lucide-react";
 import { useRPS } from "@/providers/RPSProvider";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
+
+window.Buffer = Buffer;
 
 export default function TestPage() {
   const { createGame, initializePlayer, client, connected } = useRPS();
@@ -29,6 +32,7 @@ export default function TestPage() {
         description: `Transaction signature: ${signature.slice(0, 8)}...`,
       });
     } catch (error) {
+      console.error("Error creating player:", error);
       toast({
         title: "Error creating player",
         description: error instanceof Error ? error.message : "Unknown error",
