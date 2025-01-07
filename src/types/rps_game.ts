@@ -213,6 +213,11 @@ export type RpsGame = {
           "name": "playerAccount",
           "isMut": true,
           "isSigner": false
+        },
+        {
+          "name": "vault",
+          "isMut": true,
+          "isSigner": false
         }
       ],
       "args": []
@@ -676,6 +681,11 @@ export const IDL: RpsGame = {
         },
         {
           "name": "playerAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "vault",
           "isMut": true,
           "isSigner": false
         }
