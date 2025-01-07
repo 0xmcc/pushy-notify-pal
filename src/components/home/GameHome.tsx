@@ -5,9 +5,21 @@ import { HeroSection } from './HeroSection';
 import { FeaturedGameSection } from './FeaturedGameSection';
 import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
 import { MatrixRain } from '@/components/effects/MatrixRain';
+import { usePrivy } from '@privy-io/react-auth';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useState } from 'react';
 
 const HomePage = () => {
   const { isLoading, leaderboardUsers, featuredGame } = useHomeData();
+  const { login, authenticated } = usePrivy();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   if (isLoading) {
     return (
@@ -18,6 +30,10 @@ const HomePage = () => {
   }
 
   const handlePlayMove = async (gameId: string, move: string) => {
+    if (!authenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
     console.log('Move played:', gameId, move);
   };
 
@@ -42,6 +58,36 @@ const HomePage = () => {
           <LeaderboardList users={leaderboardUsers} />
         </div>
       </div>
+
+      {/* Login Dialog */}
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent className="bg-gaming-card border-gaming-accent text-gaming-text-primary">
+          <DialogHeader>
+            <DialogTitle className="text-gaming-text-primary">Login Required</DialogTitle>
+            <DialogDescription className="text-gaming-text-secondary">
+              You need to be logged in to play a move.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLoginDialog(false)}
+              className="text-gaming-text-primary border-gaming-accent"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowLoginDialog(false);
+                login();
+              }}
+              className="bg-gaming-accent hover:bg-gaming-accent/80 text-gaming-text-primary"
+            >
+              Login
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
