@@ -16,3 +16,9 @@ export interface Game {
   loser_rating_change?: number;
   is_ranked?: boolean;
 }
+
+export enum Move {
+  Rock = 0,
+  Paper = 1,
+  Scissors = 2,
+}

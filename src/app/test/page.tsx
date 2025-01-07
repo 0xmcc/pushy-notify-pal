@@ -2,17 +2,21 @@
 
 import { Buffer } from 'buffer';
 import { Terminal, Loader2 } from "lucide-react";
+import { useState } from "react";
+
 import { useRPS } from "@/providers/RPSProvider";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
+import { Move } from "@/types/game";
 
 window.Buffer = Buffer;
 
 export default function TestPage() {
-  const { createGame, initializePlayer, deletePlayer, client, connected } = useRPS();
+  const { createGame, initializePlayer, deletePlayer, commitMove, client, connected } = useRPS();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [gameCreationTimestamp, setGameCreationTimestamp] = useState<number | null>(null);
+  const [gameId, setGameId] = useState<string | null>(null);
 
   const handleCreatePlayer = async () => {
     if (!connected) {
@@ -43,6 +47,35 @@ export default function TestPage() {
     }
   };
 
+  const handleDeletePlayer = async () => {
+    if (!connected) {
+      toast({
+        title: "Not connected",
+        description: "Please connect your wallet first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const signature = await deletePlayer();
+      toast({
+        title: "Player deleted",
+        description: `Transaction signature: ${signature.slice(0, 8)}...`,
+      });
+    } catch (error) {
+      console.error("Error deleting player:", error);
+      toast({
+        title: "Error deleting player",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   const handleCreateGame = async () => {
     if (!connected) {
       toast({
@@ -55,14 +88,45 @@ export default function TestPage() {
 
     setIsLoading(true);
     try {
-      const signature = await createGame(0.1); // 0.1 SOL stake amount
+      const creationTimestamp = await createGame(0.1); // 0.1 SOL stake amount
+      setGameCreationTimestamp(creationTimestamp);
       toast({
         title: "Game created",
-        description: `Transaction signature: ${signature.slice(0, 8)}...`,
+        description: `Game creation timestamp: ${creationTimestamp}`,
       });
     } catch (error) {
       toast({
         title: "Error creating game",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCommitMove = async () => {
+    if (!connected) {
+      toast({
+        title: "Not connected",
+        description: "Please connect your wallet first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const moveSalt = await commitMove(gameCreationTimestamp, Move.Rock);
+      toast({
+        title: "Move committed",
+        description: `Move Salt: ${moveSalt}...`,
+      });
+    } catch (error) {
+      console.error("Error committing move:", error);
+      toast({
+        title: "Error committing move",
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
@@ -92,7 +156,7 @@ export default function TestPage() {
             Initialize Player
           </Button>
           <Button
-            onClick={deletePlayer}
+            onClick={handleDeletePlayer}
             disabled={isLoading || !connected}
             className="w-full"
           >
@@ -114,6 +178,20 @@ export default function TestPage() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
             Create Game (0.1 SOL)
+          </Button>
+        </div>
+
+        <div className="p-4 border border-gaming-accent rounded-lg">
+          <h2 className="text-lg font-semibold mb-4">Game</h2>
+          <Button
+            onClick={handleCommitMove}
+            disabled={isLoading || !connected}
+            className="w-full"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Commit Move (Rock)
           </Button>
         </div>
       </div>
