@@ -5,11 +5,9 @@ import { HeroSection } from './HeroSection';
 import { FeaturedGameSection } from './FeaturedGameSection';
 import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
 import { MatrixRain } from '@/components/effects/MatrixRain';
-import { playGameMove } from '@/utils/gamePlayMove';
-import { toast } from 'sonner';
 
 const HomePage = () => {
-  const { isLoading, leaderboardUsers, featuredGame, refetchFeaturedGame } = useHomeData();
+  const { isLoading, leaderboardUsers, featuredGame } = useHomeData();
 
   if (isLoading) {
     return (
@@ -20,14 +18,7 @@ const HomePage = () => {
   }
 
   const handlePlayMove = async (gameId: string, move: string) => {
-    try {
-      await playGameMove(gameId, move);
-      await refetchFeaturedGame();
-      toast.success('Action completed successfully!');
-    } catch (error) {
-      console.error('Error playing move:', error);
-      toast.error('Failed to complete action');
-    }
+    console.log('Move played:', gameId, move);
   };
 
   return (
