@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 
 const HomePage = () => {
-  const { isLoading, leaderboardUsers, featuredGame } = useHomeData();
+  const { data: matches, isLoading } = useHomeData();
   const { login, authenticated } = usePrivy();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
 
@@ -37,6 +37,9 @@ const HomePage = () => {
     console.log('Move played:', gameId, move);
   };
 
+  // Get the first active game as featured game
+  const featuredGame = matches?.[0];
+
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Matrix Rain Background */}
@@ -55,7 +58,7 @@ const HomePage = () => {
 
         <div className="container mx-auto px-4 space-y-0 pb-16">
           <FeaturedGameSection game={featuredGame} onPlayMove={handlePlayMove} />
-          <LeaderboardList users={leaderboardUsers} />
+          <LeaderboardList users={[]} />
         </div>
       </div>
 
@@ -68,14 +71,7 @@ const HomePage = () => {
               You need to be logged in to play a move.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowLoginDialog(false)}
-              className="text-gaming-text-primary border-gaming-accent"
-            >
-              Cancel
-            </Button>
+          <div className="flex justify-end mt-4">
             <Button 
               onClick={() => {
                 setShowLoginDialog(false);

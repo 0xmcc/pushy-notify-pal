@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { useSolanaWallets } from '@privy-io/react-auth/solana';
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import { IDL, RpsGame } from '@/types/rps_game';
 
 
