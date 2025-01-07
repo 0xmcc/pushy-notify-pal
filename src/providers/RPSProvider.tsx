@@ -37,7 +37,7 @@ interface RPSProviderProps {
 export const RPSProvider = ({ children }: RPSProviderProps) => {
   const { user, authenticated, logout, login } = usePrivy();
 	const { ready, wallets, createWallet } = useSolanaWallets();
-	const connection = new Connection(clusterApiUrl('devnet'));
+	const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
   const getProgram = () => {
     if (!user) throw new Error('User not authenticated!');
@@ -52,22 +52,11 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
 
     anchor.setProvider(provider);
 
-    console.log('provider: ', provider);
-
 		const program = new anchor.Program(
 		  IDL,
 		  new PublicKey(PROGRAM_ID),
 		  provider
 		);
-
-    console.log('program: ', program);
-
-    // const connection = new Connection('http://localhost:8899', 'confirmed');
-    // const provider = new AnchorProvider(connection, wallet as any, {
-    //   commitment: 'confirmed',
-    // });
-
-    // return new Program(IDL as unknown as Idl, new PublicKey('RPS1111111111111111111111111111111111111111'), provider);
 
     return program;
   };
@@ -92,7 +81,6 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
 		console.log("publicKey: ", publicKey.toString());
 
 		const program = getProgram();
-    console.log("program: ", program);
 		if (!program) return;
 
 		// Derive player PDAs
@@ -122,25 +110,13 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
         // .signers([publicKey])
         .rpc({ commitment: "confirmed" });
 
-      return tx;
+      console.log("Created player one! Transaction signature:", tx);
 
-		  console.log("Created player one! Transaction signature:", tx);
+      return tx;
 		} catch (error) {
 		  console.error("Error creating player: ", error);
       throw error;
 		}
-
-    // try {
-    //   const wallet = wallets[0];
-    //   const program = getProgram();
-    //   const tx = new Transaction();
-    //   // Add player initialization instruction
-    //   const signature = await wallet.sendTransaction(tx, program.provider.connection);
-    //   return signature;
-    // } catch (error) {
-    //   console.error('Error initializing player:', error);
-    //   throw error;
-    // }
   };
 
   const value = {
