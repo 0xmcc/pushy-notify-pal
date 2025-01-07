@@ -2,9 +2,9 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Program, AnchorProvider, Idl } from '@project-serum/anchor';
+import { Program, AnchorProvider, Idl } from '@coral-xyz/anchor';
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
-import { IDL } from '@/target/types/rock_paper_scissors';
+import { IDL } from '@/types/rps_game';
 import { usePrivy } from '@privy-io/react-auth';
 
 export interface RPSContextType {
