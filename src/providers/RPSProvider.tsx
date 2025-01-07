@@ -41,7 +41,7 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
       commitment: 'confirmed',
     });
 
-    return new Program(IDL as Idl, new PublicKey('RPS1111111111111111111111111111111111111111'), provider);
+    return new Program(IDL as unknown as Idl, new PublicKey('RPS1111111111111111111111111111111111111111'), provider);
   };
 
   const createGame = async (stakeAmount: number): Promise<string> => {

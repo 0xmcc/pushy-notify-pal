@@ -8,12 +8,23 @@ export const useHomeData = () => {
     queryFn: async () => {
       const { data: matches, error } = await supabase
         .from('matches')
-        .select('*')
+        .select(`
+          *,
+          creator:users!matches_player1_did_fkey (
+            display_name,
+            rating
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(10);
 
       if (error) throw error;
-      return matches;
+
+      return matches?.map(match => ({
+        ...match,
+        creator_name: match.creator?.display_name || match.player1_did,
+        creator_rating: match.creator?.rating
+      }));
     }
   });
 };
