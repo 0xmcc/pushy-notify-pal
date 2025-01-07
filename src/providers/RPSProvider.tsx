@@ -70,7 +70,6 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
   const createGame = async (stakeAmount: number): Promise<number> => {
     if (!user) return;
     const publicKey = new PublicKey(user.wallet?.address || '');
-    console.log("publicKey: ", publicKey.toString());
 
     const program = getProgram();
     if (!program) return;
@@ -103,6 +102,9 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
         .rpc({ commitment: "confirmed" });
 
       console.log("Created game! Transaction signature:", tx);
+
+      // Return creation timestamp.
+      // TODO: Store this in supabase(?) for use later.
       return creationTimestamp.toNumber();
     } catch (error) {
       console.error("Error creating game:", error);
@@ -124,14 +126,10 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
       program.programId
     );
 
-    console.log("pDA: ", playerPda.toString());
-
     const [playerOneVaultPda] = PublicKey.findProgramAddressSync(
       [Buffer.from("vault"), publicKey.toBuffer()],
       program.programId
     );
-
-    console.log("vaultPDA: ", playerOneVaultPda.toString());
 
     try {
       // Create player one PDA
@@ -212,8 +210,8 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
     );
 
     try {
-      const playerOneSalt = generateSalt();
-      let commitment = await createCommitment(move, playerOneSalt);
+      const playerSalt = generateSalt();
+      let commitment = await createCommitment(move, playerSalt);
       const tx = await program.methods
         .commitMove(Array.from(commitment))
         .accounts({
@@ -225,7 +223,9 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
 
       console.log("Committed move! Transaction signature:", tx);
 
-      return playerOneSalt;
+      // Return player salt.
+      // TODO: Store this in supabase(?) for use later.
+      return playerSalt;
     } catch (error) {
       console.error("Error committing move: ", error);
       throw error;
