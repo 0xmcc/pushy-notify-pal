@@ -1,9 +1,10 @@
 'use client';
 
+import { BN } from 'bn.js';
 import { Buffer } from 'buffer';
 import { createContext, useContext, ReactNode } from 'react';
 import * as anchor from '@coral-xyz/anchor';
-import { clusterApiUrl, Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, clusterApiUrl, Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { IDL, RpsGame } from '@/types/rps_game';
 import { createWalletAdapter } from '@/utils/wallet-adapter';
 import { usePrivy, useSolanaWallets } from '@privy-io/react-auth';
@@ -62,15 +63,44 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
   };
 
   const createGame = async (stakeAmount: number): Promise<string> => {
+    if (!user) return;
+		const publicKey = new PublicKey(user.wallet?.address || '');
+		console.log("publicKey: ", publicKey.toString());
+
+		const program = getProgram();
+		if (!program) return;
+
+    const creationTimestamp = new BN(Date.now());
+    const [gamePda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("game"),
+        publicKey.toBuffer(),
+        creationTimestamp.toArrayLike(Buffer, 'le', 8),
+      ],
+      program.programId
+    );
+
+    const [vaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), gamePda.toBuffer()],
+      program.programId
+    );
+
     try {
-      const wallet = wallets[0];
-      const program = getProgram();
-      const tx = new Transaction();
-      // Add game creation instruction
-      const signature = await wallet.sendTransaction(tx, program.provider.connection);
-      return signature;
+      const betAmount = new BN(stakeAmount * LAMPORTS_PER_SOL); // 0.001 SOL
+
+      const tx = await program.methods
+        .createGame(creationTimestamp, betAmount)
+        .accounts({
+          playerOne: publicKey,
+          gameAccount: gamePda,
+          gameVault: vaultPda,
+        })
+        .rpc({ commitment: "confirmed" });
+
+      console.log("Created game! Transaction signature:", tx);
+      return tx;
     } catch (error) {
-      console.error('Error creating game:', error);
+      console.error("Error creating game:", error);
       throw error;
     }
   };
