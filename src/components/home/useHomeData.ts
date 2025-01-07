@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,6 +10,39 @@ export const useHomeData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [leaderboardUsers, setLeaderboardUsers] = useState<LeaderboardUser[]>([]);
   const [featuredGame, setFeaturedGame] = useState<Game | null>(null);
+
+  const fetchFeaturedGame = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          creator:player1_did(
+            display_name,
+            rating
+          ),
+          opponent:player2_did(
+            display_name,
+            rating
+          )
+        `)
+        .eq('status', 'pending')
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        const gameWithNames: Game = {
+          ...data,
+          creator_name: data.creator?.display_name || data.player1_did.slice(0, 8),
+          creator_rating: data.creator?.rating || 1200
+        };
+        setFeaturedGame(gameWithNames);
+      }
+    } catch (error) {
+      console.error('Error fetching featured game:', error);
+    }
+  }, []);
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -60,45 +93,13 @@ export const useHomeData = () => {
   }, []);
 
   useEffect(() => {
-    const fetchFeaturedGame = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('matches')
-          .select(`
-            *,
-            creator:player1_did(
-              display_name,
-              rating
-            ),
-            opponent:player2_did(
-              display_name,
-              rating
-            )
-          `)
-          .eq('status', 'pending')
-          .limit(1)
-          .single();
-
-        if (error) throw error;
-        if (data) {
-          const gameWithNames: Game = {
-            ...data,
-            creator_name: data.creator?.display_name || data.player1_did.slice(0, 8),
-            creator_rating: data.creator?.rating || 1200
-          };
-          setFeaturedGame(gameWithNames);
-        }
-      } catch (error) {
-        console.error('Error fetching featured game:', error);
-      }
-    };
-
     fetchFeaturedGame();
-  }, []);
+  }, [fetchFeaturedGame]);
 
   return {
     isLoading,
     leaderboardUsers,
-    featuredGame
+    featuredGame,
+    refetchFeaturedGame: fetchFeaturedGame
   };
 };
