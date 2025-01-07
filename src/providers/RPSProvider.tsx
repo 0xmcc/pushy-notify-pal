@@ -16,6 +16,7 @@ const PROGRAM_ID = "AdNRN8coBzuAPKiKPz4uxEQrgDDp2ZxXjtXfu6NnYKSg";
 export interface RPSContextType {
   createGame: (stakeAmount: number) => Promise<string>;
   initializePlayer: () => Promise<string>;
+  deletePlayer: () => Promise<string>;
   client: any;
   connected: boolean;
 }
@@ -23,6 +24,7 @@ export interface RPSContextType {
 const RPSContext = createContext<RPSContextType>({
   createGame: async () => '',
   initializePlayer: async () => '',
+  deletePlayer: async () => '',
   client: null,
   connected: false,
 });
@@ -149,9 +151,46 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
     }
   };
 
+  const deletePlayer = async (): Promise<string> => {
+    if (!user) return;
+    const publicKey = new PublicKey(user.wallet?.address || '');
+
+    const program = getProgram();
+    if (!program || !publicKey) return;
+
+    const [playerPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("player"), publicKey.toBuffer()],
+      program.programId
+    );
+
+    const [playerOneVaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), publicKey.toBuffer()],
+      program.programId
+    );
+
+    try {
+      const tx = await program.methods
+        .deletePlayer()
+        .accounts({
+          playerAccount: playerPda,
+          vault: playerOneVaultPda,
+          user: publicKey,
+        })
+        .rpc({ commitment: "confirmed" });
+
+      console.log("Deleted player! Transaction signature:", tx);
+
+      return tx;
+    } catch (error) {
+      console.error("Error deleting player: ", error);
+      throw error;
+    }
+  }
+
   const value = {
     createGame,
     initializePlayer,
+    deletePlayer,
     client: getProgram,
     connected: authenticated,
   };

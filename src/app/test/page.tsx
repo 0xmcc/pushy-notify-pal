@@ -10,7 +10,7 @@ import { useState } from "react";
 window.Buffer = Buffer;
 
 export default function TestPage() {
-  const { createGame, initializePlayer, client, connected } = useRPS();
+  const { createGame, initializePlayer, deletePlayer, client, connected } = useRPS();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -90,6 +90,16 @@ export default function TestPage() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
             Initialize Player
+          </Button>
+          <Button
+            onClick={deletePlayer}
+            disabled={isLoading || !connected}
+            className="w-full"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Delete Player
           </Button>
         </div>
 
