@@ -1,4 +1,4 @@
-import { Home, Swords, Users } from "lucide-react";
+import { Home, Swords, Users, Terminal } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +47,17 @@ export const BottomNav = ({ className }: BottomNavProps) => {
       >
         <Users size={24} />
         <span className="text-xs mt-1">Multi</span>
+      </button>
+      <button
+        onClick={() => navigate("/test")}
+        className={`flex flex-col items-center ${
+          location.pathname === "/test" 
+            ? "text-gaming-primary" 
+            : "text-[#8E9196] hover:text-[#D6BCFA]"
+        } transition-colors duration-200`}
+      >
+        <Terminal size={24} />
+        <span className="text-xs mt-1">Test</span>
       </button>
     </div>
   );
