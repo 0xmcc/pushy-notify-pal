@@ -37,38 +37,38 @@ interface RPSProviderProps {
 
 export const RPSProvider = ({ children }: RPSProviderProps) => {
   const { user, authenticated, logout, login } = usePrivy();
-	const { ready, wallets, createWallet } = useSolanaWallets();
-	const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+  const { ready, wallets, createWallet } = useSolanaWallets();
+  const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
   const getProgram = () => {
     if (!user) throw new Error('User not authenticated!');
     if (wallets.length < 1) throw new Error('Wallet not connected');
 
     const walletAdapter = createWalletAdapter(wallets[0]);
-		const provider = new anchor.AnchorProvider<RpsGame>(
-		  connection,
-		  walletAdapter,
-		  { commitment: 'processed' }
-		);
+    const provider = new anchor.AnchorProvider<RpsGame>(
+      connection,
+      walletAdapter,
+      { commitment: 'processed' }
+    );
 
     anchor.setProvider(provider);
 
-		const program = new anchor.Program(
-		  IDL,
-		  new PublicKey(PROGRAM_ID),
-		  provider
-		);
+    const program = new anchor.Program(
+      IDL,
+      new PublicKey(PROGRAM_ID),
+      provider
+    );
 
     return program;
   };
 
   const createGame = async (stakeAmount: number): Promise<string> => {
     if (!user) return;
-		const publicKey = new PublicKey(user.wallet?.address || '');
-		console.log("publicKey: ", publicKey.toString());
+    const publicKey = new PublicKey(user.wallet?.address || '');
+    console.log("publicKey: ", publicKey.toString());
 
-		const program = getProgram();
-		if (!program) return;
+    const program = getProgram();
+    if (!program) return;
 
     const creationTimestamp = new BN(Date.now());
     const [gamePda] = PublicKey.findProgramAddressSync(
@@ -86,7 +86,7 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
     );
 
     try {
-      const betAmount = new BN(stakeAmount * LAMPORTS_PER_SOL); // 0.001 SOL
+      const betAmount = new BN(stakeAmount * LAMPORTS_PER_SOL);
 
       const tx = await program.methods
         .createGame(creationTimestamp, betAmount)
@@ -107,30 +107,30 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
 
   const initializePlayer = async (): Promise<string> => {
     if (!user) return;
-		const publicKey = new PublicKey(user.wallet?.address || '');
-		console.log("publicKey: ", publicKey.toString());
+    const publicKey = new PublicKey(user.wallet?.address || '');
+    console.log("publicKey: ", publicKey.toString());
 
-		const program = getProgram();
-		if (!program) return;
+    const program = getProgram();
+    if (!program) return;
 
-		// Derive player PDAs
-		const [playerPda] = PublicKey.findProgramAddressSync(
-		  [Buffer.from("player"), publicKey.toBuffer()],
-		  program.programId
-		);
+    // Derive player PDAs
+    const [playerPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("player"), publicKey.toBuffer()],
+      program.programId
+    );
 
     console.log("pDA: ", playerPda.toString());
 
-		const [playerOneVaultPda] = PublicKey.findProgramAddressSync(
-		  [Buffer.from("vault"), publicKey.toBuffer()],
-		  program.programId
-		);
+    const [playerOneVaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), publicKey.toBuffer()],
+      program.programId
+    );
 
-		console.log("vaultPDA: ", playerOneVaultPda.toString());
+    console.log("vaultPDA: ", playerOneVaultPda.toString());
 
-		try {
-		  // Create player one PDA
-		  const tx = await program.methods
+    try {
+      // Create player one PDA
+      const tx = await program.methods
         .createPlayer()
         .accounts({
           playerAccount: playerPda,
@@ -143,10 +143,10 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
       console.log("Created player one! Transaction signature:", tx);
 
       return tx;
-		} catch (error) {
-		  console.error("Error creating player: ", error);
+    } catch (error) {
+      console.error("Error creating player: ", error);
       throw error;
-		}
+    }
   };
 
   const value = {
