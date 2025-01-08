@@ -7,7 +7,7 @@ import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
 import { MatrixRain } from '@/components/effects/MatrixRain';
 import { usePrivy } from '@privy-io/react-auth';
 import { usePlayMove } from "@/hooks/usePlayMove";
-
+import { useState } from 'react';
 import { 
   Dialog,
   DialogContent,
@@ -16,21 +16,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useState } from 'react';
 
 const HomePage = () => {
   const { data: matches, isLoading } = useHomeData();
   const { login, authenticated } = usePrivy();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-gaming-text-primary">Loading...</div>
-      </div>
-    );
-  }
-
   const handlePlayMove = usePlayMove();
 
   // Get the first active game as featured game
@@ -43,6 +33,14 @@ const HomePage = () => {
     }
     await handlePlayMove(gameId, move);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-pulse text-gaming-text-primary">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">

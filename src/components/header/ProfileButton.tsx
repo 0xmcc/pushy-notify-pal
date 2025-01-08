@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { WalletBalance } from '../wallet/WalletBalance';
+import NotificationSection from '@/components/NotificationSection';
 
 interface ProfileButtonProps {
   avatarUrl: string;
@@ -179,16 +180,9 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
                   <DropdownMenuSeparator className="bg-gaming-accent" />
                 </>
               )}
-              {permission !== 'granted' && (
-                <DropdownMenuItem onClick={requestPermission} className="gap-2 cursor-pointer">
-                  <BellRing className="w-4 h-4" />
-                  <span>Enable Notifications</span>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={sendTestNotification} className="gap-2 cursor-pointer">
-                <Bell className="w-4 h-4" />
-                <span>Send Test Notification</span>
-              </DropdownMenuItem>
+              
+              <NotificationSection />
+              
               <DropdownMenuItem onClick={handleLogout} className="gap-2 cursor-pointer">
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
