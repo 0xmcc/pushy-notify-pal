@@ -12,7 +12,8 @@ import { Move } from "@/types/game";
 window.Buffer = Buffer;
 
 export default function TestPage() {
-  const { createGame, initializePlayer, deletePlayer, commitMove, client, connected } = useRPS();
+  const { createGame, initializePlayer, deletePlayer, joinGame, commitMove, 
+    revealMove, claimWinnings, client, connected } = useRPS();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [gamePda, setGamePda] = useState<string | null>(null);
@@ -63,6 +64,19 @@ export default function TestPage() {
     setGamePda(gamePda);
   };
 
+  const handleJoinGame = async () => {
+    if (!gamePda) {
+      toast({
+        title: "No game",
+        description: "Please create a game first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await handlerWrapper(() => joinGame(gamePda), "Game joined", "Transaction signature: ", "Error joining game");
+  }
+
   const handleCommitMove = async () => {
     if (!gamePda) {
       toast({
@@ -77,7 +91,7 @@ export default function TestPage() {
     setCommitmentSalt(salt);
   };
 
-  const handleRevealMove = async () => {
+  const handleRevealMoves = async () => {
     if (!gamePda || !commitmentSalt) {
       toast({
         title: "No game or salt",
@@ -87,8 +101,15 @@ export default function TestPage() {
       return;
     }
 
-
+    // player 1 reveal
+    // await handlerWrapper(() => revealMove(gamePda, Move.Rock, commitmentSalt), "Moves revealed", "Transaction signature: ", "Error revealing moves");
+    // player 2 reveal
+    // await handlerWrapper(() => revealMove(gamePda, Move.Rock, commitmentSalt), "Moves revealed", "Transaction signature: ", "Error revealing moves");
   };
+
+  const handleClaim = async () => {
+    await handlerWrapper(() => claimWinnings(0.2), "Winnings claimed", "Transaction signature: ", "Error claiming winnings");
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -149,14 +170,14 @@ export default function TestPage() {
             Commit Move (Rock)
           </Button>
           <Button
-            onClick={handleRevealMove}
+            onClick={handleRevealMoves}
             disabled={isLoading || !connected}
             className="w-full"
           >
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            Reveal Move
+            Reveal Both Moves
           </Button>
         </div>
       </div>

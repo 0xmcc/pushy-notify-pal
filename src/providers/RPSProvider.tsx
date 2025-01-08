@@ -18,6 +18,7 @@ export interface RPSContextType {
   createGame: (stakeAmount: number) => Promise<string>;
   initializePlayer: () => Promise<string>;
   deletePlayer: () => Promise<string>;
+  joinGame: (gamePda: string) => Promise<string>;
   commitMove: (gamePda: string, move: number) => Promise<Uint8Array>;
   revealMove: (gamePda: string, opponent: string, move: number, salt: Uint8Array) => Promise<string>;
   claimWinnings: (claimAmount: number) => Promise<string>;
@@ -29,6 +30,7 @@ const RPSContext = createContext<RPSContextType>({
   createGame: async () => '',
   initializePlayer: async () => '',
   deletePlayer: async () => '',
+  joinGame: async () => '',
   commitMove: async () => new Uint8Array(),
   revealMove: async () => '',
   claimWinnings: async () => '',
@@ -220,6 +222,31 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
     }
   }
 
+  const joinGame = async (gamePda: string): Promise<string> => {
+    if (!user) return;
+    const publicKey = new PublicKey(user.wallet?.address || '');
+
+    const program = getProgram();
+    if (!program) return;
+
+    const _gamePda = new PublicKey(gamePda);
+
+    try {
+      const tx = await program.methods
+        .joinGame()
+        .accounts({
+          playerTwo: publicKey,
+          gameAccount: _gamePda,
+        })
+        .rpc({ commitment: "confirmed" });
+
+      return tx;
+    } catch (error) {
+      console.error("Error joining game: ", error);
+      throw error;
+    }
+  }
+
   const revealMove = async (gamePda: string, opponent: string, move: number, salt: Uint8Array): Promise<string> => {
     if (!user) return;
     const publicKey = new PublicKey(user.wallet?.address || '');
@@ -292,9 +319,10 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
   }
 
   const value = {
-    createGame,
     initializePlayer,
     deletePlayer,
+    createGame,
+    joinGame,
     commitMove,
     revealMove,
     claimWinnings,
