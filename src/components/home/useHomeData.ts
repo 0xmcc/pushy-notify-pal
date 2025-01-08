@@ -30,6 +30,6 @@ export const useHomeData = () => {
         creator_rating: match.player1?.rating
       }));
     },
-    enabled: !!user
+
   });
 };
