@@ -101,8 +101,6 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
         })
         .rpc({ commitment: "confirmed" });
 
-      console.log("Created game! Transaction signature:", tx);
-
       // Return creation timestamp.
       // TODO: Store this in supabase(?) for use later.
       return gamePda.toString();
@@ -143,8 +141,6 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
         // .signers([publicKey])
         .rpc({ commitment: "confirmed" });
 
-      console.log("Created player one! Transaction signature:", tx);
-
       return tx;
     } catch (error) {
       console.error("Error creating player: ", error);
@@ -179,8 +175,6 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
         })
         .rpc({ commitment: "confirmed" });
 
-      console.log("Deleted player! Transaction signature:", tx);
-
       return tx;
     } catch (error) {
       console.error("Error deleting player: ", error);
@@ -212,8 +206,6 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
           vault: gameVaultPda,
         })
         .rpc({ commitment: "confirmed" });
-
-      console.log("Committed move! Transaction signature:", tx);
 
       // Return player salt.
       // TODO: Store this in supabase(?) for use later.

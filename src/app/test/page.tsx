@@ -18,7 +18,8 @@ export default function TestPage() {
   const [gamePda, setGamePda] = useState<string | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
 
-  const handleCreatePlayer = async () => {
+  const handlerWrapper = async (handler: () => Promise<any>, title: string, 
+    successMsg: string, errorMsg: string) => {
     if (!connected) {
       toast({
         title: "Not connected",
@@ -29,46 +30,19 @@ export default function TestPage() {
     }
 
     setIsLoading(true);
-    try {
-      const signature = await initializePlayer();
-      toast({
-        title: "Player created",
-        description: `Transaction signature: ${signature.slice(0, 8)}...`,
-      });
-    } catch (error) {
-      console.error("Error creating player:", error);
-      toast({
-        title: "Error creating player",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handleDeletePlayer = async () => {
-    if (!connected) {
-      toast({
-        title: "Not connected",
-        description: "Please connect your wallet first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const signature = await deletePlayer();
+      const returnedValue = await handler();
       toast({
-        title: "Player deleted",
-        description: `Transaction signature: ${signature.slice(0, 8)}...`,
+        title: title,
+        description: successMsg + returnedValue,
       });
+      return returnedValue;
     } catch (error) {
-      console.error("Error deleting player:", error);
+      console.error("Error:", error);
       toast({
-        title: "Error deleting player",
-        description: error instanceof Error ? error.message : "Unknown error",
+        title: `${title} Error`,
+        description: error instanceof Error ? error.message : errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -76,33 +50,16 @@ export default function TestPage() {
     }
   }
 
-  const handleCreateGame = async () => {
-    if (!connected) {
-      toast({
-        title: "Not connected",
-        description: "Please connect your wallet first",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleCreatePlayer = async () => {
+    await handlerWrapper(initializePlayer, "Player created", "Transaction signature: ", "Error creating player");
+  };
 
-    setIsLoading(true);
-    try {
-      const _gamePda = await createGame(0.1); // 0.1 SOL stake amount
-      setGamePda(_gamePda);
-      toast({
-        title: "Game created",
-        description: `Game PDA: ${_gamePda}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error creating game",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDeletePlayer = async () => {
+    await handlerWrapper(deletePlayer, "Player deleted", "Transaction signature: ", "Error deleting player");
+  }
+
+  const handleCreateGame = async () => {
+    await handlerWrapper(() => createGame(0.1), "Game created", "Game PDA: ", "Error creating game");
   };
 
   const handleCommitMove = async () => {
@@ -133,6 +90,9 @@ export default function TestPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRevealMove = async () => {
   };
 
   return (
@@ -192,6 +152,16 @@ export default function TestPage() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
             Commit Move (Rock)
+          </Button>
+          <Button
+            onClick={handleRevealMove}
+            disabled={isLoading || !connected}
+            className="w-full"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Reveal Move
           </Button>
         </div>
       </div>
