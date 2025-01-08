@@ -16,7 +16,7 @@ export default function TestPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [gamePda, setGamePda] = useState<string | null>(null);
-  const [gameId, setGameId] = useState<string | null>(null);
+  const [commitmentSalt, setCommitmentSalt] = useState<Uint8Array | null>(null);
 
   const handlerWrapper = async (handler: () => Promise<any>, title: string, 
     successMsg: string, errorMsg: string) => {
@@ -59,40 +59,35 @@ export default function TestPage() {
   }
 
   const handleCreateGame = async () => {
-    await handlerWrapper(() => createGame(0.1), "Game created", "Game PDA: ", "Error creating game");
+    const gamePda = await handlerWrapper(() => createGame(0.1), "Game created", "Game PDA: ", "Error creating game");
+    setGamePda(gamePda);
   };
 
   const handleCommitMove = async () => {
-    if (!connected) {
+    if (!gamePda) {
       toast({
-        title: "Not connected",
-        description: "Please connect your wallet first",
+        title: "No game",
+        description: "Please create a game first",
         variant: "destructive",
       });
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      const moveSalt = await commitMove(gamePda, Move.Rock);
-      toast({
-        title: "Move committed",
-        description: `Move Salt: ${moveSalt}...`,
-      });
-    } catch (error) {
-      console.error("Error committing move:", error);
-      toast({
-        title: "Error committing move",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    const salt = await handlerWrapper(() => commitMove(gamePda, Move.Rock), "Move committed", "Move Salt: ", "Error committing move");
+    setCommitmentSalt(salt);
   };
 
   const handleRevealMove = async () => {
+    if (!gamePda || !commitmentSalt) {
+      toast({
+        title: "No game or salt",
+        description: "Please commit a move first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+
   };
 
   return (

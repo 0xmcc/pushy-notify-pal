@@ -19,6 +19,8 @@ export interface RPSContextType {
   initializePlayer: () => Promise<string>;
   deletePlayer: () => Promise<string>;
   commitMove: (gamePda: string, move: number) => Promise<Uint8Array>;
+  revealMove: (gamePda: string, opponent: string, move: number, salt: Uint8Array) => Promise<string>;
+  claimWinnings: (claimAmount: number) => Promise<string>;
   client: any;
   connected: boolean;
 }
@@ -28,6 +30,8 @@ const RPSContext = createContext<RPSContextType>({
   initializePlayer: async () => '',
   deletePlayer: async () => '',
   commitMove: async () => new Uint8Array(),
+  revealMove: async () => '',
+  claimWinnings: async () => '',
   client: null,
   connected: false,
 });
@@ -216,11 +220,84 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
     }
   }
 
+  const revealMove = async (gamePda: string, opponent: string, move: number, salt: Uint8Array): Promise<string> => {
+    if (!user) return;
+    const publicKey = new PublicKey(user.wallet?.address || '');
+
+    const program = getProgram();
+    if (!program) return;
+
+    const opponentPublicKey = new PublicKey(opponent);
+    const _gamePda = new PublicKey(gamePda);
+
+    const [playerVaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), publicKey.toBuffer()],
+      program.programId
+    );
+    const [opponentVaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), opponentPublicKey.toBuffer()],
+      program.programId
+    );
+    const [gameVaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), _gamePda.toBuffer()],
+      program.programId
+    );
+
+    try {
+      const tx = await program.methods
+        .revealMove(move, Array.from(salt))
+        .accounts({
+          player: publicKey,
+          opponent: opponentPublicKey,
+          game: gamePda,
+          gameVault: gameVaultPda,
+          playerVault: playerVaultPda,
+          opponentVault: opponentVaultPda,
+        })
+        .rpc({ commitment: "confirmed" });
+
+      return tx;
+    } catch (error) {
+      console.error("Error revealing move: ", error);
+      throw error;
+    }
+  }
+
+  const claimWinnings = async (claimAmount: number): Promise<string> => {
+    if (!user) return;
+    const publicKey = new PublicKey(user.wallet?.address || '');
+
+    const program = getProgram();
+    if (!program) return;
+
+    const [playerVaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault"), publicKey.toBuffer()],
+      program.programId
+    );
+
+    try {
+      const tx = await program.methods
+        .claimWinnings(new BN(claimAmount * LAMPORTS_PER_SOL))
+        .accounts({
+          player: publicKey,
+          vault: playerVaultPda,
+        })
+        .rpc({ commitment: "confirmed" });
+
+      return tx;
+    } catch (error) {
+      console.error("Error claiming winnings: ", error);
+      throw error;
+    }
+  }
+
   const value = {
     createGame,
     initializePlayer,
     deletePlayer,
     commitMove,
+    revealMove,
+    claimWinnings,
     client: getProgram,
     connected: authenticated,
   };
