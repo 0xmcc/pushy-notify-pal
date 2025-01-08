@@ -23,11 +23,11 @@ export const useHomeData = () => {
 
 
       if (error) throw error;
-
+      console.log("matches", matches);
       return matches?.map(match => ({
         ...match,
-        creator_name: match.creator?.display_name || match.player1_did,
-        creator_rating: match.creator?.rating
+        creator_name: match.player1?.display_name || match.player1_did,
+        creator_rating: match.player1?.rating
       }));
     },
     enabled: !!user

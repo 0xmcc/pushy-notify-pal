@@ -6,6 +6,8 @@ import { FeaturedGameSection } from './FeaturedGameSection';
 import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
 import { MatrixRain } from '@/components/effects/MatrixRain';
 import { usePrivy } from '@privy-io/react-auth';
+import { usePlayMove } from "@/hooks/usePlayMove";
+
 import { 
   Dialog,
   DialogContent,
@@ -29,16 +31,18 @@ const HomePage = () => {
     );
   }
 
-  const handlePlayMove = async (gameId: string, move: string) => {
+  const handlePlayMove = usePlayMove();
+
+  // Get the first active game as featured game
+  const featuredGame = matches?.[0];
+
+  const onPlayMove = async (gameId: string, move: string) => {
     if (!authenticated) {
       setShowLoginDialog(true);
       return;
     }
-    console.log('Move played:', gameId, move);
+    await handlePlayMove(gameId, move);
   };
-
-  // Get the first active game as featured game
-  const featuredGame = matches?.[0];
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -56,8 +60,11 @@ const HomePage = () => {
       <div className="relative z-20">
         <HeroSection />
 
-        <div className="container mx-auto px-4 space-y-0 pb-16">
-          <FeaturedGameSection game={featuredGame} onPlayMove={handlePlayMove} />
+        <div className="container mx-auto px-4 space-y-16 pb-16">
+          <FeaturedGameSection 
+            game={featuredGame} 
+            onPlayMove={onPlayMove} 
+          />
           <LeaderboardList users={[]} />
         </div>
       </div>
