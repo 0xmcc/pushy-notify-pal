@@ -33,7 +33,7 @@ const HomePage = () => {
     }
     await handlePlayMove(gameId, move);
     // Refetch to get updated game state
-    await refetch();
+   // await refetch();
   };
 
   if (isLoading) {

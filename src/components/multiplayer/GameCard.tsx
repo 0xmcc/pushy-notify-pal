@@ -7,6 +7,8 @@ import { GameActions } from "./GameActions";
 import { GameResult } from "./GameResult";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
 import { Lock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GameCardProps {
   game: Game;
@@ -16,13 +18,33 @@ interface GameCardProps {
 export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const { user, authenticated } = usePrivy();
   const playerStats = usePlayerStats();
+  const [creatorAvatar, setCreatorAvatar] = useState<string>("");
   
+  useEffect(() => {
+    const fetchCreatorAvatar = async () => {
+      if (game.player1_did) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('avatar_url')
+          .eq('did', game.player1_did)
+          .single();
+        
+        if (!error && data) {
+          setCreatorAvatar(data.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${game.player1_did}`);
+        }
+      }
+    };
+
+    fetchCreatorAvatar();
+  }, [game.player1_did]);
+
   const isGameComplete = game.player1_move && game.player2_move;
   const isUserPlayer1 = user?.id === game.player1_did;
   const isUserPlayer2 = user?.id === game.player2_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const isUserWinner = user?.id === game.winner_did;
   const canClaim = isGameComplete && isUserWinner;
+
 
   return (
     <div className="relative border border-gaming-accent/20 rounded-xl p-6 
@@ -38,6 +60,7 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
           playerName={game.creator_name}
           playerRating={game.creator_rating}
           stakeAmount={game.stake_amount}
+          avatarUrl={creatorAvatar}
         />
 
         {isGameComplete ? (
