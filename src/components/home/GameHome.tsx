@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const HomePage = () => {
-  const { data: matches, isLoading } = useHomeData();
+  const { data: matches, isLoading, refetch } = useHomeData();
   const { login, authenticated } = usePrivy();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const handlePlayMove = usePlayMove();
@@ -32,6 +32,8 @@ const HomePage = () => {
       return;
     }
     await handlePlayMove(gameId, move);
+    // Refetch to get updated game state
+    await refetch();
   };
 
   if (isLoading) {
