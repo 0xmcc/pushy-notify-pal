@@ -15,16 +15,16 @@ const PROGRAM_ID = "AdNRN8coBzuAPKiKPz4uxEQrgDDp2ZxXjtXfu6NnYKSg";
 
 
 export interface RPSContextType {
-  createGame: (stakeAmount: number) => Promise<number>;
+  createGame: (stakeAmount: number) => Promise<string>;
   initializePlayer: () => Promise<string>;
   deletePlayer: () => Promise<string>;
-  commitMove: (gameCreationTimestamp: number, move: number) => Promise<Uint8Array>;
+  commitMove: (gamePda: string, move: number) => Promise<Uint8Array>;
   client: any;
   connected: boolean;
 }
 
 const RPSContext = createContext<RPSContextType>({
-  createGame: async () => 0,
+  createGame: async () => '',
   initializePlayer: async () => '',
   deletePlayer: async () => '',
   commitMove: async () => new Uint8Array(),
@@ -67,7 +67,7 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
     return program;
   };
 
-  const createGame = async (stakeAmount: number): Promise<number> => {
+  const createGame = async (stakeAmount: number): Promise<string> => {
     if (!user) return;
     const publicKey = new PublicKey(user.wallet?.address || '');
 
@@ -105,7 +105,7 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
 
       // Return creation timestamp.
       // TODO: Store this in supabase(?) for use later.
-      return creationTimestamp.toNumber();
+      return gamePda.toString();
     } catch (error) {
       console.error("Error creating game:", error);
       throw error;
@@ -188,24 +188,16 @@ export const RPSProvider = ({ children }: RPSProviderProps) => {
     }
   }
 
-  const commitMove = async (gameCreationTimestamp: number, move: number): Promise<Uint8Array> => {
+  const commitMove = async (gamePda: string, move: number): Promise<Uint8Array> => {
     if (!user) return;
     const publicKey = new PublicKey(user.wallet?.address || '');
 
     const program = getProgram();
     if (!program) return;
 
-    const gameCreationTimestampBN = new BN(gameCreationTimestamp);
-    const [gamePda] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("game"),
-        publicKey.toBuffer(),
-        gameCreationTimestampBN.toArrayLike(Buffer, 'le', 8),
-      ],
-      program.programId
-    );
+    const _gamePda = new PublicKey(gamePda);
     const [gameVaultPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from("vault"), gamePda.toBuffer()],
+      [Buffer.from("vault"), _gamePda.toBuffer()],
       program.programId
     );
 

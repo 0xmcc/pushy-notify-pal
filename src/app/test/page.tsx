@@ -15,7 +15,7 @@ export default function TestPage() {
   const { createGame, initializePlayer, deletePlayer, commitMove, client, connected } = useRPS();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [gameCreationTimestamp, setGameCreationTimestamp] = useState<number | null>(null);
+  const [gamePda, setGamePda] = useState<string | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
 
   const handleCreatePlayer = async () => {
@@ -88,11 +88,11 @@ export default function TestPage() {
 
     setIsLoading(true);
     try {
-      const creationTimestamp = await createGame(0.1); // 0.1 SOL stake amount
-      setGameCreationTimestamp(creationTimestamp);
+      const _gamePda = await createGame(0.1); // 0.1 SOL stake amount
+      setGamePda(_gamePda);
       toast({
         title: "Game created",
-        description: `Game creation timestamp: ${creationTimestamp}`,
+        description: `Game PDA: ${_gamePda}`,
       });
     } catch (error) {
       toast({
@@ -118,7 +118,7 @@ export default function TestPage() {
     setIsLoading(true);
 
     try {
-      const moveSalt = await commitMove(gameCreationTimestamp, Move.Rock);
+      const moveSalt = await commitMove(gamePda, Move.Rock);
       toast({
         title: "Move committed",
         description: `Move Salt: ${moveSalt}...`,
