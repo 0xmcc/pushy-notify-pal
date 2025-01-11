@@ -1,5 +1,60 @@
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+
+interface NotificationOptions {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  data?: {
+    url?: string;
+    [key: string]: any;
+  };
+}
+
+/**
+ * Sends a push notification to a specific user by their DID
+ */
+export const sendPushNotification = async (
+  recipientDid: string, 
+  options: NotificationOptions
+): Promise<boolean> => {
+  try {
+    // 1. Get recipient's push subscription from database
+    const { data, error } = await supabase
+      .from('users')
+      .select('push_subscription')
+      .eq('did', recipientDid)
+      .single();
+
+    if (error || !data?.push_subscription) {
+      console.log('No push subscription found for user:', recipientDid);
+      return false;
+    }
+
+    // 2. Send to our backend endpoint which will handle the actual push
+    const response = await fetch('/api/notifications/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        subscription: JSON.parse(data.push_subscription),
+        notification: options
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to send notification');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+    return false;
+  }
+};
 
 export const useNotifications = () => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
