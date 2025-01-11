@@ -58,7 +58,23 @@ export const useCreateGame = () => {
         selectedMove,
         stakeAmount,
       });
-      
+      // 1. Get their stored subscription from database
+      const { data } = await supabase
+      .from('users')
+      .select('push_subscription')
+      .eq('did', recipientDid)
+      .single();
+
+      // 2. Send to our backend
+      await fetch('/api/notifications/send', {
+      method: 'POST',
+      body: JSON.stringify({
+        subscription: JSON.parse(data.push_subscription),
+        notification: options
+      })
+      });
+      // Backend uses web-push to send to the specific browser
+
       toast.success("Game created successfully!");
       setStakeAmount("");
       setSelectedMove('');
