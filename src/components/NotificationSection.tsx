@@ -6,7 +6,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 
 const NotificationSection = () => {
   const [isIOS, setIsIOS] = useState(false);
-  const { supported, sendTestNotification } = useNotifications();
+  const { supported, sendTestNotification, unsubscribeFromNotifications } = useNotifications();
 
   useEffect(() => {
     // Check if running on iOS
@@ -35,6 +35,15 @@ const NotificationSection = () => {
       >
         <Bell className="w-5 h-5" />
         <span>Send Test Notification</span>
+      </Button>
+
+      <Button 
+        onClick={unsubscribeFromNotifications}
+        variant="destructive"
+        className="w-full h-12 flex items-center justify-center gap-2"
+      >
+        <Bell className="w-5 h-5" />
+        <span>Disable Notifications</span>
       </Button>
 
       {!supported && (

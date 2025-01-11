@@ -2,9 +2,9 @@ import webpush from 'web-push';
 
 // Configure web-push with your VAPID keys
 webpush.setVapidDetails(
-  'mailto:your-email@example.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
+  'mailto:markocalvocruz@gmail.com',
+  import.meta.env.VITE_VAPID_PUBLIC_KEY!,
+  import.meta.env.VITE_VAPID_PRIVATE_KEY!
 );
 
 export async function POST(request: Request) {

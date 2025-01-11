@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Game } from "@/types/game";
 import { toast } from "sonner";
 
+import { sendSimplePushNotification } from '@/hooks/useNotifications';
+
 interface UserInventory {
   off_chain_balance: number;
   rock_count: number;
@@ -36,116 +38,107 @@ const getMoveInventoryColumn = (move: string): string => {
 
 export const playGameMove = async (gameId: string, move: string, userId: string) => {
   try {
-    if (move === 'claim') {
-      // Get the current game state
-      const { data: game, error: gameError } = await supabase
-        .from('matches')
-        .select('*')
-        .eq('id', gameId)
-        .single();
+    // First, check if user has the move in inventory
+    const { data: userData, error: inventoryError } = await supabase
+      .from('users')
+      .select('off_chain_balance, rock_count, paper_count, scissors_count')
+      .eq('did', userId)
+      .single();
 
-      if (gameError) throw gameError;
+    if (inventoryError) throw inventoryError;
 
-      // Determine which player is claiming
-      const isPlayer1 = userId === game.player1_did;
-      const isPlayer2 = userId === game.player2_did;
-      const updateField = isPlayer1 ? 'player1_claimed_at' : isPlayer2 ? 'player2_claimed_at' : null;
-      const updateField2 = isPlayer1 ? 'player1_hidden' : isPlayer2 ? 'player2_hidden' : null;
+    const inventory = userData as UserInventory;
+    const inventoryColumn = getMoveInventoryColumn(move);
+    
+    if (!inventory || inventory[inventoryColumn as keyof UserInventory] <= 0) {
+      throw new Error(`You don't have any more of this move available!`);
+    }
 
-      if (!updateField || !updateField2) throw new Error('User is not a player in this game');
+    // Get the game details to check stake amount and current state
+    const { data: gameData, error: gameError } = await supabase
+      .from('matches')
+      .select('*, player1_did, player1_move')
+      .eq('id', gameId)
+      .single();
 
+    console.log('gameData', gameData);
+    if (gameError) throw gameError;
 
-      // Check if already claimed
-      if ((isPlayer1 && game.player1_claimed_at) || (isPlayer2 && game.player2_claimed_at)) {
-        throw new Error('Reward already claimed');
+    const currentBalance = inventory.off_chain_balance || 0;
+    const stakeAmount = gameData.stake_amount;
+
+    if (currentBalance < stakeAmount) {
+      throw new Error(`Insufficient balance. You need ${stakeAmount} credits to play.`);
+    }
+
+    // Update user's balance and inventory
+    const { error: updateUserError } = await supabase
+      .from('users')
+      .update({ 
+        off_chain_balance: currentBalance - stakeAmount,
+        [inventoryColumn]: inventory[inventoryColumn as keyof UserInventory] - 1
+      })
+      .eq('did', userId);
+
+    if (updateUserError) throw updateUserError;
+
+    // Update the game with the player's move
+    const updateData: any = {
+      player2_did: userId,
+      player2_move: move,
+      player2_move_timestamp: new Date().toISOString(),
+      status: 'in_progress'
+    };
+
+    // If both moves are present, determine the winner
+    if (gameData.player1_move) {
+      const winner = determineWinner(gameData.player1_move, move);
+      if (winner === null) {
+        updateData.status = 'completed';
+      } else {
+        updateData.status = 'completed';
+        updateData.winner_did = winner === 1 ? gameData.player1_did : userId;
+        updateData.loser_did = winner === 1 ? userId : gameData.player1_did;
       }
+    }
 
-      // Update the claim timestamp
-      const { error: claimError } = await supabase
-        .from('matches')
-        .update({ 
-          [updateField]: new Date().toISOString(),
-          status: 'completed',
-          [updateField2]: true
+    const { error: moveError } = await supabase
+      .from('matches')
+      .update(updateData)
+      .eq('id', gameId);
 
-        })
-        .eq('id', gameId);
+    if (moveError) throw moveError;
+    
+    toast.success(`Move played successfully!`);
 
-      if (claimError) throw claimError;
-      
-      toast.success('Reward claimed successfully!');
-    } else {
-      // First, check if user has the move in inventory
-      const { data: userData, error: inventoryError } = await supabase
-        .from('users')
-        .select('off_chain_balance, rock_count, paper_count, scissors_count')
-        .eq('did', userId)
-        .single();
+    // If this is player 2 making a move, notify the creator (player1)
+    if (userId !== gameData.player1_did) {
+      console.log('NOTIF2 Sending push notification to player1');
+      await sendSimplePushNotification(
+        gameData.player1_did,
+        gameId,
+        "Your Turn!",
+        "Your opponent made a move",
+        `/game/${gameId}`
+      );
+    }
 
-      if (inventoryError) throw inventoryError;
+    // If game is complete after this move
+    if (gameData.player1_move && gameData.player2_move) {
+      // Determine winner and send appropriate notifications
+      const winner = determineWinner(gameData.player1_move, gameData.player2_move);
+      if (winner) {
+        const winnerDid = winner === 1 ? gameData.player1_did : gameData.player2_did;
+        const loserDid = winner === 1 ? gameData.player2_did : gameData.player1_did;
 
-      const inventory = userData as UserInventory;
-      const inventoryColumn = getMoveInventoryColumn(move);
-      
-      if (!inventory || inventory[inventoryColumn as keyof UserInventory] <= 0) {
-        throw new Error(`You don't have any more of this move available!`);
+        // Notify winner
+        await sendSimplePushNotification(
+          winnerDid,
+          "Congratulations!",
+          "You won the game!",
+          `/game/${gameId}`
+        );
       }
-
-      // Get the game details to check stake amount and current state
-      const { data: gameData, error: gameError } = await supabase
-        .from('matches')
-        .select('*, player1_did, player1_move')
-        .eq('id', gameId)
-        .single();
-
-      if (gameError) throw gameError;
-
-      const currentBalance = inventory.off_chain_balance || 0;
-      const stakeAmount = gameData.stake_amount;
-
-      if (currentBalance < stakeAmount) {
-        throw new Error(`Insufficient balance. You need ${stakeAmount} credits to play.`);
-      }
-
-      // Update user's balance and inventory
-      const { error: updateUserError } = await supabase
-        .from('users')
-        .update({ 
-          off_chain_balance: currentBalance - stakeAmount,
-          [inventoryColumn]: inventory[inventoryColumn as keyof UserInventory] - 1
-        })
-        .eq('did', userId);
-
-      if (updateUserError) throw updateUserError;
-
-      // Update the game with the player's move
-      const updateData: any = {
-        player2_did: userId,
-        player2_move: move,
-        player2_move_timestamp: new Date().toISOString(),
-        status: 'in_progress'
-      };
-
-      // If both moves are present, determine the winner
-      if (gameData.player1_move) {
-        const winner = determineWinner(gameData.player1_move, move);
-        if (winner === null) {
-          updateData.status = 'completed';
-        } else {
-          updateData.status = 'completed';
-          updateData.winner_did = winner === 1 ? gameData.player1_did : userId;
-          updateData.loser_did = winner === 1 ? userId : gameData.player1_did;
-        }
-      }
-
-      const { error: moveError } = await supabase
-        .from('matches')
-        .update(updateData)
-        .eq('id', gameId);
-
-      if (moveError) throw moveError;
-      
-      toast.success(`Move played successfully!`);
     }
   } catch (error) {
     console.error('Error playing move:', error);
