@@ -35,6 +35,6 @@ export const GamesList = ({ games, isOffline, onPlayMove }: GamesListProps) => {
           onPlayMove={onPlayMove}
         />
       ))}
-    </div>
+    </div>        
   );
 };

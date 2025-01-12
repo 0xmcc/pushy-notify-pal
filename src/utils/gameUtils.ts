@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Game } from "@/types/game";
 import { toast } from "sonner";
 
-import { sendSimplePushNotification } from '@/hooks/useNotifications';
+import { sendSimplePushNotification } from '@/features/notifications/services/gameNotifications';
 
 interface UserInventory {
   off_chain_balance: number;
