@@ -67,7 +67,7 @@ export function RPSProvider({ children }: { children: React.ReactNode }) {
         setProgram(rpsProgram);
       } catch (err) {
         console.error('Failed to initialize RPS program:', err);
-        toast.error('Failed to initialize game program');
+//        toast.error('Failed to initialize game program');
       }
     };
 
