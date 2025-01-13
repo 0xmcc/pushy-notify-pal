@@ -2,18 +2,12 @@
 import { toast } from 'sonner';
 import { getVapidKey } from './vapidService';
 
-// Request notification permission
-const requestPermission = async (setPermission) => {
-    const result = await Notification.requestPermission();
-    console.log('Web Push permission result:', result);
-    setPermission(result);
-    return result;
-  };
-  
-  // Send subscription to backend
-  const sendSubscriptionToBackend = async (userId, subscription) => {
+const API_BASE_URL = import.meta.env.VITE_API_URL || ''; // Add this to your .env
+
+ // Send subscription to backend
+ const sendSubscriptionToBackend = async (userId, subscription) => {
     try {
-      const response = await fetch('/api/subscribe', {
+      const response = await fetch(`${API_BASE_URL}/api/notifications/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, subscription }),
@@ -32,25 +26,8 @@ const requestPermission = async (setPermission) => {
       return false;
     }
   };
-  
-  // Handle existing subscription
-  const handleExistingSubscription = async (userId, existingSubscription) => {
-    console.log('Found existing subscription:', existingSubscription, userId);
-    return await sendSubscriptionToBackend(userId, existingSubscription);
-  };
-  
-  // Create and save a new subscription
-  const createAndSaveSubscription = async (userId, vapidKey, registration) => {
-    const newSubscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: vapidKey,
-    });
-  
-    return await sendSubscriptionToBackend(userId, newSubscription);
-  };
-  
-  // Main function to handle Web Push
-  export const handleWebPush = async (user, setPermission) => {
+ // Main function to handle Web Push
+ export const handleWebPush = async (user, setPermission) => {
     try {
       // Step 1: Request notification permission
       const permission = await requestPermission(setPermission);
@@ -65,6 +42,7 @@ const requestPermission = async (setPermission) => {
   
       // Step 3: Check for existing subscription
       const existingSubscription = await registration.pushManager.getSubscription();
+      console.log('existingSubscription', existingSubscription);
       if (existingSubscription) {
         const refreshed = await handleExistingSubscription(user?.id, existingSubscription);
         if (refreshed) {
@@ -89,6 +67,33 @@ const requestPermission = async (setPermission) => {
     }
   };
 
+// Request notification permission
+const requestPermission = async (setPermission) => {
+    const result = await Notification.requestPermission();
+    console.log('Web Push permission result:', result);
+    setPermission(result);
+    return result;
+  };
+  
+ 
+  
+  // Handle existing subscription
+  const handleExistingSubscription = async (userId, existingSubscription) => {
+    console.log('Found existing subscription:', existingSubscription, userId);
+    return await sendSubscriptionToBackend(userId, existingSubscription);
+  };
+  
+  // Create and save a new subscription
+  const createAndSaveSubscription = async (userId, vapidKey, registration) => {
+    const newSubscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: vapidKey,
+    });
+  
+    return await sendSubscriptionToBackend(userId, newSubscription);
+  };
+  
+ 
 
 // export const handleWebPush = async (user: any, setPermission: any) => {
 //     try {

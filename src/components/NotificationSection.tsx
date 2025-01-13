@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Bell } from 'lucide-react';
 import NotificationButton from '@/components/NotificationButton';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications } from '@/features/notifications/hooks/useNotifications';
 
 const NotificationSection = () => {
   const [isIOS, setIsIOS] = useState(false);

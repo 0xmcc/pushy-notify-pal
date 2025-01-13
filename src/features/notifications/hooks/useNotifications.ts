@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { usePrivy } from "@privy-io/react-auth";
 import { toast } from "sonner";
 import { isIOSSafari, isPWA, isWebPushSupported } from '@/utils/browser';
-import { handleSafariPush, handleWebPush } from '../services/pushHandlers';
+import { handleWebPush } from '../services/pushHandlers';
 import { sendTestNotification } from '../services/test';
 import { unsubscribeFromNotifications } from '../services/unsubscribe';
 
