@@ -8,6 +8,8 @@ import { MatrixRain } from '@/components/effects/MatrixRain';
 import { usePrivy } from '@privy-io/react-auth';
 import { usePlayMove } from "@/hooks/usePlayMove";
 import { useState } from 'react';
+import { useLeaderboard } from '@/features/leaderboard/hooks/useLeaderboard';
+
 import { 
   Dialog,
   DialogContent,
@@ -20,6 +22,8 @@ import { Button } from "@/components/ui/button";
 const HomePage = () => {
   const { data: matches, isLoading, refetch } = useHomeData();
   const { login, authenticated } = usePrivy();
+  const { users, isLoading: leaderboardLoading } = useLeaderboard();
+
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const handlePlayMove = usePlayMove();
 
@@ -65,7 +69,7 @@ const HomePage = () => {
             game={featuredGame} 
             onPlayMove={onPlayMove} 
           />
-          <LeaderboardList users={[]} />
+          <LeaderboardList users={users} />
         </div>
       </div>
 
