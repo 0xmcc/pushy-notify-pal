@@ -26,7 +26,7 @@ export const BottomNav = ({ className }: BottomNavProps) => {
         <Home size={24} />
         <span className="text-xs mt-1">Home</span>
       </button>
-      <button
+      {/* <button
         onClick={() => navigate("/arena")}
         className={`flex flex-col items-center ${
           location.pathname === "/arena" 
@@ -36,7 +36,7 @@ export const BottomNav = ({ className }: BottomNavProps) => {
       >
         <Swords size={24} />
         <span className="text-xs mt-1">Arena</span>
-      </button>
+      </button> */}
       <button
         onClick={() => navigate("/multiplayer")}
         className={`flex flex-col items-center ${
@@ -48,7 +48,7 @@ export const BottomNav = ({ className }: BottomNavProps) => {
         <Users size={24} />
         <span className="text-xs mt-1">Multi</span>
       </button>
-      <button
+      {/* <button
         onClick={() => navigate("/test")}
         className={`flex flex-col items-center ${
           location.pathname === "/test" 
@@ -58,7 +58,7 @@ export const BottomNav = ({ className }: BottomNavProps) => {
       >
         <Terminal size={24} />
         <span className="text-xs mt-1">Test</span>
-      </button>
+      </button> */}
     </div>
   );
 };
