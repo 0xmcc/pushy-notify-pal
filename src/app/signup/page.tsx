@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { MatrixRain } from '@/components/effects/MatrixRain';
+import { useCreateWallet } from '@/hooks/useCreateWallet';
 
 export default function SignupPage() {
   const navigate = useNavigate();
   const { user } = usePrivy();
+  const { handleCreateWallet } = useCreateWallet();
   const [displayName, setDisplayName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,6 +24,7 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     try {
+      // Create user profile
       const { error } = await supabase
         .from('users')
         .insert([
@@ -43,7 +46,15 @@ export default function SignupPage() {
 
       if (error) throw error;
 
-      toast.success('Profile created successfully!');
+      // Create wallet after profile creation
+      const wallet = await handleCreateWallet();
+      if (!wallet) {
+        toast.error('Failed to create wallet');
+        // Still proceed with navigation since profile was created
+      } else {
+        toast.success('Profile and wallet created successfully!');
+      }
+
       navigate('/');
     } catch (error) {
       console.error('Error creating profile:', error);

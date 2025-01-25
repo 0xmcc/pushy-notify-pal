@@ -41,7 +41,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
     // First, check if user has the move in inventory
     const { data: userData, error: inventoryError } = await supabase
       .from('users')
-      .select('off_chain_balance, rock_count, paper_count, scissors_count')
+      .select('off_chain_balance, rock_count, paper_count, scissors_count, display_name')
       .eq('did', userId)
       .single();
 
@@ -111,14 +111,15 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
     
     toast.success(`Move played successfully!`);
 
+    //make a notification that says "${NAME} just finished your game. See if you won"
     // If this is player 2 making a move, notify the creator (player1)
     if (userId !== gameData.player1_did) {
       console.log('NOTIF2 Sending push notification to player1');
       await sendSimplePushNotification(
         gameData.player1_did,
         gameId,
-        "Your Turn!",
-        "Your opponent made a move",
+        "Game Complete!",
+        `${userData.display_name} just finished your game. See if you won`,
         `/game/${gameId}`
       );
     }

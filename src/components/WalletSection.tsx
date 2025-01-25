@@ -2,14 +2,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Wallet, LogOut } from 'lucide-react';
 import { usePrivy } from '@privy-io/react-auth';
-import { useSolanaWallets } from '@privy-io/react-auth/solana';
-import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useCreateWallet } from "@/hooks/useCreateWallet";
 
 const WalletSection = () => {
   const { login, authenticated, user, logout } = usePrivy();
-  const { createWallet } = useSolanaWallets();
-  const [isCreatingWallet, setIsCreatingWallet] = useState(false);
+  const { handleCreateWallet, isCreatingWallet } = useCreateWallet();
 
   const handleLogin = async () => {
     try {
@@ -26,38 +23,6 @@ const WalletSection = () => {
       toast.success('Successfully logged out');
     } catch (error) {
       toast.error('Failed to logout');
-    }
-  };
-
-  const handleCreateWallet = async () => {
-    if (!user?.id) {
-      toast.error('User not authenticated');
-      return;
-    }
-
-    setIsCreatingWallet(true);
-    try {
-      const wallet = await createWallet();
-      console.log('Created wallet:', wallet);
-      
-      // Update the wallet address in Supabase
-      const { error } = await supabase
-        .from('users')
-        .update({ wallet_address: wallet.address })
-        .eq('did', user.id);
-
-      if (error) {
-        console.error('Error updating wallet address:', error);
-        toast.error('Failed to save wallet address');
-        return;
-      }
-
-      toast.success('Successfully created wallet');
-    } catch (error) {
-      console.error('Failed to create wallet:', error);
-      toast.error('Failed to create wallet');
-    } finally {
-      setIsCreatingWallet(false);
     }
   };
 
