@@ -98,11 +98,34 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'swipe-up': {
+					'0%, 100%': { transform: 'translate(-50%, -50%)' },
+					'50%': { transform: 'translate(-50%, -250%)' }
+				},
+				'pulse': {
+					'0%, 100%': { 
+						transform: 'translate(-50%, -50%) scale(1)',
+						opacity: '0.5'
+					},
+					'50%': { 
+						transform: 'translate(-50%, -50%) scale(1.1)',
+						opacity: '1'
+					}
+				},
+				'ping-slow': {
+					'75%, 100%': {
+						transform: 'scale(2)',
+						opacity: '0'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'swipe-up': 'swipe-up 5s ease-in-out infinite',
+				'pulse': 'pulse 1s infinite',
+				'ping-slow': 'ping-slow 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
 			}
 		}
 	},
