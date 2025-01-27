@@ -23,7 +23,7 @@ export const useLeaderboard = () => {
       try {
         const { data, error } = await supabase
           .from('users')
-          .select('did, display_name, matches_won, matches_lost, matches_drawn, rating')
+          .select('did, display_name, matches_won, matches_lost, matches_drawn, rating, avatar_url')
           .order('rating', { ascending: false })
           .limit(10);
 

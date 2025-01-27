@@ -4,22 +4,23 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { MatrixRain } from '@/components/effects/MatrixRain';
 import { useCreateWallet } from '@/hooks/useCreateWallet';
+import { DisplayNameStep } from '@/components/signup/DisplayNameStep';
+import { AvatarStep } from '@/components/signup/AvatarStep';
+import { Button } from '@/components/ui/button';
 
 export default function SignupPage() {
   const navigate = useNavigate();
   const { user } = usePrivy();
   const { handleCreateWallet } = useCreateWallet();
+  const [step, setStep] = useState(1);
   const [displayName, setDisplayName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateProfile = async (avatarUrl: string) => {
     if (!user?.id) return;
 
     setIsSubmitting(true);
@@ -31,11 +32,11 @@ export default function SignupPage() {
           {
             did: user.id,
             display_name: displayName,
-            // Set initial inventory
+            avatar_url: avatarUrl,
             rock_count: 5,
             paper_count: 5,
             scissors_count: 5,
-            rating: 1200, // Initial rating
+            rating: 1200,
             matches_played: 0,
             matches_won: 0,
             matches_lost: 0,
@@ -85,34 +86,23 @@ export default function SignupPage() {
             </Button>
             
             <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent">
-              Complete Your Profile
+              {step === 1 ? 'Choose Your Name' : 'Add Your Avatar'}
             </h1>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Display Name
-                </label>
-                <Input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  required
-                  minLength={3}
-                  maxLength={20}
-                  className="w-full bg-gaming-background/50 border-gaming-accent text-gaming-text-primary"
-                  placeholder="Enter your display name"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 text-gaming-text-primary"
-              >
-                {isSubmitting ? 'Creating Profile...' : 'Create Profile'}
-              </Button>
-            </form>
+            {step === 1 ? (
+              <DisplayNameStep
+                displayName={displayName}
+                setDisplayName={setDisplayName}
+                onNext={() => setStep(2)}
+                isSubmitting={isSubmitting}
+              />
+            ) : (
+              <AvatarStep
+                onNext={handleCreateProfile}
+                onBack={() => setStep(1)}
+                isSubmitting={isSubmitting}
+              />
+            )}
           </div>
         </div>
       </div>

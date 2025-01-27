@@ -9,22 +9,20 @@ import { usePrivy } from '@privy-io/react-auth';
 import { usePlayMove } from "@/hooks/usePlayMove";
 import { useState } from 'react';
 import { useLeaderboard } from '@/features/leaderboard/hooks/useLeaderboard';
-
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { LoginDialog } from '@/components/auth/LoginDialog';
+import { HowToPlayModal } from './HowToPlayModal';
+import { InstallPWAModal } from './InstallPWAModal';
+import { useInstallPWA } from '@/hooks/useInstallPWA';
 
 const HomePage = () => {
   const { data: matches, isLoading, refetch } = useHomeData();
-  const { login, authenticated } = usePrivy();
+  const { authenticated } = usePrivy();
   const { users, isLoading: leaderboardLoading } = useLeaderboard();
+  const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
 
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false); // Show by default
+
   const handlePlayMove = usePlayMove();
 
   // Get the first active game as featured game
@@ -73,28 +71,19 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Login Dialog */}
-      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <DialogContent className="bg-gaming-card border-gaming-accent text-gaming-text-primary">
-          <DialogHeader>
-            <DialogTitle className="text-gaming-text-primary">Login Required</DialogTitle>
-            <DialogDescription className="text-gaming-text-secondary">
-              You need to be logged in to play a move.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end mt-4">
-            <Button 
-              onClick={() => {
-                setShowLoginDialog(false);
-                login();
-              }}
-              className="bg-gaming-accent hover:bg-gaming-accent/80 text-gaming-text-primary"
-            >
-              Login
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Modals */}
+      <LoginDialog 
+        open={showLoginDialog} 
+        onOpenChange={setShowLoginDialog} 
+      />
+      <HowToPlayModal 
+        open={showHowToPlay} 
+        onOpenChange={setShowHowToPlay} 
+      />
+      <InstallPWAModal 
+        open={showInstallPrompt} 
+        onOpenChange={setShowInstallPrompt} 
+      />
     </div>
   );
 };

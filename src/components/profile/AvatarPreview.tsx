@@ -5,6 +5,7 @@ interface AvatarPreviewProps {
   previewUrl: string | null;
   avatarUrl: string;
   size?: "xs" | "sm" | "md" | "lg";
+  className?: string;
 }
 
 const sizeClasses = {
@@ -14,9 +15,22 @@ const sizeClasses = {
   lg: "w-32 h-32"
 };
 
-const AvatarPreview = ({ previewUrl, avatarUrl, size = "md" }: AvatarPreviewProps) => {
+// Calculate icon size based on container size
+const iconSizes = {
+  xs: 16,
+  sm: 24,
+  md: 32,
+  lg: 48
+};
+
+const AvatarPreview = ({ 
+  previewUrl, 
+  avatarUrl, 
+  size = "md",
+  className = ""
+}: AvatarPreviewProps) => {
   return (
-    <Avatar className={sizeClasses[size]}>
+    <Avatar className={`${sizeClasses[size]} ${className}`}>
       {previewUrl || avatarUrl ? (
         <AvatarImage 
           src={previewUrl || avatarUrl} 
@@ -25,7 +39,13 @@ const AvatarPreview = ({ previewUrl, avatarUrl, size = "md" }: AvatarPreviewProp
         />
       ) : (
         <AvatarFallback>
-          <User className="w-4 h-4 text-gray-400" />
+          <User 
+            style={{ 
+              width: iconSizes[size], 
+              height: iconSizes[size] 
+            }} 
+            className="text-gray-400"
+          />
         </AvatarFallback>
       )}
     </Avatar>
