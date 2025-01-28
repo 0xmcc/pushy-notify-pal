@@ -1,6 +1,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { User, Copy, Plus } from "lucide-react"
+import { S } from "node_modules/@privy-io/react-auth/dist/dts/types-C5QcnhuT"
 
 interface IPhoneMockStepTwoProps {
   className?: string
@@ -11,7 +12,18 @@ export const IPhoneMockStepTwo: React.FC<IPhoneMockStepTwoProps> = ({ className 
   const [showPulse, setShowPulse] = useState(false)
 
   useEffect(() => {
+    setTimeout(() => {
+      setIsExpanded(true)
+      setTimeout(() => {
+        setShowPulse(true)
+      }, 1000) // 1 second delay after expansion
+    }, 1000)
+  }, [])
+
+  useEffect(() => {
+
     const expandTimer = setInterval(() => {
+      setShowPulse(false)
       setIsExpanded((prev) => !prev)
       if (!isExpanded) {
         setTimeout(() => {
@@ -62,7 +74,7 @@ export const IPhoneMockStepTwo: React.FC<IPhoneMockStepTwoProps> = ({ className 
               {[...Array(5)].map((_, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div className="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center">
-                    <User className="w-6 h-6 text-gray-300" />
+                    <User className="w-6 h-6 text-gray-500" />
                   </div>
                   <div className="h-2 w-10 bg-gray-600 rounded mt-2"></div>
                 </div>

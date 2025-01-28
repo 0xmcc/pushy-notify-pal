@@ -27,7 +27,7 @@ export const IPhoneMockStepThree: React.FC<IPhoneMockStepThreeProps> = ({ classN
 
   return (
     <div
-      className={`relative w-[300px] h-[450px] rounded-t-[50px] border-[7px] border-gray-700 overflow-hidden shadow-xl ${className}`}
+      className={`relative w-[300px] h-[450px] rounded-t-[50px] border-[7px] border-gray-700 overflow-hidden shadow-xl pointer-events-none ${className}`}
       style={{ borderBottom: "none" }}
     >
       {/* Fully Transparent Content Area */}

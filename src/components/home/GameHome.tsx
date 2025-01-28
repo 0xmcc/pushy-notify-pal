@@ -21,7 +21,7 @@ const HomePage = () => {
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
 
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const [showHowToPlay, setShowHowToPlay] = useState(false); // Show by default
+  const [showHowToPlay, setShowHowToPlay] = useState(!showInstallPrompt); // Show by default
 
   const handlePlayMove = usePlayMove();
 

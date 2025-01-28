@@ -18,6 +18,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'impact': ['Impact', 'Haettenschweiler', 'Arial Narrow Bold', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -118,14 +121,24 @@ export default {
 						transform: 'scale(2)',
 						opacity: '0'
 					}
-				}
+				},
+				'wiggle': {
+					'0%, 7%, 14%': { transform: 'rotate(-3deg)' },
+					'3.5%, 10.5%, 17.5%': { transform: 'rotate(3deg)' },
+					'21%, 100%': { transform: 'rotate(0)' },
+				},
+				
+				
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'swipe-up': 'swipe-up 5s ease-in-out infinite',
 				'pulse': 'pulse 1s infinite',
-				'ping-slow': 'ping-slow 1.5s cubic-bezier(0, 0, 0.2, 1) infinite'
+				'ping-slow': 'ping-slow 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+				'wiggle': 'wiggle 2.5s ease-in-out infinite',
+				"fade-in-0": "fade-in-0 0.3s ease-in-out",
+				"zoom-in-0": "zoom-in-0 0.3s ease-in-out",
 			}
 		}
 	},

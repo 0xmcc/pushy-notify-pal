@@ -99,13 +99,13 @@ export function HowToPlayModal({ open, onOpenChange }: HowToPlayModalProps) {
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 0}
-              className="flex-1"
+              className="flex-1 bg-gray-900 hover:bg-gray-800 text-white border-gaming-accent"
             >
               Previous
             </Button>
             <Button
               onClick={handleNext}
-              className="flex-1 bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90"
+              className="flex-1 bg-gradient-to-r from-gaming-primary to-gaming-secondary hover:opacity-90 focus-visible:ring-offset-0"
             >
               {currentStep === steps.length - 1 ? "Got it!" : "Next"}
             </Button>
