@@ -13,6 +13,7 @@ import { LoginDialog } from '@/components/auth/LoginDialog';
 import { HowToPlayModal } from './HowToPlayModal';
 import { InstallPWAModal } from './InstallPWAModal';
 import { useInstallPWA } from '@/hooks/useInstallPWA';
+import { InstallationInstructions } from './InstallationInstructions';
 
 const HomePage = () => {
   const { data: matches, isLoading, refetch } = useHomeData();
@@ -84,6 +85,9 @@ const HomePage = () => {
         open={showInstallPrompt} 
         onOpenChange={setShowInstallPrompt} 
       />
+      {showInstallPrompt && (
+        <InstallationInstructions onClose={() => setShowInstallPrompt(false)} />
+      )}
     </div>
   );
 };
