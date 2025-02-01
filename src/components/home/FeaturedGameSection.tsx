@@ -1,5 +1,5 @@
 import { Game } from '@/types/game';
-import { GameCard } from '@/components/multiplayer/GameCard';
+import { GameCard } from '@/components/multiplayer/game-card/GameCard';
 
 interface FeaturedGameSectionProps {
   game: Game | null;

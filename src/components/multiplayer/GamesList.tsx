@@ -1,5 +1,5 @@
 import { Game } from "@/types/game";
-import { GameCard } from "./GameCard";
+import { GameCard } from "./game-card/GameCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 

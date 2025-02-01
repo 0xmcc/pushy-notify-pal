@@ -1,9 +1,9 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Share, Copy, Check } from "lucide-react";
-import { IPhoneMock } from "@/components/iphone-mock-step-one";
-import { IPhoneMockStepTwo } from "@/components/iphone-mock-step-two";
-import { IPhoneMockStepThree } from "@/components/iphone-mock-step-three";
+import { IPhoneMock } from "@/components/pwa/iphoneMocks/iphone-mock-step-one";
+import { IPhoneMockStepTwo } from "@/components/pwa/iphoneMocks/iphone-mock-step-two";
+import { IPhoneMockStepThree } from "@/components/pwa/iphoneMocks/iphone-mock-step-three";
 import { useState, useEffect } from 'react';
 import AnimatedNextButton from "@/components/animated-next-button"
 import { isIOSSafari } from '@/utils/browser';

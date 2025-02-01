@@ -3,13 +3,15 @@ interface HandHoldingPhoneProps {
   className?: string;
   width?: number;
   height?: number;
+
 }
 
 export function HandHoldingPhone({ 
   color = "#8B5CF6", 
   className = "", 
   width = 96,
-  height = 96 
+  height = 96,
+
 }: HandHoldingPhoneProps) {
   return (
     <svg 

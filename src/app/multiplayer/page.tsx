@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { CreateGame } from "@/components/multiplayer/CreateGame";
+import { CreateGame } from "@/components/multiplayer/create-game/CreateGame";
 import { ActiveGames } from "@/components/multiplayer/ActiveGames";
 import { StakeRange } from "@/components/multiplayer/StakeRange";
 

@@ -13,7 +13,7 @@ import { LoginDialog } from '@/components/auth/LoginDialog';
 import { HowToPlayModal } from './HowToPlayModal';
 import { InstallPWAModal } from './InstallPWAModal';
 import { useInstallPWA } from '@/hooks/useInstallPWA';
-import { InstallationInstructions } from './InstallationInstructions';
+import { InstallationPage } from '@/components/pwa/installation-page2';
 
 const HomePage = () => {
   const { data: matches, isLoading, refetch } = useHomeData();
@@ -77,17 +77,21 @@ const HomePage = () => {
         open={showLoginDialog} 
         onOpenChange={setShowLoginDialog} 
       />
-      <HowToPlayModal 
+{/*         
+      {showInstallPrompt && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <InstallationPage />
+        </div>
+      )}       */}
+      {/* <HowToPlayModal 
         open={showHowToPlay} 
         onOpenChange={setShowHowToPlay} 
-      />
-      <InstallPWAModal 
+      /> */}
+      {/* <InstallPWAModal 
         open={showInstallPrompt} 
         onOpenChange={setShowInstallPrompt} 
-      />
-      {showInstallPrompt && (
-        <InstallationInstructions onClose={() => setShowInstallPrompt(false)} />
-      )}
+      /> */}
+   
     </div>
   );
 };
