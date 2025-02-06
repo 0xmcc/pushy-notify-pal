@@ -95,13 +95,13 @@ export default function RootLayout({
                       </>
                     )}
                   </div>
-                  <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
-                  {showInstallPrompt && (
+                  {/* <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
+                  {(showInstallPrompt) && (
                     <div className="fixed inset-0 z-[100] bg-black">
                       <InstallationPage />
                       <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
                     </div>
-                  )}
+                  )} */}
                   <Toaster />
                   <Sonner />
                 </UserProvider>

@@ -56,6 +56,7 @@ export const GameMoveSelector = ({ selectedMove, onMoveSelect, inventory, stakeA
                 rounded-lg border-2 
                 flex flex-col items-center justify-center gap-3 p-2
                 transition-all duration-200 
+                text-white hover:text-gaming-accent
                 ${selectedMove === move.id 
                   ? 'border-gaming-success bg-gaming-success/10' 
                   : 'border-slate-700 hover:border-gaming-accent'
@@ -73,10 +74,10 @@ export const GameMoveSelector = ({ selectedMove, onMoveSelect, inventory, stakeA
               
               {/* Move Name and Count */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-white">
+                <span className="text-sm">
                   {move.name}
                 </span>
-                <span className="text-sm font-bold text-gaming-accent">
+                <span className="text-sm font-bold">
                   {inventory[move.countKey]}
                 </span>
               </div>

@@ -3,22 +3,20 @@
 import { useHomeData } from './useHomeData';
 import { HeroSection } from './HeroSection';
 import { FeaturedGameSection } from './FeaturedGameSection';
-import { LeaderboardList } from '@/components/leaderboard/LeaderboardList';
 import { MatrixRain } from '@/components/effects/MatrixRain';
 import { usePrivy } from '@privy-io/react-auth';
 import { usePlayMove } from "@/hooks/usePlayMove";
-import { useState } from 'react';
-import { useLeaderboard } from '@/features/leaderboard/hooks/useLeaderboard';
+import { useState, useEffect } from 'react';
 import { LoginDialog } from '@/components/auth/LoginDialog';
 import { HowToPlayModal } from './HowToPlayModal';
 import { InstallPWAModal } from './InstallPWAModal';
 import { useInstallPWA } from '@/hooks/useInstallPWA';
 import { InstallationPage } from '@/components/pwa/installation-page2';
+import { UserGameCard } from '@/components/multiplayer/game-card/UserGameCard';
 
 const HomePage = () => {
   const { data: matches, isLoading, refetch } = useHomeData();
   const { authenticated } = usePrivy();
-  const { users, isLoading: leaderboardLoading } = useLeaderboard();
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
 
   const [showLoginDialog, setShowLoginDialog] = useState(false);
@@ -38,6 +36,16 @@ const HomePage = () => {
     // Refetch to get updated game state
    // await refetch();
   };
+
+  useEffect(() => {
+    // Disable scrolling
+    document.body.style.overflow = 'hidden';
+
+    // Re-enable scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -60,15 +68,22 @@ const HomePage = () => {
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none opacity-20 z-10" />
       
       {/* Content */}
-      <div className="relative z-20">
+      <div className="relative">
         <HeroSection />
-
+        
         <div className="container mx-auto px-4 space-y-16 pb-16">
-          <FeaturedGameSection 
-            game={featuredGame} 
-            onPlayMove={onPlayMove} 
-          />
-          <LeaderboardList users={users} />
+          <h2 className="text-2xl font-bold text-white mb-4 text-center">Your Move</h2>
+          <div className="flex justify-center items-center">
+            {authenticated ? (
+              <UserGameCard 
+              />
+            ) : (
+              <FeaturedGameSection 
+                game={featuredGame} 
+                onPlayMove={onPlayMove} 
+              />
+            )}
+          </div>
         </div>
       </div>
 

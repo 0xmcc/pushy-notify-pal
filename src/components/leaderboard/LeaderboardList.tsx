@@ -1,6 +1,6 @@
 import { Trophy } from 'lucide-react';
 import { LeaderboardItem } from './LeaderboardItem';
-
+import { useLeaderboard } from '@/features/leaderboard/hooks/useLeaderboard';
 interface LeaderboardUser {
   did: string;
   display_name: string | null;
@@ -12,7 +12,8 @@ interface LeaderboardListProps {
   users: LeaderboardUser[];
 }
 
-export const LeaderboardList = ({ users }: LeaderboardListProps) => {
+export const LeaderboardList = () => {
+  const { users, isLoading: leaderboardLoading } = useLeaderboard();
   return (
     <div className="gaming-card backdrop-blur-sm bg-gaming-card/80 border-gaming-accent/50 shadow-[0_0_15px_rgba(139,92,246,0.1)] transition-all duration-300 hover:shadow-[0_0_25px_rgba(139,92,246,0.2)] group">
       <div className="flex items-center gap-4 mb-6">
