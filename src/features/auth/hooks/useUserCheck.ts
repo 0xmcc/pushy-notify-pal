@@ -6,39 +6,54 @@ export const useUserCheck = () => {
   const { user, ready } = usePrivy();
   const [isChecking, setIsChecking] = useState(true);
   const [exists, setExists] = useState<boolean | null>(null);
+  const [dbUser, setDbUser] = useState<any | null>(null);
+  const checkUser = async () => {
+    console.log('1. checkUser called', user, ready);
+    if (!ready || !user) {
+      setIsChecking(false);
+      setExists(null);
+      setDbUser(null);
+      return;
+    }
 
-  useEffect(() => {
-    const checkUser = async () => {
-      if (!ready || !user) {
-        setIsChecking(false);
-        setExists(null);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('did', user.id)
+        .single();
+
+      console.log('3. marko data', data);
+      if (error) {
+        console.error('Supabase error:', error);
+        setExists(false);
+        setDbUser(null);
         return;
       }
-
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('did')
-          .eq('did', user.id)
-          .single();
-
-        if (error) {
-          console.error('Supabase error:', error);
-          setExists(false);
-          return;
-        }
-
-        setExists(!!data);
-      } catch (error) {
-        console.error('Error checking user:', error);
-        setExists(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
+      console.log('3.5 marko setting exists', data);
+      setExists(!!data);
+      setDbUser(data);
+    } catch (error) {
+      console.error('Error checking user:', error);
+      setExists(false);
+      setDbUser(null);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+  
+  useEffect(() => {
+    console.log('1. useUserCheck useEffect called', user, ready);
     checkUser();
-  }, [user, ready]);
 
-  return { isChecking, exists };
+    
+  }, [user, ready]);
+  console.log('marko User details', dbUser, user);
+  return { 
+    isChecking, 
+    exists, 
+    user: dbUser,
+    ready,
+    privyUser: user
+  };
 }; 

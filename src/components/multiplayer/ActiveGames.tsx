@@ -30,7 +30,7 @@ export const ActiveGames = ({ stakeRange }: ActiveGamesProps) => {
       try {
         console.log("Playing move:", { gameId, move, userId: user.id });
         await playGameMove(gameId, move, user.id);
-        toast.success("Move played successfully!");
+// /        toast.success("Move played successfully!");
       } catch (err) {
         console.error("Error playing move:", err);
         toast.error("Failed to play move. Please try again.");

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
+import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from "@/integrations/supabase/client";
 
 interface UserStats {
-  off_chain_balance: number;
   matches_won: number;
   matches_lost: number;
   rating: number;
@@ -11,8 +11,8 @@ interface UserStats {
 
 export const WalletBalance = () => {
   const { user } = usePrivy();
+  const { tokenBalance } = useTokenBalance();
   const [userStats, setUserStats] = useState<UserStats>({
-    off_chain_balance: 0,
     matches_won: 0,
     matches_lost: 0,
     rating: 1200
@@ -23,7 +23,7 @@ export const WalletBalance = () => {
       if (user?.id) {
         const { data: userData, error } = await supabase
           .from('users')
-          .select('off_chain_balance, matches_won, matches_lost, rating')
+          .select('matches_won, matches_lost, rating')
           .eq('did', user.id)
           .single();
 
@@ -31,7 +31,6 @@ export const WalletBalance = () => {
           console.error('Error fetching user stats:', error);
         } else {
           setUserStats({
-            off_chain_balance: userData.off_chain_balance || 0,
             matches_won: userData.matches_won || 0,
             matches_lost: userData.matches_lost || 0,
             rating: userData.rating || 1200
@@ -43,9 +42,9 @@ export const WalletBalance = () => {
     // Initial fetch
     fetchStats();
 
-    // Set up real-time subscription
+    // Set up real-time subscription for stats only
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('stats-db-changes')
       .on(
         'postgres_changes',
         {
@@ -55,9 +54,7 @@ export const WalletBalance = () => {
           filter: `did=eq.${user?.id}`
         },
         (payload) => {
-          console.log('Stats update received:', payload);
           setUserStats({
-            off_chain_balance: payload.new.off_chain_balance || 0,
             matches_won: payload.new.matches_won || 0,
             matches_lost: payload.new.matches_lost || 0,
             rating: payload.new.rating || 1200
@@ -66,7 +63,6 @@ export const WalletBalance = () => {
       )
       .subscribe();
 
-    // Cleanup subscription on unmount
     return () => {
       supabase.removeChannel(channel);
     };
@@ -77,7 +73,7 @@ export const WalletBalance = () => {
   return (
     <div className="flex flex-col items-end">
       <div className="flex items-center gap-1 text-sm text-gaming-text-primary">
-        <span>{userStats.off_chain_balance.toFixed(2)}</span>
+        <span>{tokenBalance.toFixed(2)}</span>
         <span className="text-gaming-text-secondary">credits</span>
       </div>
       <div className="flex items-center gap-2 text-xs text-gaming-text-secondary">

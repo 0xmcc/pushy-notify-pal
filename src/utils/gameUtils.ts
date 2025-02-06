@@ -109,7 +109,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
 
     if (moveError) throw moveError;
     
-    toast.success(`Move played successfully!`);
+//    toast.success(`Move played successfully!`);
 
     //make a notification that says "${NAME} just finished your game. See if you won"
     // If this is player 2 making a move, notify the creator (player1)
