@@ -69,20 +69,23 @@ const HomePage = () => {
       
       {/* Content */}
       <div className="relative">
-        <HeroSection />
-        
-        <div className="container mx-auto px-4 space-y-16 pb-16">
-          <h2 className="text-2xl font-bold text-white mb-4 text-center">Your Move</h2>
-          <div className="flex justify-center items-center">
-            {authenticated ? (
-              <UserGameCard 
-              />
-            ) : (
-              <FeaturedGameSection 
-                game={featuredGame} 
-                onPlayMove={onPlayMove} 
-              />
-            )}
+        <div className="container mx-auto px-4 md:flex md:items-center md:gap-8 md:min-h-[calc(100vh-80px)]">
+          <div className="md:w-1/2">
+            <HeroSection />
+          </div>
+          
+          <div className="md:w-1/2 space-y-8 mt-16 md:mt-0">
+            <h2 className="text-2xl font-bold text-white mb-4 text-center">Your Move</h2>
+            <div className="flex justify-center items-center">
+              {authenticated ? (
+                <UserGameCard />
+              ) : (
+                <FeaturedGameSection 
+                  game={featuredGame} 
+                  onPlayMove={onPlayMove} 
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

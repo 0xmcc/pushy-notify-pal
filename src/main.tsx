@@ -6,6 +6,7 @@ import ArenaPage from './app/arena/page';
 import MultiplayerPage from './app/multiplayer/page';
 import TestPage from './app/test/page';
 import SignupPage from './app/signup/page';
+import LandingPage from './app/(landing)/page';
 import './index.css';
 
 createRoot(document.getElementById("root")!).render(
@@ -17,6 +18,8 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/arena" element={<ArenaPage />} />
         <Route path="/multiplayer" element={<MultiplayerPage />} />
         <Route path="/test" element={<TestPage />} />
+        <Route path="/invite" element={<LandingPage />} />
+
       </Routes>
     </RootLayout>
   </BrowserRouter>

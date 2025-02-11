@@ -103,7 +103,7 @@ function SelectionView({ selectedMove, onInvite }: { selectedMove: string | null
   const handleShare = async () => {
     try {
       await navigator.share({
-        title: `Hey! Want to play Rock Paper Scissors? I've already selected my move 😅 ${window.location.href}`,
+        title: `Hey! Want to play Rock Paper Scissors? I've already selected my move 😅 ${window.location.href}invite`,
       });
     } catch (error) {
       console.log('Error sharing:', error);

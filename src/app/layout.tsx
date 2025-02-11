@@ -17,6 +17,7 @@ import TokenReplenishmentTimer from '@/modules/token-timer';
 import { useUserCheck } from '@/features/auth/hooks/useUserCheck';
 //import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { UserProvider } from '@/contexts/UserProvider';
+import { useLocation } from 'react-router-dom';
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,8 @@ export default function RootLayout({
   const { exists, user, isChecking } = useUserCheck();
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
   const [showNav, setShowNav] = useState(false);
+  const location = useLocation();
+  const isInvitePath = location.pathname === '/invite';
   //const { tokenBalance } = useTokenBalance();
 
   useEffect(() => {
@@ -35,8 +38,8 @@ export default function RootLayout({
     console.log('Layout - showNav:', showNav);
     console.log('Layout - showInstallPrompt:', showInstallPrompt);
 //    console.log('Layout - tokenBalance:', tokenBalance);
-    setShowNav(!!exists);
-  }, [exists]);
+    setShowNav(!!exists && !isInvitePath);
+  }, [exists, isInvitePath]);
 
   // Handle body scroll when the PWA modal is open
   useEffect(() => {
@@ -69,6 +72,9 @@ export default function RootLayout({
               <TooltipProvider>
                 <UserProvider>
                   <div className="flex flex-col min-h-full">
+                    {!isInvitePath && (
+                      <Header className="fixed top-0 left-0 right-0 z-50" />
+                    )}
                     {isChecking ? (
                       <div className="flex-1 flex items-center justify-center">
                         <div className="text-gaming-text-secondary">Loading...</div>
@@ -77,31 +83,24 @@ export default function RootLayout({
                       <TokenReplenishmentTimer />
                     ) : (
                       <>
-                        <Header className="fixed top-0 left-0 right-0 z-50" />
-                        {/* <div className="fixed top-20 right-4 z-40">
-                          <div className="token-balance-display bg-gaming-accent-primary px-3 py-1 rounded-full">
-                            <span className="token-balance-amount text-gaming-text-primary font-medium">
-                              {tokenBalance?.toFixed(2) ?? '0.00'}
-                            </span>
-                            <span className="token-balance-label text-gaming-text-secondary ml-1">
-                              tokens
-                            </span>
-                          </div>
-                        </div> */}
-                        <main className="flex-1 overflow-y-auto pt-20 pb-16">
+                        <main className="flex-1 overflow-y-auto">
                           {children}
                         </main>
-                        {!showInstallPrompt && <BottomNav className="fixed bottom-0 left-0 right-0 z-50" />}
+                        {!isInvitePath && !showInstallPrompt &&showNav && (
+                          <BottomNav className="fixed bottom-0 left-0 right-0 z-50" />
+                        )}
                       </>
                     )}
                   </div>
-                  {/* <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
-                  {(showInstallPrompt) && (
+                  {( !isInvitePath && showInstallPrompt) && (
+                  
+                  <div><InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
                     <div className="fixed inset-0 z-[100] bg-black">
                       <InstallationPage />
                       <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
                     </div>
-                  )} */}
+                    </div>
+                  )}
                   <Toaster />
                   <Sonner />
                 </UserProvider>
