@@ -13,13 +13,12 @@ import { InstallPWAModal } from './InstallPWAModal';
 import { useInstallPWA } from '@/hooks/useInstallPWA';
 import { InstallationPage } from '@/components/pwa/installation-page2';
 import { UserGameCard } from '@/components/multiplayer/game-card/UserGameCard';
-import { useNavigate } from 'react-router-dom';
+
 
 const HomePage = () => {
   const { data: matches, isLoading, refetch } = useHomeData();
   const { authenticated } = usePrivy();
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
-  const navigate = useNavigate();
 
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(!showInstallPrompt); // Show by default
@@ -39,14 +38,6 @@ const HomePage = () => {
    // await refetch();
   };
 
-  // Add effect to handle navigation after authentication
-  useEffect(() => {
-    console.log("AUTHENTICATED, authenticated:", authenticated);
-    if (authenticated) {
-      console.log("NAVIGATING TO ARENA");
-      navigate('/arena');
-    }
-  }, [authenticated, navigate]);
 
   useEffect(() => {
     // Disable scrolling
