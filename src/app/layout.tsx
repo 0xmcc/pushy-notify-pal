@@ -83,7 +83,7 @@ export default function RootLayout({
                       <TokenReplenishmentTimer />
                     ) : (
                       <>
-                        <main className="flex-1 overflow-y-auto">
+                        <main className="flex-1 overflow-y-auto  md:pt-0 pt-20">
                           {children}
                         </main>
                         {!isInvitePath && !showInstallPrompt &&showNav && (
@@ -94,7 +94,8 @@ export default function RootLayout({
                   </div>
                   {( !isInvitePath && showInstallPrompt) && (
                   
-                  <div><InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
+                  <div>
+                    <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
                     <div className="fixed inset-0 z-[100] bg-black">
                       <InstallationPage />
                       <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />

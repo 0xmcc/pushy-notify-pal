@@ -13,11 +13,13 @@ import { InstallPWAModal } from './InstallPWAModal';
 import { useInstallPWA } from '@/hooks/useInstallPWA';
 import { InstallationPage } from '@/components/pwa/installation-page2';
 import { UserGameCard } from '@/components/multiplayer/game-card/UserGameCard';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const { data: matches, isLoading, refetch } = useHomeData();
   const { authenticated } = usePrivy();
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
+  const navigate = useNavigate();
 
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(!showInstallPrompt); // Show by default
@@ -36,6 +38,15 @@ const HomePage = () => {
     // Refetch to get updated game state
    // await refetch();
   };
+
+  // Add effect to handle navigation after authentication
+  useEffect(() => {
+    console.log("AUTHENTICATED, authenticated:", authenticated);
+    if (authenticated) {
+      console.log("NAVIGATING TO ARENA");
+      navigate('/arena');
+    }
+  }, [authenticated, navigate]);
 
   useEffect(() => {
     // Disable scrolling
@@ -56,7 +67,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden md:pt-0 pt-20">
+    <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Matrix Rain Background */}
       <div className="fixed inset-0 z-0">
         <MatrixRain />
