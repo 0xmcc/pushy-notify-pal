@@ -56,7 +56,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+    <div className="min-h-screen bg-black relative overflow-hidden md:pt-0 pt-20">
       {/* Matrix Rain Background */}
       <div className="fixed inset-0 z-0">
         <MatrixRain />
