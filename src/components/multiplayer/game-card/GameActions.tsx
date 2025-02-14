@@ -26,14 +26,6 @@ export const GameActions = ({
   const isCreator = userId === game.player1_did;
   const canJoinGame = !isCreator && game.status === 'pending';
 
-  // if (!authenticated) {
-  //   return (
-  //     <div className="mt-4 text-center text-gaming-text-secondary">
-  //       Sign in to play
-  //     </div>
-  //   );
-  // }
-
   if (isCreator) {
     return (
       <div className="mt-4 text-center text-gaming-text-secondary">
@@ -64,3 +56,11 @@ export const GameActions = ({
     </div>
   );
 };
+
+  // if (!authenticated) {
+  //   return (
+  //     <div className="mt-4 text-center text-gaming-text-secondary">
+  //       Sign in to play
+  //     </div>
+  //   );
+  // }

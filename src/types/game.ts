@@ -16,3 +16,19 @@ export interface Game {
   loser_rating_change?: number;
   is_ranked?: boolean;
 }
+
+export interface Inventory {
+  rock_count: number;
+  paper_count: number;
+  scissors_count: number;
+  off_chain_balance: number;
+}
+
+export interface UserStats extends Inventory {
+  off_chain_balance: number;
+  rating: number;
+  matches_played: number;
+  matches_won: number;
+  matches_lost: number;
+  matches_drawn: number;
+}

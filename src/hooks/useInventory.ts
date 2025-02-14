@@ -1,19 +1,16 @@
 import { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { Inventory } from "@/types/game";
 
-interface Inventory {
-  rock_count: number;
-  paper_count: number;
-  scissors_count: number;
-}
 
 export const useInventory = () => {
   const { user } = usePrivy();
   const [inventory, setInventory] = useState<Inventory>({
     rock_count: 0,
     paper_count: 0,
-    scissors_count: 0
+    scissors_count: 0,
+    off_chain_balance: 0
   });
 
   useEffect(() => {
@@ -21,7 +18,7 @@ export const useInventory = () => {
       if (user?.id) {
         const { data: userData, error } = await supabase
           .from('users')
-          .select('rock_count, paper_count, scissors_count')
+          .select('rock_count, paper_count, scissors_count, off_chain_balance')
           .eq('did', user.id)
           .single();
 
@@ -47,7 +44,8 @@ export const useInventory = () => {
           setInventory({
             rock_count: payload.new.rock_count,
             paper_count: payload.new.paper_count,
-            scissors_count: payload.new.scissors_count
+            scissors_count: payload.new.scissors_count,
+            off_chain_balance: payload.new.off_chain_balance
           });
         }
       )

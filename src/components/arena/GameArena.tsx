@@ -4,12 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
-
-interface Inventory {
-  rock_count: number;
-  paper_count: number;
-  scissors_count: number;
-}
+import { Inventory } from '@/types/game';
 
 interface Opponent {
   did: string;

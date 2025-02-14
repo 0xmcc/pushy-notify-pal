@@ -31,6 +31,16 @@ const ArenaPage = () => {
     scissors_count: 3,
   };
 
+  // Use a mapping to track each player's selected move
+  const [selectedMoves, setSelectedMoves] = useState<Record<string, string>>({});
+  const stakeAmount = 10; // example stake amount
+
+  // Update move selection for a given player
+  const handleSelectMove = (playerId: string, move: string) => {
+    setSelectedMoves((prev) => ({ ...prev, [playerId]: move }));
+    // Additional logic (e.g., API calls) can go here
+  };
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gaming-background text-gaming-text-primary p-4">
@@ -62,6 +72,11 @@ const ArenaPage = () => {
             players={filteredPlayers || []}
             onSelectPlayer={setSelectedPlayer}
             selectedPlayer={selectedPlayer}
+            inventory={playerInventory}
+            stakeAmount={1}
+            showMoveSelector={true}
+            selectedMoves={selectedMoves}
+            onMoveSelect={handleSelectMove}
           />
         ) : (
           <>

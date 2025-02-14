@@ -1,15 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Game } from "@/types/game";
 import { toast } from "sonner";
-
+import { Inventory } from "@/types/game";
 import { sendSimplePushNotification } from '@/features/notifications/services/gameNotifications';
 
-interface UserInventory {
-  off_chain_balance: number;
-  rock_count: number;
-  paper_count: number;
-  scissors_count: number;
-}
+
 
 const determineWinner = (move1: string, move2: string) => {
   // Convert moves to numbers for easier comparison
@@ -47,10 +42,10 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
 
     if (inventoryError) throw inventoryError;
 
-    const inventory = userData as UserInventory;
+    const inventory = userData as Inventory;
     const inventoryColumn = getMoveInventoryColumn(move);
     
-    if (!inventory || inventory[inventoryColumn as keyof UserInventory] <= 0) {
+    if (!inventory || inventory[inventoryColumn as keyof Inventory] <= 0) {
       throw new Error(`You don't have any more of this move available!`);
     }
 
@@ -76,7 +71,7 @@ export const playGameMove = async (gameId: string, move: string, userId: string)
       .from('users')
       .update({ 
         off_chain_balance: currentBalance - stakeAmount,
-        [inventoryColumn]: inventory[inventoryColumn as keyof UserInventory] - 1
+        [inventoryColumn]: inventory[inventoryColumn as keyof Inventory] - 1
       })
       .eq('did', userId);
 

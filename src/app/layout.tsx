@@ -92,7 +92,7 @@ export default function RootLayout({
                       </>
                     )}
                   </div>
-                  {( !isInvitePath && showInstallPrompt) && (
+                  {( false && !isInvitePath && showInstallPrompt) && (
                   
                   <div>
                     <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
@@ -100,7 +100,7 @@ export default function RootLayout({
                       <InstallationPage />
                       <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
                     </div>
-                    </div>
+                  </div>
                   )}
                   <Toaster />
                   <Sonner />

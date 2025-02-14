@@ -61,15 +61,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setUserStats({
-          off_chain_balance: userData.off_chain_balance || 0,
-          rock_count: userData.rock_count || 0,
-          paper_count: userData.paper_count || 0,
-          scissors_count: userData.scissors_count || 0,
-          rating: userData.rating || 1200,
-          matches_played: userData.matches_played || 0,
-          matches_won: userData.matches_won || 0,
-          matches_lost: userData.matches_lost || 0,
-          matches_drawn: userData.matches_drawn || 0,
+          off_chain_balance: userData.off_chain_balance ?? 0,
+          rock_count: userData.rock_count ?? 0,
+          paper_count: userData.paper_count ?? 0,
+          scissors_count: userData.scissors_count ?? 0,
+          rating: userData.rating ?? 1200,
+          matches_played: userData.matches_played ?? 0,
+          matches_won: userData.matches_won ?? 0,
+          matches_lost: userData.matches_lost ?? 0,
+          matches_drawn: userData.matches_drawn ?? 0,
         });
         setError(null);
       } catch (err) {
@@ -95,7 +95,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
         (payload) => {
           setUserStats(prev => ({
-            ...prev,
+            ...(prev ?? DEFAULT_USER_STATS),
             ...payload.new,
           }));
         }
@@ -121,4 +121,10 @@ export const useUser = () => {
     throw new Error('useUser must be used within a UserProvider');
   }
   return context;
-}; 
+};
+
+export const useUserStats = () => {
+  const { userStats } = useUser();
+  return userStats;
+};
+

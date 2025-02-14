@@ -37,34 +37,32 @@ export const useGames = (stakeRange: [number, number]) => {
 
   // Handle initial load and realtime updates
   useEffect(() => {
-    console.log("MCC useEffect CHANGES",stakeRange, isOffline);
-    loadGames();
+    console.log("MCC useEffect CHANGES", stakeRange, isOffline, user?.id);
     
     if (!isOffline) {
+      loadGames();
       const channel = setupRealtimeSubscription(loadGames);
       return () => {
         console.log("Cleaning up realtime subscription");
         supabase.removeChannel(channel);
       };
     }
-  }, [stakeRange, isOffline]);
+  }, [stakeRange, isOffline, user]); // Added user as dependency
   
   const loadGames = async () => {
-    console.log("MCC loadGames",stakeRange, isOffline);
- 
+    if (isOffline) {
+      setGames(getOfflineGames(stakeRange));
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log("MCC fetch games from supabase",user?.id);
-      setTimeout(async () => {
-        console.log("MCC fetch games from supabase 2",user?.id);
-        const games = await fetchGamesFromSupabase(stakeRange, user?.id);
-        setGames(games.filter(game => 
-          game.stake_amount >= stakeRange[0] && game.stake_amount <= stakeRange[1]
-        ));
-      }, 1000);
+      console.log("MCC fetch games from supabase", user?.id);
+      const games = await fetchGamesFromSupabase(stakeRange, user?.id);
+      console.log("MCC useGames loadGames() games", games);
+      setGames(games);
     } catch (err) {
       console.error("Error loading games:", err);
       setError("Failed to load games. Using mock data instead.");
@@ -73,8 +71,6 @@ export const useGames = (stakeRange: [number, number]) => {
       setIsLoading(false);
     }
   };
-
- 
 
   return { games, isLoading, error, isOffline };
 };
