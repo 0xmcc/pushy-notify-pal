@@ -50,8 +50,8 @@ export default function RootLayout({
   }, [showInstallPrompt]);
 
   return (
-    <html lang="en" className={cn("h-full", showInstallPrompt && "overflow-hidden")}>
-      <body className={cn("flex flex-col min-h-full", showInstallPrompt && "overflow-hidden")}>
+    <html lang="en" className={cn("h-full", showInstallPrompt)}>
+      <body className={cn("h-full bg-gaming-background touch-manipulation", showInstallPrompt)}>
         <PrivyProvider
           appId="cm51rmjaz04s9ojzwfaopdnzd"
           config={{
@@ -71,9 +71,9 @@ export default function RootLayout({
             <RPSProvider>
               <TooltipProvider>
                 <UserProvider>
-                  <div className="flex flex-col min-h-full">
+                  <div className="absolute inset-0 flex flex-col">
                     {!isInvitePath && (
-                      <Header className="fixed top-0 left-0 right-0 z-50" />
+                      <Header className="sticky top-0 z-50" />
                     )}
                     {isChecking ? (
                       <div className="flex-1 flex items-center justify-center">
@@ -83,24 +83,23 @@ export default function RootLayout({
                       <TokenReplenishmentTimer />
                     ) : (
                       <>
-                        <main className="flex-1 overflow-y-auto  md:pt-0 pt-20">
+                        <main className="flex-1 overflow-y-auto">
                           {children}
                         </main>
-                        {!isInvitePath && !showInstallPrompt &&showNav && (
-                          <BottomNav className="fixed bottom-0 left-0 right-0 z-50" />
+                        {!isInvitePath && !showInstallPrompt && showNav && (
+                          <BottomNav className="sticky bottom-0 z-50" />
                         )}
                       </>
                     )}
                   </div>
-                  {( false && !isInvitePath && showInstallPrompt) && (
-                  
-                  <div>
-                    <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
-                    <div className="fixed inset-0 z-[100] bg-black">
-                      <InstallationPage />
+                  {(false && !isInvitePath && showInstallPrompt) && (
+                    <div>
                       <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
+                      <div className="fixed inset-0 z-[100] bg-black">
+                        <InstallationPage />
+                        <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
+                      </div>
                     </div>
-                  </div>
                   )}
                   <Toaster />
                   <Sonner />
