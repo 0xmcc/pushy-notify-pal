@@ -14,10 +14,14 @@ export const WinResult = ({
   stakeAmount 
 }: WinResultProps) => {
   return (
-    <div className="flex flex-col items-center space-y-3">
-      <p className="text-gaming-success text-xl font-bold animate-pulse text-center w-full">
-        You won!
-      </p>
+    <div className="text-center space-y-3">
+      <div className="h-8 flex items-center justify-center">
+        <div className="w-[298px] flex items-center justify-center">
+          <p className="text-gaming-success text-xl font-bold animate-pulse">
+            You won!
+          </p>
+        </div>
+      </div>
       {canClaim && !hasUserClaimed && (
         <GameResultButton 
           onClick={handleClaim} 

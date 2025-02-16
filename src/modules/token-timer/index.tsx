@@ -45,7 +45,7 @@ const GameModule = () => {
         </>
       )}
 
-      <div className={`relative ${showMatrixBg ? 'z-20' : ''} p-6 flex flex-col items-center`}>
+      <div className={`relative ${showMatrixBg ? 'z-20' : ''} p-6 flex flex-col items-center border-0`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -54,7 +54,7 @@ const GameModule = () => {
           <div className="flex justify-between items-center mb-8">
                   <button
         onClick={() => setShowMatrixBg(prev => !prev)}
-        className="z-30 px-3 py-1 rounded-full bg-gaming-accent/20 text-gaming-text-secondary hover:bg-gaming-accent/30 text-sm border border-gaming-accent/30"
+        className="z-30 px-3 py-1 rounded-full bg-gaming-accent/20 text-gaming-text-secondary hover:bg-gaming-accent/30 text-sm border-0"
       >
         {showMatrixBg ? 'Hide Matrix' : 'Show Matrix'}
       </button>

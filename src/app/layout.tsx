@@ -13,11 +13,10 @@ import { InstallationPage } from '@/components/pwa/installation-page2';
 import { InstallPWAModal } from "@/components/home/InstallPWAModal";
 import { useInstallPWA } from '@/hooks/useInstallPWA';
 import { cn } from '@/lib/utils';
-import TokenReplenishmentTimer from '@/modules/token-timer';
 import { useUserCheck } from '@/features/auth/hooks/useUserCheck';
-//import { useTokenBalance } from '@/hooks/useTokenBalance';
 import { UserProvider } from '@/contexts/UserProvider';
 import { useLocation } from 'react-router-dom';
+import { TokenTimerWrapper } from '@/components/layout/TokenTimerWrapper';
 
 const queryClient = new QueryClient();
 
@@ -31,13 +30,10 @@ export default function RootLayout({
   const [showNav, setShowNav] = useState(false);
   const location = useLocation();
   const isInvitePath = location.pathname === '/invite';
-  //const { tokenBalance } = useTokenBalance();
 
   useEffect(() => {
-//    console.log('Layout - exists:', exists, 'user:', user);
     console.log('Layout - showNav:', showNav);
     console.log('Layout - showInstallPrompt:', showInstallPrompt);
-//    console.log('Layout - tokenBalance:', tokenBalance);
     setShowNav(!!exists && !isInvitePath);
   }, [exists, isInvitePath]);
 
@@ -79,17 +75,15 @@ export default function RootLayout({
                       <div className="flex-1 flex items-center justify-center">
                         <div className="text-gaming-text-secondary">Loading...</div>
                       </div>
-                    ) : exists && user && (tokenBalance === 0 || tokenBalance === null) ? (
-                      <TokenReplenishmentTimer />
                     ) : (
-                      <>
+                      <TokenTimerWrapper>
                         <main className="flex-1 overflow-y-auto">
                           {children}
                         </main>
                         {!isInvitePath && !showInstallPrompt && showNav && (
                           <BottomNav className="sticky bottom-0 z-50" />
                         )}
-                      </>
+                      </TokenTimerWrapper>
                     )}
                   </div>
                   {(false && !isInvitePath && showInstallPrompt) && (

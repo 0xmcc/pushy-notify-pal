@@ -43,7 +43,8 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
   const isUserPlayer2 = user?.id === game.player2_did;
   const isUserInGame = isUserPlayer1 || isUserPlayer2;
   const isUserWinner = user?.id === game.winner_did;
-  const canClaim = isGameComplete && isUserWinner;
+  const hasUserClaimed = (isUserPlayer1 && game.player1_claimed_at) || (isUserPlayer2 && game.player2_claimed_at);
+  const canClaim = isGameComplete && isUserWinner && !hasUserClaimed;
 
 
   return (

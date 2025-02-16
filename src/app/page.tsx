@@ -17,7 +17,7 @@ export default function HomePage() {
     if (authenticated && exists === false) {
       navigate('/signup');
     } else {
-      navigate('/arena');
+      navigate('/');
     }
   }, [authenticated, exists, navigate]);
 

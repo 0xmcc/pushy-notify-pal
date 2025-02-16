@@ -23,7 +23,8 @@ export const fetchGamesFromSupabase = async (stakeRange: [number, number], userD
   const withinStakeRange = `and(stake_amount.gte.${stakeRange[0]},stake_amount.lte.${stakeRange[1]})`; // This and() is correct, keep it
 
   // Combine pending game conditions
-  const pendingGamesFilter = `and(${isPendingGame},${userNotPlayer1},${withinStakeRange})`;
+//  const pendingGamesFilter = `and(${isPendingGame},${userNotPlayer1},${withinStakeRange})`;
+  const pendingGamesFilter = `and(${isPendingGame},${withinStakeRange})`;
 
   // Non-pending games with hidden criteria
   const nonPendingBasic = `status.neq.pending`;
@@ -71,7 +72,9 @@ export const fetchGamesFromSupabase = async (stakeRange: [number, number], userD
     player2_move: match.player2_move,
     creator_rating: match.player1?.rating,
     creator_name: match.player1?.display_name || match.player1_did,
-    winner_did: match.winner_did
+    winner_did: match.winner_did,
+    player1_claimed_at: match.player1_claimed_at,
+    player2_claimed_at: match.player2_claimed_at
   }));
 };
 

@@ -7,9 +7,13 @@ interface DrawResultProps {
 export const DrawResult = ({ handleHideGame }: DrawResultProps) => {
   return (
     <div className="text-center space-y-3">
-      <p className="text-gaming-primary text-xl font-bold animate-pulse">
-        Draw!
-      </p>
+      <div className="h-8 flex items-center justify-center">
+        <div className="w-[298px] flex items-center justify-center">
+          <p className="text-gaming-primary text-xl font-bold animate-pulse">
+            Draw!
+          </p>
+        </div>
+      </div>
       <GameResultButton 
         onClick={handleHideGame} 
         variant="hide" 

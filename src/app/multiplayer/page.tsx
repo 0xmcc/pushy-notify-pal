@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CreateGame } from "@/components/multiplayer/create-game/CreateGame";
 import { ActiveGames } from "@/components/multiplayer/ActiveGames";
 import { StakeRange } from "@/components/multiplayer/StakeRange";
+import { useUser } from '@/contexts/UserProvider';
 
 const MultiplayerPage = () => {
+  const { userStats } = useUser();
+  useEffect(() => {
+    console.log("MCC multiplayer page useEffect", userStats);
+  }, [userStats]);
   const [stakeRange, setStakeRange] = useState<[number, number]>([0, 1000]);
 
   return (
