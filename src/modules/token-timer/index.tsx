@@ -1,15 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import GameLocked from "./components/GameLocked";
 import GamePlay from "./components/GamePlay";
 import { useNavigate } from 'react-router-dom';
 import { MatrixRain } from '@/components/effects/MatrixRain';
+//import userstats from user provider
+import { useUser } from '@/contexts/UserProvider';
+import { updateReplenishTimers, type ReplenishmentTimers } from '@/services/replenishmentService';
 
 const GameModule = () => {
   const navigate = useNavigate();
   const [tokens, setTokens] = useState(0);
   const [showTimer, setShowTimer] = useState(true);
   const [showMatrixBg, setShowMatrixBg] = useState(true);
+  const { userStats } = useUser();
+  const [replenishmentTimers, setReplenishmentTimers] = useState<ReplenishmentTimers | null>(null);
+
+  const refreshReplenishmentTimers = async () => {
+    console.log("refreshReplenishmentTimers", userStats?.did, userStats);
+    if (userStats?.did) {
+      try {
+        console.log("updating timers");
+        const timers = await updateReplenishTimers(userStats.did);
+        console.log("timers updated!", timers);
+        setReplenishmentTimers(timers);
+      } catch (error) {
+        console.error('Failed to update replenishment timers:', error);
+      }
+    }
+  };
+
+  // Initial load of replenishment timers
+  useEffect(() => {
+    refreshReplenishmentTimers();
+  }, [userStats?.did]);
 
   const handleChoice = (choice: "rock" | "paper" | "scissors") => {
     if (tokens > 0) {
@@ -21,13 +45,24 @@ const GameModule = () => {
   };
 
   const handleTimerComplete = () => {
-    setTokens(3);
-    setShowTimer(false);
+    console.log("handleTimerComplete");
   };
 
-  const handleBack = () => {
-    navigate(-1);
+
+
+  const getNextReplenishTime = (replenishmentTimers: ReplenishmentTimers | null) => {
+    console.log("getNextReplenishTime", replenishmentTimers);
+    if (userStats?.off_chain_balance === 0) return replenishmentTimers?.next_replenish.off_chain_balance
+    if (!replenishmentTimers) return null;
+    const times = [
+      replenishmentTimers.next_replenish.rock,
+      replenishmentTimers.next_replenish.paper,
+      replenishmentTimers.next_replenish.scissors
+    ].filter(time => time !== null) as number[];
+
+    return times.length > 0 ? Math.min(...times) : null;
   };
+
 
   return (
     <div className="min-h-screen bg-black text-gaming-text-primary relative overflow-hidden">
@@ -52,23 +87,30 @@ const GameModule = () => {
           className="w-full max-w-md"
         >
           <div className="flex justify-between items-center mb-8">
-                  <button
-        onClick={() => setShowMatrixBg(prev => !prev)}
-        className="z-30 px-3 py-1 rounded-full bg-gaming-accent/20 text-gaming-text-secondary hover:bg-gaming-accent/30 text-sm border-0"
-      >
-        {showMatrixBg ? 'Hide Matrix' : 'Show Matrix'}
-      </button>
-        
+          {/* <button
+            onClick={() => setShowMatrixBg(prev => !prev)}
+            className="z-30 px-3 py-1 rounded-full bg-gaming-accent/20 text-gaming-text-secondary hover:bg-gaming-accent/30 text-sm border-0"
+          >
+            {showMatrixBg ? 'Hide Matrix' : 'Show Matrix'}
+          </button> */}
+{/*         
             <span className="text-sm text-gaming-text-secondary">
               Tokens: {tokens}
-            </span>
+            </span> */}
           </div>
 
           <div className="space-y-8">
+
             {showTimer ? (
-              <GameLocked onTimerComplete={handleTimerComplete} />
+              <GameLocked 
+                onTimerComplete={handleTimerComplete} 
+                replenishmentTimers={replenishmentTimers}
+                userStats={userStats}
+                onRefresh={refreshReplenishmentTimers}
+                nextReplenishTime={getNextReplenishTime(replenishmentTimers)}
+              />
             ) : (
-              <GamePlay tokens={tokens} onChoice={handleChoice} />
+              <GamePlay tokens={userStats?.rock_count ?? 0} onChoice={handleChoice} />
             )}
           </div>
         </motion.div>

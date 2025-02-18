@@ -4,12 +4,22 @@ import Timer from "./Timer";
 import InviteFriends from "./InviteFriends";
 import LoadingSpinner from "./animations/LoadingSpinner";
 import PulseEffect from "./animations/PulseEffect";
+import { ReplenishmentTimers } from "@/services/replenishmentService";
+import { UserStats, useUser } from '@/contexts/UserProvider';
 
 interface GameLockedProps {
   onTimerComplete: () => void;
+  replenishmentTimers: ReplenishmentTimers | null;
+  userStats: UserStats | null;
+  onRefresh: () => Promise<void>;
+  nextReplenishTime: number | null;
 }
 
-const GameLocked = ({ onTimerComplete }: GameLockedProps) => {
+const GameLocked = ({ onTimerComplete, replenishmentTimers, onRefresh, nextReplenishTime }: GameLockedProps) => {
+  const { userStats } = useUser();
+
+  if (!replenishmentTimers || !userStats) return null;
+
   return (
     <motion.div
       initial={{ scale: 0.9 }}
@@ -42,7 +52,15 @@ const GameLocked = ({ onTimerComplete }: GameLockedProps) => {
         </motion.div>
       </motion.div>
 
-      <Timer onComplete={onTimerComplete} />
+      {nextReplenishTime && (
+        <Timer 
+          targetTime={nextReplenishTime} 
+          onComplete={async () => {
+            await onRefresh();
+            onTimerComplete();
+          }} 
+        />
+      )}
 
       <div className="flex items-center justify-center w-full my-4">
         <div className="flex-grow border-t border-gaming-accent/30"></div>

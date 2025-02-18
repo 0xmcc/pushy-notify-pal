@@ -2,7 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from '@/integrations/supabase/client';
 
-interface UserStats {
+export interface UserStats {
+  did: string;
   off_chain_balance: number;
   rock_count: number;
   paper_count: number;
@@ -21,6 +22,7 @@ interface UserContextProps {
 }
 
 const DEFAULT_USER_STATS: UserStats = {
+  did: "",
   off_chain_balance: 0,
   rock_count: 0,
   paper_count: 0,
@@ -61,6 +63,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setUserStats({
+          did: userData.did ?? "",
           off_chain_balance: userData.off_chain_balance ?? 0,
           rock_count: userData.rock_count ?? 0,
           paper_count: userData.paper_count ?? 0,
