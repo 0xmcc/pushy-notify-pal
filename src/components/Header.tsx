@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./header/Logo";
 import { ProfileButton } from "./header/ProfileButton";
+import { NavigationTabs } from "./header/NavigationTabs";
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,7 +41,10 @@ export const Header = ({ className }: HeaderProps) => {
       "h-20 bg-gaming-background border-b border-gaming-card flex items-center justify-between px-4",
       className
     )}>
-      <Logo />
+      <div className="flex items-center space-x-8">
+        <Logo />
+        <NavigationTabs />
+      </div>
       <ProfileButton avatarUrl={avatarUrl} onAvatarUpdate={handleAvatarUpdate} />
     </header>
   );

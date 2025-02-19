@@ -44,16 +44,16 @@ const MultiplayerPage = () => {
 
   return (
     <div className="container mx-auto py-6 px-4 bg-gaming-background">
-      <h1 className="text-2xl font-bold text-center mb-6 text-gaming-text-primary">Multiplayer</h1>
+      <h1 className="text-2xl font-bold text-center mb-6 text-gaming-text-primary">Your Move</h1>
       
       <div className="max-w-2xl mx-auto space-y-6">
         {/* <Card className="p-4 bg-gaming-card border-gaming-accent">
           <StakeRange value={stakeRange} onChange={setStakeRange} />
         </Card> */}
         
-        <Card className="p-4 bg-gaming-card border-gaming-accent">
+        {/* <Card className="p-4 bg-gaming-card border-gaming-accent">
           <CreateGame />
-        </Card>
+        </Card> */}
         
         <Card className="p-4 bg-gaming-card border-gaming-accent">
           <h2 className="text-lg font-semibold mb-4 text-gaming-text-primary">Available Games</h2>
