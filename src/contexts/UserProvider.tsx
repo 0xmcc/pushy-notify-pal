@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabase } from '@/integrations/supabase/client';
+import { updateReplenishTimers, type ReplenishmentTimers } from '@/services/replenishmentService';
 
 export interface UserStats {
   did: string;
@@ -19,6 +20,9 @@ interface UserContextProps {
   userStats: UserStats | null;
   isLoading: boolean;
   error: Error | null;
+  replenishmentTimers: ReplenishmentTimers | null;
+  refreshReplenishmentTimers: () => Promise<void>;
+  nextReplenishmentTimer: number | null;
 }
 
 const DEFAULT_USER_STATS: UserStats = {
@@ -41,6 +45,31 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [replenishmentTimers, setReplenishmentTimers] = useState<ReplenishmentTimers | null>(null);
+  const [nextReplenishmentTimer, setNextReplenishmentTimer] = useState<number | null>(null);
+
+  const refreshReplenishmentTimers = async () => {
+    if (userStats?.did) {
+      try {
+        const timers = await updateReplenishTimers(userStats.did);
+        setReplenishmentTimers(timers);
+      } catch (error) {
+        console.error('Failed to update replenishment timers:', error);
+      }
+    }
+  };
+
+  const calculateNextReplenishmentTimer = (replenishmentTimers: ReplenishmentTimers | null) => {
+    if (userStats?.off_chain_balance === 0) return replenishmentTimers?.next_replenish.off_chain_balance;
+    if (!replenishmentTimers) return null;
+    const times = [
+      replenishmentTimers.next_replenish.rock,
+      replenishmentTimers.next_replenish.paper,
+      replenishmentTimers.next_replenish.scissors
+    ].filter(time => time !== null) as number[];
+
+    return times.length > 0 ? Math.min(...times) : null;
+  };
 
   useEffect(() => {
     if (!ready || !user?.id) {
@@ -111,8 +140,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user?.id, ready]);
 
+  useEffect(() => {
+    refreshReplenishmentTimers();
+  }, [userStats?.did]);
+
+  useEffect(() => {
+    setNextReplenishmentTimer(calculateNextReplenishmentTimer(replenishmentTimers));
+  }, [replenishmentTimers, userStats?.off_chain_balance]);
+
   return (
-    <UserContext.Provider value={{ userStats, isLoading, error }}>
+    <UserContext.Provider value={{ userStats, isLoading, error, replenishmentTimers, refreshReplenishmentTimers, nextReplenishmentTimer }}>
       {children}
     </UserContext.Provider>
   );

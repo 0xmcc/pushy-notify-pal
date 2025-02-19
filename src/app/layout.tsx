@@ -67,7 +67,7 @@ export default function RootLayout({
             <RPSProvider>
               <TooltipProvider>
                 <UserProvider>
-                  <div className="absolute inset-0 flex flex-col">
+                  <div className="flex flex-col min-h-screen">
                     {!isInvitePath && (
                       <Header className="sticky top-0 z-50" />
                     )}

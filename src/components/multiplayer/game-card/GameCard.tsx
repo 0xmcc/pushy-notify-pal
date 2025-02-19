@@ -6,9 +6,10 @@ import { GameHeader } from "./GameHeader";
 import { GameActions } from "./GameActions";
 import { GameResult } from "./GameResult";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
-import { Lock } from "lucide-react";
+import { Lock, Share2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 interface GameCardProps {
   game: Game;
@@ -94,6 +95,8 @@ export const GameCard = ({ game, onPlayMove }: GameCardProps) => {
             }}
           />
         )}
+
+
       </div>
     </div>
   );

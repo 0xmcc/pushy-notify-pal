@@ -2,6 +2,7 @@ import { Game } from "@/types/game";
 import { Button } from "@/components/ui/button";
 import { GameMoveSelector } from "../GameMoveSelector";
 import { useState } from "react";
+import { Share2 } from "lucide-react";
 
 interface GameActionsProps {
   game: Game;
@@ -30,6 +31,25 @@ export const GameActions = ({
     return (
       <div className="mt-4 text-center text-gaming-text-secondary">
         Waiting for opponent...
+        <div className="mt-4 text-center">
+        <Button
+          onClick={async () => {
+            try {
+              await navigator.share({
+                title: `Hey! Want to play Rock Paper Scissors? I've already selected my move 😅 ${window.location.href}invite`,
+              });
+            } catch (error) {
+              console.log('Error sharing:', error);
+              // Fallback to regular invite if sharing fails
+              userId && onPlayMove(game.id, 'invite');
+            }
+          }}
+          className="bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 px-4 rounded-full transition-colors duration-300"
+        >
+          <Share2 className="w-5 h-5 mr-2" />
+          Invite a Friend to Play
+        </Button>
+      </div>
       </div>
     );
   }

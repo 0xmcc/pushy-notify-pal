@@ -11,7 +11,7 @@ import { playGameMove } from "@/utils/gameUtils";
 import { toast } from "sonner";
 
 const MultiplayerPage = () => {
-  const { userStats } = useUser();
+  const { userStats, replenishmentTimers, refreshReplenishmentTimers, nextReplenishmentTimer } = useUser();
   const { user, authenticated } = usePrivy();
   const [stakeRange, setStakeRange] = useState<[number, number]>([0, 1000]);
 
@@ -30,6 +30,7 @@ const MultiplayerPage = () => {
       try {
         console.log("Playing move:", { gameId, move, userId: user.id });
         await playGameMove(gameId, move, user.id);
+        refreshReplenishmentTimers();
       } catch (err) {
         console.error("Error playing move:", err);
         toast.error("Failed to play move. Please try again.");
@@ -46,9 +47,9 @@ const MultiplayerPage = () => {
       <h1 className="text-2xl font-bold text-center mb-6 text-gaming-text-primary">Multiplayer</h1>
       
       <div className="max-w-2xl mx-auto space-y-6">
-        <Card className="p-4 bg-gaming-card border-gaming-accent">
+        {/* <Card className="p-4 bg-gaming-card border-gaming-accent">
           <StakeRange value={stakeRange} onChange={setStakeRange} />
-        </Card>
+        </Card> */}
         
         <Card className="p-4 bg-gaming-card border-gaming-accent">
           <CreateGame />

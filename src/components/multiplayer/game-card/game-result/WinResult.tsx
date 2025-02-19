@@ -15,12 +15,10 @@ export const WinResult = ({
 }: WinResultProps) => {
   return (
     <div className="text-center space-y-3">
-      <div className="h-8 flex items-center justify-center">
-        <div className="w-[298px] flex items-center justify-center">
-          <p className="text-gaming-success text-xl font-bold animate-pulse">
-            You won!
-          </p>
-        </div>
+      <div className="relative h-8">
+        <p className="absolute left-1/2 -translate-x-1/2 text-gaming-success text-xl font-bold animate-pulse">
+          You won!
+        </p>
       </div>
       {canClaim && !hasUserClaimed && (
         <GameResultButton 

@@ -1,8 +1,4 @@
 'use client';
-
-// import { usePrivy } from "@privy-io/react-auth";
-// import { playGameMove } from "@/utils/gameUtils";
-// import { toast } from "sonner";
 import { ErrorAlert } from "./ErrorAlert";
 import { GamesList } from "./GamesList";
 import { useGames } from "@/hooks/useGames";
@@ -13,9 +9,22 @@ interface ActiveGamesProps {
 }
 
 export const ActiveGames = ({ stakeRange, onPlayMove }: ActiveGamesProps) => {
-//  const { user, authenticated } = usePrivy();
   const { games, isLoading, error, isOffline } = useGames(stakeRange);
+  if (isLoading) 
+    return <div className="text-center py-4 text-gaming-text-secondary">Loading games...</div>;
+  
+  if (error) 
+    return <ErrorAlert message={error} />;
+  
+  return <GamesList games={games} isOffline={isOffline} onPlayMove={onPlayMove} />;
+};
 
+
+
+//  const { user, authenticated } = usePrivy();
+// import { usePrivy } from "@privy-io/react-auth";
+// import { playGameMove } from "@/utils/gameUtils";
+// import { toast } from "sonner";
 //   const handlePlayMove = async (gameId: string, move: string) => {
 //     if (!authenticated) {
 //       toast.error("Please sign in to play");
@@ -38,14 +47,3 @@ export const ActiveGames = ({ stakeRange, onPlayMove }: ActiveGamesProps) => {
 //       }
 //     }
 //   };
-
-  if (isLoading) {
-    return <div className="text-center py-4 text-gaming-text-secondary">Loading games...</div>;
-  }
-
-  if (error) {
-    return <ErrorAlert message={error} />;
-  }
-
-  return <GamesList games={games} isOffline={isOffline} onPlayMove={onPlayMove} />;
-};

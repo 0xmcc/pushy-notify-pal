@@ -68,6 +68,20 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
     }
   };
 
+  console.log('Dropdown opened');
+  // Check for overlay elements
+  const overlayElement = document.querySelector('.overlay-class');
+  if (overlayElement) {
+    console.log('Overlay element found:', overlayElement);
+    console.log('Overlay z-index:', window.getComputedStyle(overlayElement).zIndex);
+  }
+
+  // Check z-index of dropdown
+  const dropdownElement = document.querySelector('.dropdown-menu');
+  if (dropdownElement) {
+    console.log('Dropdown z-index:', window.getComputedStyle(dropdownElement).zIndex);
+  }
+
   return (
     <div className="flex items-center gap-4">
       <WalletBalance />
@@ -76,14 +90,14 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
           <Button 
             variant="ghost" 
             onClick={login}
-            className="text-gaming-text-primary hover:text-gaming-text-primary/80"
+            className="text-gaming-text-primary"
           >
             Login
           </Button>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+            <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0 hover:bg-transparent hover:text-gaming-text-primary focus:bg-transparent">
               <AvatarDisplay 
                 avatarUrl={avatarUrl}
                 authenticated={authenticated}

@@ -63,7 +63,7 @@ export const GameResult = ({
   };
 
   return (
-    <div className="space-y-4 text-center">
+    <div className="space-y-5 text-center">
       <GameMoveComparison
         player1Move={player1Move}
         player2Move={player2Move}
