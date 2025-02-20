@@ -7,6 +7,7 @@ import MultiplayerPage from './app/multiplayer/page';
 import TestPage from './app/test/page';
 import SignupPage from './app/signup/page';
 import LandingPage from './app/(landing)/page';
+import VideoBackgroundPage from './app/video-background/page';
 import './index.css';
 
 createRoot(document.getElementById("root")!).render(
@@ -19,7 +20,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/multiplayer" element={<MultiplayerPage />} />
         <Route path="/test" element={<TestPage />} />
         <Route path="/invite" element={<LandingPage />} />
-
+        <Route path="/video-background" element={<VideoBackgroundPage />} />
       </Routes>
     </RootLayout>
   </BrowserRouter>

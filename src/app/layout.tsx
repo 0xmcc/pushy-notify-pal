@@ -29,7 +29,7 @@ export default function RootLayout({
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
   const [showNav, setShowNav] = useState(false);
   const location = useLocation();
-  const isInvitePath = location.pathname === '/invite';
+  const isInvitePath = location.pathname === '/invite' || location.pathname === '/video-background';
 
   useEffect(() => {
     console.log('Layout - showNav:', showNav);

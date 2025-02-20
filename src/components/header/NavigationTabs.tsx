@@ -7,6 +7,7 @@ export const NavigationTabs = () => {
   const tabs = [
     { name: 'Home', href: '/' },
     { name: 'Multiplayer', href: '/multiplayer' },
+    { name: 'Video', href: '/video-background' },
   ];
 
   return (
