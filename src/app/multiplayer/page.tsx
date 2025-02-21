@@ -51,9 +51,9 @@ const MultiplayerPage = () => {
           <StakeRange value={stakeRange} onChange={setStakeRange} />
         </Card> */}
         
-        {/* <Card className="p-4 bg-gaming-card border-gaming-accent">
+        <Card className="p-4 bg-gaming-card border-gaming-accent">
           <CreateGame />
-        </Card> */}
+        </Card>
         
         <Card className="p-4 bg-gaming-card border-gaming-accent">
           <h2 className="text-lg font-semibold mb-4 text-gaming-text-primary">Available Games</h2>
