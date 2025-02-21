@@ -8,6 +8,8 @@ export const NavigationTabs = () => {
     { name: 'Home', href: '/' },
     { name: 'Multiplayer', href: '/multiplayer' },
     { name: 'Video', href: '/video-background' },
+    { name: 'On-Chain', href: '/onchain' },
+    { name: 'Test', href: '/test' },
   ];
 
   return (

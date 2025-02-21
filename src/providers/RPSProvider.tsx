@@ -16,7 +16,7 @@ import { IDL, RpsGame } from '@/types/rps_game';
 const DEVNET_ENDPOINT = 'https://api.devnet.solana.com';
 const PROGRAM_ID = 'HhQS1b126xUXvVpQ6qbZPhSi2PhDgtBFTe7hqNfkXeWZ';
 
-export const RPSContext = createContext<anchor.Program<RpsGame> | null>(null);
+export const RPSContext = createContext<anchor.Program<RpsGame> | null | undefined>(undefined);
 
 export function useRPS() {
   const context = useContext(RPSContext);
@@ -27,11 +27,15 @@ export function useRPS() {
 }
 
 export function RPSProvider({ children }: { children: React.ReactNode }) {
+  const mountId = React.useRef(Math.random());
+  console.log("[RPSProvider] Mounting, ID:", mountId.current);
+  
   const [program, setProgram] = useState<anchor.Program<RpsGame> | null>(null);
   const { wallets } = useSolanaWallets();
   const solanaWallet = wallets[0];
 
   useEffect(() => {
+    console.log("[RPSProvider] Effect running, ID:", mountId.current, "Wallet:", !!solanaWallet);
     const initializeProgram = async () => {
       if (!solanaWallet?.address) {
         console.log("Waiting for wallet...");
@@ -74,6 +78,7 @@ export function RPSProvider({ children }: { children: React.ReactNode }) {
     initializeProgram();
   }, [solanaWallet?.address]);
 
+  console.log("[RPSProvider] Rendering, ID:", mountId.current, "Program:", !!program);
   return (
     <RPSContext.Provider value={program}>
       {children}

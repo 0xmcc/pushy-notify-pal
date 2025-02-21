@@ -64,7 +64,6 @@ export default function RootLayout({
           }}
         >
           <QueryClientProvider client={queryClient}>
-            <RPSProvider>
               <TooltipProvider>
                 <UserProvider>
                   <div className="flex flex-col min-h-screen">
@@ -77,12 +76,15 @@ export default function RootLayout({
                       </div>
                     ) : (
                       <TokenTimerWrapper>
-                        <main className="flex-1 overflow-y-auto">
-                          {children}
-                        </main>
-                        {!isInvitePath && !showInstallPrompt && showNav && (
-                          <BottomNav className="sticky bottom-0 z-50" />
-                        )}
+                        <RPSProvider>
+                          <main className="flex-1 overflow-y-auto">
+                            {children}
+                          </main>
+                          {!isInvitePath && !showInstallPrompt && showNav && (
+                            <BottomNav className="sticky bottom-0 z-50" />
+                          )}
+
+                        </RPSProvider>
                       </TokenTimerWrapper>
                     )}
                   </div>
@@ -99,7 +101,6 @@ export default function RootLayout({
                   <Sonner />
                 </UserProvider>
               </TooltipProvider>
-            </RPSProvider>
           </QueryClientProvider>
         </PrivyProvider>
       </body>
