@@ -1,15 +1,26 @@
-import React from 'react';
-import { useRPS } from '@/providers/RPSProvider';
+import React, { useEffect } from 'react';
+//import { useRPS } from '@/providers/RPSProvider';
 import { useSolanaWallets } from '@privy-io/react-auth/solana';
-import { RPSContext } from '@/providers/RPSProvider';
+import { RPSProvider, useRPS } from '@/providers/RPSProvider';
+
 
 const OnChainGamesPage = () => {
   const { program, isLoading, error } = useRPS();
   const { wallets } = useSolanaWallets();
   const solanaWallet = wallets[0];
+  
+  useEffect(() => {
+    console.log("[OnChainGamesPage] State changed:", {
+      programExists: !!program,
+      programDetails: program,
+      isLoading,
+      walletConnected: !!solanaWallet?.address,
+    });
+  }, [program, isLoading, solanaWallet?.address]);
+
   console.log("[OnChainGamesPage] Rendering");
-  const contextValue = React.useContext(RPSContext);
-  console.log("[OnChainGamesPage] Context value:", !!contextValue);
+//  const contextValue = React.useContext(RPSContext);
+//  console.log("[OnChainGamesPage] Context value:", !!contextValue);
   try {
     const rps = useRPS();
     console.log("[OnChainGamesPage] RPS context:", !!rps);
@@ -21,9 +32,13 @@ const OnChainGamesPage = () => {
     return <div>Loading RPS program...</div>;
   }
 
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
+  // if (!program) {
+  //   return <div>Program not initialized</div>;
+  // }
+
+  // if (error) {
+  //   return <div>Error2: {error.message}</div>;
+  // }
 
   return (
     <div className="container mx-auto px-4 py-8">

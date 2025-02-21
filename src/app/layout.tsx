@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("h-full", showInstallPrompt)}>
       <body className={cn("h-full bg-gaming-background touch-manipulation", showInstallPrompt)}>
-        <PrivyProvider
+        {/* <PrivyProvider
           appId="cm51rmjaz04s9ojzwfaopdnzd"
           config={{
             embeddedWallets: {
@@ -56,6 +56,23 @@ export default function RootLayout({
               noPromptOnSignature: true,
             },
             solanaClusters: [{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}],
+            appearance: {
+              walletChainType: 'solana-only',
+              theme: 'dark',
+              accentColor: '#3b82f6'
+            }
+          }}
+        > */}
+        <PrivyProvider
+          appId="cm51rmjaz04s9ojzwfaopdnzd"
+          config={{
+            embeddedWallets: {
+              createOnLogin: true,
+              noPromptOnSignature: true,
+            },
+            solanaClusters: [
+				{name: 'devnet', rpcUrl: 'https://api.devnet.solana.com'}
+			],
             appearance: {
               walletChainType: 'solana-only',
               theme: 'dark',
