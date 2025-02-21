@@ -4,7 +4,7 @@ import { useSolanaWallets } from '@privy-io/react-auth/solana';
 import { RPSContext } from '@/providers/RPSProvider';
 
 const OnChainGamesPage = () => {
-  const program = useRPS();
+  const { program, isLoading, error } = useRPS();
   const { wallets } = useSolanaWallets();
   const solanaWallet = wallets[0];
   console.log("[OnChainGamesPage] Rendering");
@@ -16,6 +16,15 @@ const OnChainGamesPage = () => {
   } catch (e) {
     console.log("[OnChainGamesPage] Error accessing context:", e);
   }
+
+  if (isLoading) {
+    return <div>Loading RPS program...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gaming-text mb-6">On-Chain Games</h1>
