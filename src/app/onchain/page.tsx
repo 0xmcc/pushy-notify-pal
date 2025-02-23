@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { BN } from '@coral-xyz/anchor';
-import { PublicKey, SystemProgram, Keypair } from '@solana/web3.js';
+import { PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL, Connection, clusterApiUrl } from '@solana/web3.js';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import * as anchor from '@coral-xyz/anchor';
 
@@ -21,18 +21,27 @@ type WalletType = {
 const TEST_WALLET_1 = { publicKey: Keypair.generate().publicKey };
 const TEST_WALLET_2 = { publicKey: Keypair.generate().publicKey };
 
+type TransactionInfo = {
+  type: 'create_game' | 'join_game' | 'commit_move' | 'reveal_move';
+  signature: string;
+  timestamp: number;
+  gameAccount?: string;
+};
+
 const RPSTestingInterface = () => {
-  const { program } = useRPS();
+  const { program, createGameAndCommitMove } = useRPS();
   const { wallets } = useSolanaWallets();
   const solanaWallet = wallets[0];
+  const connection = new Connection(clusterApiUrl('devnet'));
   
   const [betAmount, setBetAmount] = useState('0.1');
   const [gamePublicKey, setGamePublicKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [gameState, setGameState] = useState<any>(null);
-  const [selectedMove, setSelectedMove] = useState<string>('');
+  const [selectedMove, setSelectedMove] = useState<string>('0'); // Default to Rock
   const [salt] = useState(() => crypto.getRandomValues(new Uint8Array(32)));
   const [activeWallet, setActiveWallet] = useState<'real' | 'test1' | 'test2'>('real');
+  const [transactions, setTransactions] = useState<TransactionInfo[]>([]);
   
   // Get the current wallet based on selection
   const getCurrentWallet = (): WalletType | null => {
@@ -76,6 +85,16 @@ const RPSTestingInterface = () => {
     return new PublicKey(wallet.address);
   };
 
+  // Helper function to add transaction to history
+  const addTransaction = (info: TransactionInfo) => {
+    setTransactions(prev => [info, ...prev]);
+  };
+
+  // Helper function to get explorer URL
+  const getExplorerUrl = (type: 'tx' | 'address', value: string) => {
+    return `https://explorer.solana.com/${type}/${value}?cluster=devnet`;
+  };
+
   const handleCreatePlayer = async () => {
     const currentWallet = getCurrentWallet();
     if (!program || !currentWallet) return;
@@ -113,43 +132,170 @@ const RPSTestingInterface = () => {
     }
   };
 
+  const handleFetchGameState = async (pubkey?: string) => {
+    if (!program || (!gamePublicKey && !pubkey)) return;
+    try {
+      // Wait for account to be available
+      const targetPubkey = new PublicKey(pubkey || gamePublicKey);
+      
+      // Try multiple times with longer delays
+      let gameAccount = null;
+      for (let i = 0; i < 5; i++) {
+        try {
+          gameAccount = await program.account.game.fetch(targetPubkey);
+          break;
+        } catch (e) {
+          if (i < 4) {
+            console.log(`Waiting for game account to be available... Attempt ${i + 1}/5`);
+            // Exponential backoff: 2s, 4s, 8s, 16s
+            await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, i)));
+          } else {
+            throw e;
+          }
+        }
+      }
+      
+      if (gameAccount) {
+        setGameState(gameAccount);
+        console.log('Game state:', gameAccount);
+        toast.success('Game state fetched successfully');
+      }
+    } catch (error) {
+      console.error('Error fetching game state:', error);
+      toast.error('Failed to fetch game state - please check Solana Explorer');
+      
+      // Log explorer links for debugging
+      console.log('Check transaction on Solana Explorer:');
+      console.log(`https://explorer.solana.com/address/${pubkey || gamePublicKey}?cluster=devnet`);
+    }
+  };
+
+  // Helper function to wait for transaction confirmation and return game data
+  const waitForTransactionConfirmation = async (
+    signature: string,
+    gamePda: PublicKey
+  ): Promise<{ confirmed: boolean; gameAccount: any | null }> => {
+    let timeoutCount = 0;
+    const maxTimeout = 30; // 30 seconds timeout
+    
+    while (timeoutCount < maxTimeout) {
+      const status = await connection.getParsedTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+      });
+      
+      if (status) {
+        // Check confirmation status with proper type handling
+        if (status.meta?.err) {
+          throw new Error(`Transaction failed: ${JSON.stringify(status.meta.err)}`);
+        }
+        
+        // Get confirmation status from blockTime or slot being set
+        if (status.blockTime && status.slot) {
+          // Try to fetch the game account
+          try {
+            const gameAccount = await program?.account.game.fetch(gamePda);
+            return { confirmed: true, gameAccount };
+          } catch (e) {
+            console.log('Game account not yet available, retrying...');
+          }
+        }
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      timeoutCount++;
+    }
+    
+    throw new Error('Transaction confirmation timeout');
+  };
+
+  // Helper function to create move commitment
+  const createCommitment = async (move: number, salt: Uint8Array): Promise<Uint8Array> => {
+    // Convert move to bytes first
+    const moveBytes = new Uint8Array([move]);
+
+    // Combine move bytes with salt
+    const combinedArray = new Uint8Array(moveBytes.length + salt.length);
+    combinedArray.set(moveBytes);
+    combinedArray.set(salt, moveBytes.length);
+
+    // Create SHA-256 hash
+    const hashBuffer = await crypto.subtle.digest('SHA-256', combinedArray);
+    return new Uint8Array(hashBuffer);
+  };
+
   const handleCreateGame = async () => {
     const currentWallet = getCurrentWallet();
-    if (!program || !currentWallet) return;
+    if (!program || !currentWallet) return null;
     setIsLoading(true);
+    
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      // Derive the game account PDA
-      const [gameAccount] = PublicKey.findProgramAddressSync(
-        [Buffer.from("game"), walletPubkey.toBuffer(), new BN(Date.now()).toArrayLike(Buffer)],
-        new PublicKey(PROGRAM_ID)
-      );
       
-      // Derive the game's vault PDA
-      const [gameVault] = PublicKey.findProgramAddressSync(
-        [Buffer.from("game_vault"), gameAccount.toBuffer()],
-        new PublicKey(PROGRAM_ID)
+      // Check wallet balance first
+      const balance = await connection.getBalance(walletPubkey);
+      console.log('Current wallet balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+      
+      const requiredBalance = parseFloat(betAmount) + 0.01; // bet amount + buffer for fees
+      if (balance < LAMPORTS_PER_SOL * requiredBalance) {
+        throw new Error(`Insufficient balance. Need at least ${requiredBalance} SOL`);
+      }
+
+      // Create timestamp for PDA derivation
+      const creationTimestamp = new BN(new Date().getTime());
+
+      // Derive PDAs
+      const [gamePda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("game"),
+          walletPubkey.toBuffer(),
+          creationTimestamp.toArrayLike(Buffer, 'le', 8),
+        ],
+        program.programId
       );
 
-      const tx = await program.methods.createGame(
-        new BN(new Date().getTime()),
-        new BN(parseFloat(betAmount) * 1e9)
-      )
-      .accounts({
-        playerOne: walletPubkey,
-        gameAccount,
-        gameVault,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
+      const [vaultPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("vault"), gamePda.toBuffer()],
+        program.programId
+      );
+
+      const betAmountLamports = new BN(parseFloat(betAmount) * LAMPORTS_PER_SOL);
+
+      // Send transaction
+      const tx = await program.methods
+        .createGame(creationTimestamp, betAmountLamports)
+        .accounts({
+          playerOne: walletPubkey,
+          gameAccount: gamePda,
+          gameVault: vaultPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
       
-      setGamePublicKey(gameAccount.toString());
-      toast.success('Game created successfully!');
       console.log('Create game transaction:', tx);
-      await handleFetchGameState(gameAccount.toString());
+      addTransaction({
+        type: 'create_game',
+        signature: tx,
+        timestamp: Date.now(),
+        gameAccount: gamePda.toString()
+      });
+      
+      // Wait for transaction to be finalized and get game data
+      console.log('Waiting for transaction confirmation...');
+      const { confirmed, gameAccount } = await waitForTransactionConfirmation(tx, gamePda);
+      
+      if (confirmed && gameAccount) {
+        setGamePublicKey(gamePda.toString());
+        setGameState(gameAccount);
+        toast.success('Game created successfully!');
+        console.log('Game account:', gamePda.toString());
+        console.log('Initial game state:', gameAccount);
+        return gamePda;
+      }
+      return null;
     } catch (error) {
       console.error('Error creating game:', error);
-      toast.error('Failed to create game');
+      toast.error(error instanceof Error ? error.message : 'Failed to create game');
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -171,6 +317,12 @@ const RPSTestingInterface = () => {
       
       toast.success('Joined game successfully!');
       console.log('Join game transaction:', tx);
+      addTransaction({
+        type: 'join_game',
+        signature: tx,
+        timestamp: Date.now(),
+        gameAccount: gamePublicKey
+      });
       await handleFetchGameState();
     } catch (error) {
       console.error('Error joining game:', error);
@@ -180,33 +332,50 @@ const RPSTestingInterface = () => {
     }
   };
 
-  const handleCommitMove = async () => {
+  const handleCommitMove = async (gamePda?: PublicKey) => {
     const currentWallet = getCurrentWallet();
-    if (!program || !gamePublicKey || !currentWallet || !selectedMove) return;
+    const targetGamePda = gamePda || (gamePublicKey ? new PublicKey(gamePublicKey) : null);
+    if (!program || !targetGamePda || !currentWallet || !selectedMove) return;
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      // Create commitment by hashing move with salt
-      const moveNumber = parseInt(selectedMove);
-      const commitment = await crypto.subtle.digest(
-        'SHA-256',
-        new Uint8Array([moveNumber, ...salt])
-      );
       
+      // Create commitment using the helper function
+      const moveNumber = parseInt(selectedMove);
+      const commitment = await createCommitment(moveNumber, salt);
+      
+      // Get game account for vault PDA
+      const [vaultPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("vault"), targetGamePda.toBuffer()],
+        program.programId
+      );
+
       const tx = await program.methods.commitMove(
-        Array.from(new Uint8Array(commitment))
+        Array.from(commitment)
       )
       .accounts({
         player: walletPubkey,
-        game: new PublicKey(gamePublicKey),
-        vault: SystemProgram.programId, // This needs to be the correct vault PDA
+        game: targetGamePda,
+        vault: vaultPda,
         systemProgram: SystemProgram.programId,
       })
       .rpc();
       
-      toast.success('Move committed successfully!');
+      // Wait for transaction confirmation and get updated game state
       console.log('Commit move transaction:', tx);
-      await handleFetchGameState();
+      addTransaction({
+        type: 'commit_move',
+        signature: tx,
+        timestamp: Date.now(),
+        gameAccount: targetGamePda.toString()
+      });
+      const { confirmed, gameAccount } = await waitForTransactionConfirmation(tx, targetGamePda);
+      
+      if (confirmed && gameAccount) {
+        setGameState(gameAccount);
+        toast.success('Move committed successfully!');
+        console.log('Updated game state:', gameAccount);
+      }
     } catch (error) {
       console.error('Error committing move:', error);
       toast.error('Failed to commit move');
@@ -238,6 +407,12 @@ const RPSTestingInterface = () => {
       
       toast.success('Move revealed successfully!');
       console.log('Reveal move transaction:', tx);
+      addTransaction({
+        type: 'reveal_move',
+        signature: tx,
+        timestamp: Date.now(),
+        gameAccount: gamePublicKey
+      });
       await handleFetchGameState();
     } catch (error) {
       console.error('Error revealing move:', error);
@@ -247,15 +422,26 @@ const RPSTestingInterface = () => {
     }
   };
 
-  const handleFetchGameState = async (pubkey?: string) => {
-    if (!program || (!gamePublicKey && !pubkey)) return;
+  const handleCreateGameAndCommit = async () => {
+    if (!program || !selectedMove) return;
+    setIsLoading(true);
+    
     try {
-      const gameAccount = await program.account.game.fetch(pubkey || gamePublicKey);
-      setGameState(gameAccount);
-      console.log('Game state:', gameAccount);
+      // First create the game and get the PDA
+      const gamePda = await handleCreateGame();
+      if (!gamePda) {
+        throw new Error('Failed to create game');
+      }
+      
+      // Then commit the move using the PDA directly
+      await handleCommitMove(gamePda);
+      
+      toast.success('Game created and move committed successfully!');
     } catch (error) {
-      console.error('Error fetching game state:', error);
-      toast.error('Failed to fetch game state');
+      console.error('Error in create and commit:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create game and commit move');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -333,13 +519,22 @@ const RPSTestingInterface = () => {
                     placeholder="Bet amount in SOL"
                     className="w-full bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:ring-gaming-accent focus:border-gaming-accent"
                   />
-                  <Button 
-                    onClick={handleCreateGame}
-                    disabled={isLoading || !program}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                  >
-                    Create New Game
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={handleCreateGame}
+                      disabled={isLoading || !program}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    >
+                      Create Game Only
+                    </Button>
+                    <Button 
+                      onClick={handleCreateGameAndCommit}
+                      disabled={isLoading || !program || !selectedMove}
+                      className="flex-1 bg-purple-600 hover:bg-purple-700"
+                    >
+                      Create & Commit Move
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -409,7 +604,7 @@ const RPSTestingInterface = () => {
               </Select>
               <div className="flex space-x-2">
                 <Button 
-                  onClick={handleCommitMove}
+                  onClick={() => handleCommitMove()}
                   disabled={isLoading || !program || !gamePublicKey || !selectedMove}
                   className="flex-1 bg-yellow-600 hover:bg-yellow-700"
                 >
@@ -428,41 +623,105 @@ const RPSTestingInterface = () => {
 
           {/* Game State Display */}
           {gameState && (
-            <div className="border border-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="text-lg font-semibold">Current Game Status</h4>
-                <span className="text-sm text-gray-400">
-                  Using: {getWalletDisplayName(activeWallet)}
-                </span>
-              </div>
+            <div className="mt-6 p-4 border border-gray-700 rounded-lg">
+              <h4 className="text-xl font-semibold mb-4">Current Game Status</h4>
               <div className="space-y-2">
+                <div className="flex justify-between items-center p-2 bg-gray-700 rounded">
+                  <span>Game Account:</span>
+                  <a 
+                    href={getExplorerUrl('address', gamePublicKey)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    {gamePublicKey.slice(0, 4)}...{gamePublicKey.slice(-4)}
+                  </a>
+                </div>
                 <div className="flex justify-between p-2 bg-gray-700 rounded">
-                  <span>Game Status:</span>
+                  <span>Game State:</span>
                   <span className="font-medium">{gameState.state.active ? 'Active' : 'Finished'}</span>
                 </div>
                 <div className="flex justify-between p-2 bg-gray-700 rounded">
                   <span>Bet Amount:</span>
-                  <span className="font-medium">{(Number(gameState.betAmount) / 1e9).toFixed(2)} SOL</span>
+                  <span className="font-medium">{(Number(gameState.betAmount) / LAMPORTS_PER_SOL).toFixed(2)} SOL</span>
                 </div>
                 <div className="flex justify-between p-2 bg-gray-700 rounded">
-                  <span>Player 1:</span>
-                  <span className="font-medium">{gameState.playerOne.toString().slice(0, 4)}...{gameState.playerOne.toString().slice(-4)}</span>
+                  <span>Player One:</span>
+                  <a 
+                    href={getExplorerUrl('address', gameState.playerOne.toString())}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    {gameState.playerOne.toString().slice(0, 4)}...{gameState.playerOne.toString().slice(-4)}
+                  </a>
                 </div>
                 {gameState.playerTwo && (
                   <div className="flex justify-between p-2 bg-gray-700 rounded">
-                    <span>Player 2:</span>
-                    <span className="font-medium">{gameState.playerTwo.toString().slice(0, 4)}...{gameState.playerTwo.toString().slice(-4)}</span>
+                    <span>Player Two:</span>
+                    <a 
+                      href={getExplorerUrl('address', gameState.playerTwo.toString())}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300"
+                    >
+                      {gameState.playerTwo.toString().slice(0, 4)}...{gameState.playerTwo.toString().slice(-4)}
+                    </a>
                   </div>
                 )}
+                <div className="flex justify-between p-2 bg-gray-700 rounded">
+                  <span>Move Status:</span>
+                  <span className="font-medium">
+                    {gameState.playerOneMoveCommitted ? 'Player 1 Committed' : 'Waiting for Player 1'} |{' '}
+                    {gameState.playerTwoMoveCommitted ? 'Player 2 Committed' : 'Waiting for Player 2'}
+                  </span>
+                </div>
                 {gameState.winner && (
                   <div className="flex justify-between p-2 bg-gray-700 rounded">
                     <span>Winner:</span>
-                    <span className="font-medium">{gameState.winner.toString().slice(0, 4)}...{gameState.winner.toString().slice(-4)}</span>
+                    <a 
+                      href={getExplorerUrl('address', gameState.winner.toString())}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300"
+                    >
+                      {gameState.winner.toString().slice(0, 4)}...{gameState.winner.toString().slice(-4)}
+                    </a>
                   </div>
                 )}
               </div>
             </div>
           )}
+
+          {/* Transaction History */}
+          <div className="mt-6 p-4 border border-gray-700 rounded-lg">
+            <h4 className="text-xl font-semibold mb-4">Transaction History</h4>
+            <div className="space-y-2">
+              {transactions.map((tx, index) => (
+                <div key={index} className="p-2 bg-gray-700 rounded">
+                  <div className="flex justify-between items-center">
+                    <span className="capitalize">{tx.type.replace('_', ' ')}</span>
+                    <a 
+                      href={getExplorerUrl('tx', tx.signature)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300"
+                    >
+                      {tx.signature.slice(0, 4)}...{tx.signature.slice(-4)}
+                    </a>
+                  </div>
+                  <div className="text-sm text-gray-400 mt-1">
+                    {new Date(tx.timestamp).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+              {transactions.length === 0 && (
+                <div className="text-gray-400 text-center p-4">
+                  No transactions yet
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -534,6 +793,11 @@ const OnChainGamesPage = () => {
               <span className={`px-2 py-1 rounded ${program ? 'bg-green-600' : 'bg-red-600'}`}>
                 {program ? 'Initialized' : 'Not Initialized'}
               </span>
+              {program && (
+                <span className="ml-2 text-sm text-gray-400">
+                  {`${program.programId.toString()}`}
+                </span>
+              )}
             </div>
           </div>
         </div>

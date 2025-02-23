@@ -61,15 +61,15 @@ export const useCreateGame = () => {
       // 1. Get their stored subscription from database
       const { data } = await supabase
       .from('users')
-      .select('push_subscription')
-      .eq('did', recipientDid)
+      .select('web_push_subscription, safari_push_subscription')
+      .eq('did', userId)
       .single();
 
       // 2. Send to our backend
       await fetch('/api/notifications/send', {
       method: 'POST',
       body: JSON.stringify({
-        subscription: JSON.parse(data.push_subscription),
+        subscription: JSON.parse(data.web_push_subscription || data.safari_push_subscription),
         notification: options
       })
       });

@@ -179,6 +179,12 @@ export type Database = {
           scissors_count: number
           updated_at: string
           wallet_address: string | null
+          web_push_subscription: string | null
+          safari_push_subscription: string | null
+          rock_count_last_update: number | null
+          paper_count_last_update: number | null
+          scissors_count_last_update: number | null
+          off_chain_balance_last_update: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -196,6 +202,12 @@ export type Database = {
           scissors_count?: number
           updated_at?: string
           wallet_address?: string | null
+          web_push_subscription?: string | null
+          safari_push_subscription?: string | null
+          rock_count_last_update?: number | null
+          paper_count_last_update?: number | null
+          scissors_count_last_update?: number | null
+          off_chain_balance_last_update?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -213,6 +225,12 @@ export type Database = {
           scissors_count?: number
           updated_at?: string
           wallet_address?: string | null
+          web_push_subscription?: string | null
+          safari_push_subscription?: string | null
+          rock_count_last_update?: number | null
+          paper_count_last_update?: number | null
+          scissors_count_last_update?: number | null
+          off_chain_balance_last_update?: number | null
         }
         Relationships: []
       }

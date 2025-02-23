@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { usePrivy } from "@privy-io/react-auth";
 import { StakeInput } from "../create-game/StakeInput";
 import { GameMoveSelector } from "../GameMoveSelector";
-import { useCreateGame } from "@/hooks/useCreateGame";
+import { useCreateGame } from "@/modules/game";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
 import { useEffect, useMemo } from "react";
-
+import { useRPS } from "@/providers/RPSProvider";
 export const CreateGame = () => {
 
-
+  const { program } = useRPS();
   const { user, authenticated } = usePrivy();
   const {
     stakeAmount,
@@ -32,12 +32,14 @@ export const CreateGame = () => {
     scissors_count: stats.scissors_count
   }), [stats.rock_count, stats.paper_count, stats.scissors_count]);
 
+
   useEffect(() => {
     console.group('Stats Update in CreateGame');
     console.log('Stats object reference:', stats);
     console.log('Memoized inventory:', inventory);
     console.log('Selected move:', selectedMove);
     console.log('Timestamp:', new Date().toISOString());
+    console.log("Solana Program ID:", program?.programId);
     console.groupEnd();
   }, [stats, inventory]);
   return (
@@ -49,11 +51,7 @@ export const CreateGame = () => {
         <GameMoveSelector 
           selectedMove={selectedMove}
           onMoveSelect={setSelectedMove}
-          inventory={ {
-            rock_count: stats.rock_count,
-            paper_count: stats.paper_count,
-            scissors_count: stats.scissors_count
-          }}
+          inventory={inventory}
           stakeAmount={Number(stakeAmount)}
         />
       </div>

@@ -7,6 +7,12 @@ import * as anchor from '@coral-xyz/anchor';
 import { IDL, RpsGame } from '@/types/rps_game';
 import { createWalletAdapter } from '@/utils/wallet-adapter';
 
+// Move conversion type
+export enum SolanaMove {
+  Rock = 0,
+  Paper = 1,
+  Scissors = 2
+}
 // Ensure Buffer is available globally
 if (!window.Buffer) {
   window.Buffer = Buffer;
@@ -14,11 +20,12 @@ if (!window.Buffer) {
 
 const PROGRAM_ID = "AdNRN8coBzuAPKiKPz4uxEQrgDDp2ZxXjtXfu6NnYKSg"; // Replace with your deployed program ID
 
-// Define the context interface to include only the three required values.
+// Update context interface to include game creation
 interface RPSContextProps {
   program: anchor.Program<RpsGame> | null; // The Anchor program instance or null if not initialized
   isLoading: boolean;                      // Loading state during program initialization
   error: Error | null;                     // Any error encountered during initialization
+  createGameAndCommitMove: (betAmount: number, moveNumber: number) => Promise<{ gameAccount: PublicKey, commitment: number[] } | null>;
 }
 
 const RPSContext = createContext<RPSContextProps | undefined>(undefined);
@@ -75,11 +82,94 @@ export const RPSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     initProgram();
   }, [user, wallets]);
 
+  const createGameAndCommitMove = async (
+    betAmount: number,
+    moveNumber: number
+  ): Promise<{ gameAccount: PublicKey, commitment: number[] } | null> => {
+    if (!program) {
+      console.error("[RPSProvider] Program not initialized");
+      return null;
+    }
+
+    try {
+      const wallet = program.provider.publicKey;
+
+      // Generate PDAs
+      const [gameAccount] = PublicKey.findProgramAddressSync(
+        [Buffer.from("game"), wallet.toBuffer()],
+        program.programId
+      );
+
+      const [gameVault] = PublicKey.findProgramAddressSync(
+        [Buffer.from("vault"), gameAccount.toBuffer()],
+        program.programId
+      );
+
+      // Generate move commitment
+      const salt = Array.from(crypto.getRandomValues(new Uint8Array(32)));
+      const move = convertMoveNumberToSolanaMove(moveNumber);
+      const commitment = generateMoveCommitment(move, salt);
+
+      // Create game
+      await program.methods
+        .createGame(
+          new anchor.BN(Date.now()),
+          new anchor.BN(betAmount)
+        )
+        .accounts({
+          playerOne: wallet,
+          gameAccount: gameAccount,
+          gameVault: gameVault,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .rpc();
+
+      // Commit move
+      await program.methods
+        .commitMove(commitment)
+        .accounts({
+          player: wallet,
+          game: gameAccount,
+          vault: gameVault,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .rpc();
+
+      return { gameAccount, commitment };
+    } catch (error) {
+      console.error("[RPSProvider] Failed to create game and commit move:", error);
+      throw error;
+    }
+  };
+
   return (
-    <RPSContext.Provider value={{ program, isLoading, error }}>
+    <RPSContext.Provider value={{ 
+      program, 
+      isLoading, 
+      error,
+      createGameAndCommitMove 
+    }}>
       {children}
     </RPSContext.Provider>
   );
+};
+
+// Helper functions
+const convertMoveNumberToSolanaMove = (moveNumber: number): SolanaMove => {
+  switch (moveNumber) {
+    case 0:
+      return SolanaMove.Rock;
+    case 1:
+      return SolanaMove.Paper;
+    case 2:
+      return SolanaMove.Scissors;
+    default:
+      throw new Error('Invalid move number');
+  }
+};
+
+const generateMoveCommitment = (move: SolanaMove, salt: number[]): number[] => {
+  return [move, ...salt];
 };
 
 export const useRPS = () => {
