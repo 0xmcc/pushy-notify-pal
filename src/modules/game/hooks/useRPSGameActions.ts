@@ -190,16 +190,139 @@ export function useRPSGameActions() {
             throw error;
         }
     };
-  
-    // Add other game actions (joinGame, revealMove) here...
+
+    const createPlayer = async (walletPubkey: PublicKey): Promise<string | null> => {
+        if (!program) return null;
+        try {
+            // Derive the player account PDA
+            const [playerAccount] = PublicKey.findProgramAddressSync(
+                [Buffer.from("player"), walletPubkey.toBuffer()],
+                program.programId
+            );
+            
+            // Derive the player's vault PDA
+            const [vault] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault"), playerAccount.toBuffer()],
+                program.programId
+            );
+
+            const tx = await program.methods.createPlayer()
+                .accounts({
+                    user: walletPubkey,
+                    playerAccount,
+                    vault,
+                    systemProgram: SystemProgram.programId,
+                })
+                .rpc();
+            
+            addTransaction({
+                type: 'create_game',
+                signature: tx,
+                timestamp: Date.now()
+            });
+
+            return tx;
+        } catch (error) {
+            console.error('Error creating player:', error);
+            throw error;
+        }
+    };
+
+    const joinGame = async (walletPubkey: PublicKey, gamePublicKey: string): Promise<string | null> => {
+        if (!program) return null;
+        try {
+            const tx = await program.methods.joinGame()
+                .accounts({
+                    playerTwo: walletPubkey,
+                    gameAccount: new PublicKey(gamePublicKey),
+                    systemProgram: SystemProgram.programId,
+                })
+                .rpc();
+            
+            addTransaction({
+                type: 'join_game',
+                signature: tx,
+                timestamp: Date.now(),
+                gameAccount: gamePublicKey
+            });
+
+            // Wait for confirmation and update game state
+            const { confirmed, gameAccount } = await waitForTransactionConfirmation(
+                tx, 
+                new PublicKey(gamePublicKey)
+            );
+            if (!confirmed) {
+                throw new Error('Transaction failed to confirm');
+            }
+
+            setGameState(gameAccount);
+            return tx;
+        } catch (error) {
+            console.error('Error joining game:', error);
+            throw error;
+        }
+    };
+
+    const revealMove = async (
+        walletPubkey: PublicKey,
+        gamePublicKey: string,
+        moveNumber: number,
+        salt: Uint8Array,
+        opponent: PublicKey,
+        gameVault: PublicKey,
+        playerVault: PublicKey,
+        opponentVault: PublicKey
+    ): Promise<string | null> => {
+        if (!program) return null;
+        try {
+            const tx = await program.methods.revealMove(
+                moveNumber,
+                Array.from(salt)
+            )
+            .accounts({
+                player: walletPubkey,
+                opponent,
+                game: new PublicKey(gamePublicKey),
+                gameVault,
+                playerVault,
+                opponentVault,
+                systemProgram: SystemProgram.programId,
+            })
+            .rpc();
+            
+            addTransaction({
+                type: 'reveal_move',
+                signature: tx,
+                timestamp: Date.now(),
+                gameAccount: gamePublicKey
+            });
+
+            // Wait for confirmation and update game state
+            const { confirmed, gameAccount } = await waitForTransactionConfirmation(
+                tx, 
+                new PublicKey(gamePublicKey)
+            );
+            if (!confirmed) {
+                throw new Error('Transaction failed to confirm');
+            }
+
+            setGameState(gameAccount);
+            return tx;
+        } catch (error) {
+            console.error('Error revealing move:', error);
+            throw error;
+        }
+    };
   
     return {
-      isLoading,
-      gameState,
-      transactions,
-      createGame,
-      commitMove,
-      waitForTransactionConfirmation,
-      // Export other actions...
+        isLoading,
+        gameState,
+        transactions,
+        createGame,
+        commitMove,
+        createPlayer,
+        joinGame,
+        revealMove,
+        waitForTransactionConfirmation,
     };
 } 

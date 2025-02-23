@@ -42,7 +42,7 @@ const RPSTestingInterface = () => {
   const [selectedMove, setSelectedMove] = useState<string>('0'); // Default to Rock
   const [salt] = useState(() => crypto.getRandomValues(new Uint8Array(32)));
   const [activeWallet, setActiveWallet] = useState<'real' | 'test1' | 'test2'>('real');
-  const { createGame, commitMove, transactions } = useRPSGameActions();
+  const { createGame, commitMove, transactions, createPlayer, joinGame, revealMove } = useRPSGameActions();
 
   // Get the current wallet based on selection
   const getCurrentWallet = (): WalletType | null => {
@@ -102,29 +102,11 @@ const RPSTestingInterface = () => {
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      // Derive the player account PDA
-      const [playerAccount] = PublicKey.findProgramAddressSync(
-        [Buffer.from("player"), walletPubkey.toBuffer()],
-        new PublicKey(PROGRAM_ID)
-      );
-      
-      // Derive the player's vault PDA
-      const [vault] = PublicKey.findProgramAddressSync(
-        [Buffer.from("vault"), playerAccount.toBuffer()],
-        new PublicKey(PROGRAM_ID)
-      );
-
-      const tx = await program.methods.createPlayer()
-        .accounts({
-          user: walletPubkey,
-          playerAccount,
-          vault,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-      
-      toast.success('Player created successfully!');
-      console.log('Create player transaction:', tx);
+      const tx = await createPlayer(walletPubkey);
+      if (tx) {
+        toast.success('Player created successfully!');
+        console.log('Create player transaction:', tx);
+      }
     } catch (error) {
       console.error('Error creating player:', error);
       toast.error('Failed to create player');
@@ -259,23 +241,12 @@ const RPSTestingInterface = () => {
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      const tx = await program.methods.joinGame()
-      .accounts({
-        playerTwo: walletPubkey,
-        gameAccount: new PublicKey(gamePublicKey),
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-      
-      toast.success('Joined game successfully!');
-      console.log('Join game transaction:', tx);
-      addTransaction({
-        type: 'join_game',
-        signature: tx,
-        timestamp: Date.now(),
-        gameAccount: gamePublicKey
-      });
-      await handleFetchGameState();
+      const tx = await joinGame(walletPubkey, gamePublicKey);
+      if (tx) {
+        toast.success('Joined game successfully!');
+        console.log('Join game transaction:', tx);
+        await handleFetchGameState();
+      }
     } catch (error) {
       console.error('Error joining game:', error);
       toast.error('Failed to join game');
@@ -312,34 +283,26 @@ const RPSTestingInterface = () => {
 
   const handleRevealMove = async () => {
     const currentWallet = getCurrentWallet();
-    if (!program || !gamePublicKey || !currentWallet || !selectedMove) return;
+    if (!program || !gamePublicKey || !currentWallet || !selectedMove || !gameState) return;
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      const tx = await program.methods.revealMove(
+      const tx = await revealMove(
+        walletPubkey,
+        gamePublicKey,
         parseInt(selectedMove),
-        Array.from(salt)
-      )
-      .accounts({
-        player: walletPubkey,
-        opponent: gameState.playerTwo || gameState.playerOne,
-        game: new PublicKey(gamePublicKey),
-        gameVault: gameState.vault,
-        playerVault: SystemProgram.programId, // This needs to be the correct vault PDA
-        opponentVault: SystemProgram.programId, // This needs to be the correct vault PDA
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
+        salt,
+        gameState.playerTwo || gameState.playerOne,
+        gameState.vault,
+        SystemProgram.programId, // This needs to be the correct vault PDA
+        SystemProgram.programId // This needs to be the correct vault PDA
+      );
       
-      toast.success('Move revealed successfully!');
-      console.log('Reveal move transaction:', tx);
-      addTransaction({
-        type: 'reveal_move',
-        signature: tx,
-        timestamp: Date.now(),
-        gameAccount: gamePublicKey
-      });
-      await handleFetchGameState();
+      if (tx) {
+        toast.success('Move revealed successfully!');
+        console.log('Reveal move transaction:', tx);
+        await handleFetchGameState();
+      }
     } catch (error) {
       console.error('Error revealing move:', error);
       toast.error('Failed to reveal move');
