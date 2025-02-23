@@ -18,11 +18,19 @@ export interface NotificationOptions {
 }
 
 // Solana specific types
+export type TransactionInfo = {
+  type: 'create_game' | 'join_game' | 'commit_move' | 'reveal_move';
+  signature: string;
+  timestamp: number;
+  gameAccount?: string;
+};
+
 export interface SolanaGameState {
   gameAccount: PublicKey;
   playerOne: PublicKey;
   betAmount: number;
   commitment?: number[];
+  transactions: TransactionInfo[];
 }
 
 

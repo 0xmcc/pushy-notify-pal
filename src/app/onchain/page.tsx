@@ -8,6 +8,7 @@ import { BN } from '@coral-xyz/anchor';
 import { PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL, Connection, clusterApiUrl } from '@solana/web3.js';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import * as anchor from '@coral-xyz/anchor';
+import { useRPSGameActions } from '@/modules/game/hooks/useRPSGameActions';
 
 const PROGRAM_ID = "AdNRN8coBzuAPKiKPz4uxEQrgDDp2ZxXjtXfu6NnYKSg";
 
@@ -34,15 +35,15 @@ const RPSTestingInterface = () => {
   const solanaWallet = wallets[0];
   const connection = new Connection(clusterApiUrl('devnet'));
   
-  const [betAmount, setBetAmount] = useState('0.1');
+  const [betAmount, setBetAmount] = useState('0.01');
   const [gamePublicKey, setGamePublicKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [gameState, setGameState] = useState<any>(null);
   const [selectedMove, setSelectedMove] = useState<string>('0'); // Default to Rock
   const [salt] = useState(() => crypto.getRandomValues(new Uint8Array(32)));
   const [activeWallet, setActiveWallet] = useState<'real' | 'test1' | 'test2'>('real');
-  const [transactions, setTransactions] = useState<TransactionInfo[]>([]);
-  
+  const { createGame, commitMove, transactions } = useRPSGameActions();
+
   // Get the current wallet based on selection
   const getCurrentWallet = (): WalletType | null => {
     switch (activeWallet) {
@@ -208,21 +209,6 @@ const RPSTestingInterface = () => {
     throw new Error('Transaction confirmation timeout');
   };
 
-  // Helper function to create move commitment
-  const createCommitment = async (move: number, salt: Uint8Array): Promise<Uint8Array> => {
-    // Convert move to bytes first
-    const moveBytes = new Uint8Array([move]);
-
-    // Combine move bytes with salt
-    const combinedArray = new Uint8Array(moveBytes.length + salt.length);
-    combinedArray.set(moveBytes);
-    combinedArray.set(salt, moveBytes.length);
-
-    // Create SHA-256 hash
-    const hashBuffer = await crypto.subtle.digest('SHA-256', combinedArray);
-    return new Uint8Array(hashBuffer);
-  };
-
   const handleCreateGame = async () => {
     const currentWallet = getCurrentWallet();
     if (!program || !currentWallet) return null;
@@ -240,56 +226,22 @@ const RPSTestingInterface = () => {
         throw new Error(`Insufficient balance. Need at least ${requiredBalance} SOL`);
       }
 
-      // Create timestamp for PDA derivation
-      const creationTimestamp = new BN(new Date().getTime());
+      const result = await createGame(walletPubkey, betAmount);
+      if (!result) {
+        throw new Error('Failed to create game');
+      }
 
-      // Derive PDAs
-      const [gamePda] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("game"),
-          walletPubkey.toBuffer(),
-          creationTimestamp.toArrayLike(Buffer, 'le', 8),
-        ],
-        program.programId
-      );
-
-      const [vaultPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("vault"), gamePda.toBuffer()],
-        program.programId
-      );
-
-      const betAmountLamports = new BN(parseFloat(betAmount) * LAMPORTS_PER_SOL);
-
-      // Send transaction
-      const tx = await program.methods
-        .createGame(creationTimestamp, betAmountLamports)
-        .accounts({
-          playerOne: walletPubkey,
-          gameAccount: gamePda,
-          gameVault: vaultPda,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-      
-      console.log('Create game transaction:', tx);
-      addTransaction({
-        type: 'create_game',
-        signature: tx,
-        timestamp: Date.now(),
-        gameAccount: gamePda.toString()
-      });
-      
-      // Wait for transaction to be finalized and get game data
+      // Wait for transaction confirmation and get game data
       console.log('Waiting for transaction confirmation...');
-      const { confirmed, gameAccount } = await waitForTransactionConfirmation(tx, gamePda);
+      const { confirmed, gameAccount } = await waitForTransactionConfirmation(result.tx, result.gamePda);
       
       if (confirmed && gameAccount) {
-        setGamePublicKey(gamePda.toString());
+        setGamePublicKey(result.gamePda.toString());
         setGameState(gameAccount);
         toast.success('Game created successfully!');
-        console.log('Game account:', gamePda.toString());
+        console.log('Game account:', result.gamePda.toString());
         console.log('Initial game state:', gameAccount);
-        return gamePda;
+        return result.gamePda;
       }
       return null;
     } catch (error) {
@@ -337,45 +289,19 @@ const RPSTestingInterface = () => {
     const targetGamePda = gamePda || (gamePublicKey ? new PublicKey(gamePublicKey) : null);
     if (!program || !targetGamePda || !currentWallet || !selectedMove) return;
     setIsLoading(true);
+    
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      
-      // Create commitment using the helper function
       const moveNumber = parseInt(selectedMove);
-      const commitment = await createCommitment(moveNumber, salt);
       
-      // Get game account for vault PDA
-      const [vaultPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("vault"), targetGamePda.toBuffer()],
-        program.programId
-      );
-
-      const tx = await program.methods.commitMove(
-        Array.from(commitment)
-      )
-      .accounts({
-        player: walletPubkey,
-        game: targetGamePda,
-        vault: vaultPda,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-      
-      // Wait for transaction confirmation and get updated game state
-      console.log('Commit move transaction:', tx);
-      addTransaction({
-        type: 'commit_move',
-        signature: tx,
-        timestamp: Date.now(),
-        gameAccount: targetGamePda.toString()
-      });
-      const { confirmed, gameAccount } = await waitForTransactionConfirmation(tx, targetGamePda);
-      
-      if (confirmed && gameAccount) {
-        setGameState(gameAccount);
-        toast.success('Move committed successfully!');
-        console.log('Updated game state:', gameAccount);
+      const result = await commitMove(walletPubkey, targetGamePda, moveNumber, salt);
+      if (!result) {
+        throw new Error('Failed to commit move');
       }
+      
+      setGameState(result.gameAccount);
+      toast.success('Move committed successfully!');
+      console.log('Updated game state:', result.gameAccount);
     } catch (error) {
       console.error('Error committing move:', error);
       toast.error('Failed to commit move');
