@@ -760,10 +760,34 @@ const RPSTestingInterface = () => {
                 )}
                 <div className="flex justify-between p-2 bg-gray-700 rounded">
                   <span>Move Status:</span>
-                  <span className="font-medium">
-                    {gameState.playerOneMoveCommitted ? 'Player 1 Committed' : 'Waiting for Player 1'} |{' '}
-                    {gameState.playerTwoMoveCommitted ? 'Player 2 Committed' : 'Waiting for Player 2'}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Player 1:</span>
+                      <span className={`px-2 py-0.5 text-sm rounded ${
+                        gameState.playerOneMove ? 'bg-green-600' : 
+                        gameState.playerOneCommitment ? 'bg-yellow-600' : 
+                        'bg-red-600'
+                      }`}>
+                        {gameState.playerOneMove ? 'Move Revealed' :
+                         gameState.playerOneCommitment ? 'Move Encrypted' :
+                         'No Move'}
+                      </span>
+                    </div>
+                    {gameState.playerTwo && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm">Player 2:</span>
+                        <span className={`px-2 py-0.5 text-sm rounded ${
+                          gameState.playerTwoMove ? 'bg-green-600' : 
+                          gameState.playerTwoCommitment ? 'bg-yellow-600' : 
+                          'bg-red-600'
+                        }`}>
+                          {gameState.playerTwoMove ? 'Move Revealed' :
+                           gameState.playerTwoCommitment ? 'Move Encrypted' :
+                           'No Move'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {gameState.winner && (
                   <div className="flex justify-between p-2 bg-gray-700 rounded">
