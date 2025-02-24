@@ -9,18 +9,23 @@ import { PublicKey, SystemProgram, Keypair, LAMPORTS_PER_SOL, Connection, cluste
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import * as anchor from '@coral-xyz/anchor';
 import { useRPSGameActions } from '@/modules/game/hooks/useRPSGameActions';
+import bs58 from 'bs58';
 
 const PROGRAM_ID = "AdNRN8coBzuAPKiKPz4uxEQrgDDp2ZxXjtXfu6NnYKSg";
 
 type WalletType = {
+  type: 'test';
   publicKey: PublicKey;
+  keypair: Keypair;
 } | {
+  type: 'real';
   address: string;
 };
 
-// Create two test wallets
-const TEST_WALLET_1 = { publicKey: Keypair.generate().publicKey };
-const TEST_WALLET_2 = { publicKey: Keypair.generate().publicKey };
+const secretKey = '3K6ofDMmUZSCweZYdVgTkvVs5PPEJ6mB5dCC1cujLJHpFUo3ZEPoBg8wUPfs24G1Yix6TmWjaBs6r79T9fPFuBtb';
+
+// Create player two (for testing) from a known secret key
+//const playerTwo = anchor.web3.Keypair.fromSecretKey(Buffer.from(secretKey, "hex"));
 
 type TransactionInfo = {
   type: 'create_game' | 'join_game' | 'commit_move' | 'reveal_move';
@@ -35,60 +40,84 @@ const RPSTestingInterface = () => {
   const solanaWallet = wallets[0];
   const connection = new Connection(clusterApiUrl('devnet'));
   
+  // Create player two (for testing) from a known secret key
+  const secretKey = "3K6ofDMmUZSCweZYdVgTkvVs5PPEJ6mB5dCC1cujLJHpFUo3ZEPoBg8wUPfs24G1Yix6TmWjaBs6r79T9fPFuBtb";
+  console.log('Secret key length:', secretKey.length);
+  console.log('Secret key:', secretKey);
+
+  let playerTwo: anchor.web3.Keypair;
+  try {
+    const secretKeyBuffer = bs58.decode(secretKey);
+    console.log('Secret key buffer length:', secretKeyBuffer.length);
+    console.log('Secret key buffer:', secretKeyBuffer);
+    playerTwo = anchor.web3.Keypair.fromSecretKey(secretKeyBuffer);
+    console.log('Test wallet public key:', playerTwo.publicKey.toBase58());
+  } catch (error) {
+    console.error('Error creating keypair:', error);
+    throw error;
+  }
+  
   const [betAmount, setBetAmount] = useState('0.01');
   const [gamePublicKey, setGamePublicKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [gameState, setGameState] = useState<any>(null);
   const [selectedMove, setSelectedMove] = useState<string>('0'); // Default to Rock
   const [salt] = useState(() => crypto.getRandomValues(new Uint8Array(32)));
-  const [activeWallet, setActiveWallet] = useState<'real' | 'test1' | 'test2'>('real');
+  const [activeWallet, setActiveWallet] = useState<'real' | 'test'>('real');
   const { createGame, commitMove, transactions, createPlayer, joinGame, revealMove } = useRPSGameActions();
+  const [walletBalances, setWalletBalances] = useState<Record<string, number>>({});
+  const [playerAccountsExist, setPlayerAccountsExist] = useState<{[key: string]: boolean}>({});
 
-  // Get the current wallet based on selection
+  // Update getCurrentWallet to be more explicit about wallet selection
   const getCurrentWallet = (): WalletType | null => {
-    switch (activeWallet) {
-      case 'test1':
-        return TEST_WALLET_1;
-      case 'test2':
-        return TEST_WALLET_2;
-      default:
-        return solanaWallet || null;
+    if (activeWallet === 'test') {
+      return {
+        type: 'test',
+        publicKey: playerTwo.publicKey,
+        keypair: playerTwo
+      };
+    } else if (solanaWallet) {
+      return {
+        type: 'real',
+        address: solanaWallet.address
+      };
     }
+    return null;
   };
 
   // Get wallet display name
-  const getWalletDisplayName = (type: 'real' | 'test1' | 'test2') => {
+  const getWalletDisplayName = (type: 'real' | 'test') => {
     switch (type) {
-      case 'test1':
-        return 'Test Wallet 1';
-      case 'test2':
-        return 'Test Wallet 2';
+      case 'test':
+        return 'Test Wallet';
       default:
         return 'Your Wallet';
     }
   };
 
-  // Get shortened address for display
+  // Update getShortAddress function to handle wallet types correctly
   const getShortAddress = (wallet: WalletType | null) => {
     if (!wallet) return 'Not Connected';
-    if ('publicKey' in wallet) {
-      return `${wallet.publicKey.toBase58().slice(0, 4)}...${wallet.publicKey.toBase58().slice(-4)}`;
-    }
-    return `${wallet.address.slice(0, 4)}...${wallet.address.slice(-4)}`;
+    const address = wallet.type === 'test' ? 
+      wallet.publicKey.toBase58() : 
+      wallet.address;
+    return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
 
   // Get wallet public key
-  const getWalletPublicKey = (wallet: WalletType | null): PublicKey => {
-    if (!wallet) throw new Error('No wallet connected');
-    if ('publicKey' in wallet) {
+  const getWalletPublicKey = (wallet: WalletType): PublicKey => {
+    if (wallet.type === 'test') {
       return wallet.publicKey;
     }
     return new PublicKey(wallet.address);
   };
 
-  // Helper function to add transaction to history
-  const addTransaction = (info: TransactionInfo) => {
-    setTransactions(prev => [info, ...prev]);
+  // Helper function to get the keypair for signing
+  const getWalletSigner = (wallet: WalletType): Keypair | undefined => {
+    if (wallet.type === 'test') {
+      return wallet.keypair;
+    }
+    return undefined;
   };
 
   // Helper function to get explorer URL
@@ -102,7 +131,9 @@ const RPSTestingInterface = () => {
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      const tx = await createPlayer(walletPubkey);
+      const signer = getWalletSigner(currentWallet);
+      
+      const tx = await createPlayer(walletPubkey, signer);
       if (tx) {
         toast.success('Player created successfully!');
         console.log('Create player transaction:', tx);
@@ -191,13 +222,23 @@ const RPSTestingInterface = () => {
     throw new Error('Transaction confirmation timeout');
   };
 
+  // Let's verify one of the game action handlers to ensure it's using the correct wallet
   const handleCreateGame = async () => {
     const currentWallet = getCurrentWallet();
     if (!program || !currentWallet) return null;
     setIsLoading(true);
     
     try {
+      // Add logging to verify wallet being used
+      console.log('Creating game with wallet:', {
+        type: currentWallet.type,
+        address: currentWallet.type === 'test' ? 
+          currentWallet.publicKey.toBase58() : 
+          currentWallet.address
+      });
+
       const walletPubkey = getWalletPublicKey(currentWallet);
+      const signer = getWalletSigner(currentWallet);
       
       // Check wallet balance first
       const balance = await connection.getBalance(walletPubkey);
@@ -208,13 +249,22 @@ const RPSTestingInterface = () => {
         throw new Error(`Insufficient balance. Need at least ${requiredBalance} SOL`);
       }
 
-      const result = await createGame(walletPubkey, betAmount);
+      // If using a test wallet, we need to pass the keypair for signing
+      const result = await createGame(walletPubkey, betAmount, signer);
       if (!result) {
         throw new Error('Failed to create game');
       }
 
+      // Log successful creation
+      console.log('Game created successfully with wallet:', {
+        type: currentWallet.type,
+        address: currentWallet.type === 'test' ? 
+          currentWallet.publicKey.toBase58() : 
+          currentWallet.address,
+        gamePda: result.gamePda.toString()
+      });
+
       // Wait for transaction confirmation and get game data
-      console.log('Waiting for transaction confirmation...');
       const { confirmed, gameAccount } = await waitForTransactionConfirmation(result.tx, result.gamePda);
       
       if (confirmed && gameAccount) {
@@ -235,13 +285,15 @@ const RPSTestingInterface = () => {
     }
   };
 
+  // Update other transaction functions to use test wallet keypairs
   const handleJoinGame = async () => {
     const currentWallet = getCurrentWallet();
     if (!program || !gamePublicKey || !currentWallet) return;
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
-      const tx = await joinGame(walletPubkey, gamePublicKey);
+      const signer = getWalletSigner(currentWallet);
+      const tx = await joinGame(walletPubkey, gamePublicKey, signer);
       if (tx) {
         toast.success('Joined game successfully!');
         console.log('Join game transaction:', tx);
@@ -263,9 +315,10 @@ const RPSTestingInterface = () => {
     
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
+      const signer = getWalletSigner(currentWallet);
       const moveNumber = parseInt(selectedMove);
       
-      const result = await commitMove(walletPubkey, targetGamePda, moveNumber, salt);
+      const result = await commitMove(walletPubkey, targetGamePda, moveNumber, salt, signer);
       if (!result) {
         throw new Error('Failed to commit move');
       }
@@ -287,6 +340,7 @@ const RPSTestingInterface = () => {
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
+      const signer = getWalletSigner(currentWallet);
       const tx = await revealMove(
         walletPubkey,
         gamePublicKey,
@@ -294,8 +348,9 @@ const RPSTestingInterface = () => {
         salt,
         gameState.playerTwo || gameState.playerOne,
         gameState.vault,
-        SystemProgram.programId, // This needs to be the correct vault PDA
-        SystemProgram.programId // This needs to be the correct vault PDA
+        SystemProgram.programId,
+        SystemProgram.programId,
+        signer
       );
       
       if (tx) {
@@ -334,6 +389,130 @@ const RPSTestingInterface = () => {
     }
   };
 
+  // Add useEffect for balance checking
+  useEffect(() => {
+    const checkBalances = async () => {
+      if (!program || !connection) return;
+      
+      const testWallet = { type: 'test' as const, publicKey: playerTwo.publicKey, keypair: playerTwo };
+      const realWallet = solanaWallet ? { type: 'real' as const, address: solanaWallet.address } : null;
+      
+      // Check test wallet balance
+      const testBalance = await checkBalance(testWallet);
+      
+      // Check real wallet balance
+      const realBalance = await checkBalance(realWallet);
+      
+      setWalletBalances(prev => {
+        // Only update if values have actually changed
+        if (prev.test === testBalance && prev.real === realBalance) {
+          return prev;
+        }
+        return {
+          test: testBalance,
+          real: realBalance
+        };
+      });
+    };
+
+    // Initial check
+    checkBalances();
+    
+    // Set up interval with longer delay (10 seconds)
+    const intervalId = setInterval(checkBalances, 10000);
+    return () => clearInterval(intervalId);
+  }, [connection?.rpcEndpoint, program?.programId.toString()]); // Minimize dependencies
+
+  // Update checkBalance function if needed
+  const checkBalance = async (wallet: WalletType | null) => {
+    if (!wallet || !connection) return 0;
+    try {
+      const pubkey = wallet.type === 'test' ? wallet.publicKey : new PublicKey(wallet.address);
+      const balance = await connection.getBalance(pubkey);
+      return balance / LAMPORTS_PER_SOL;
+    } catch (error) {
+      console.error('Error checking balance:', error);
+      return 0;
+    }
+  };
+
+  // Add transfer function after checkBalance function
+  const transferSol = async (from: WalletType, to: WalletType, amount: number) => {
+    if (!from || from.type !== 'test') return;
+    try {
+      const transaction = new anchor.web3.Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: from.publicKey,
+          toPubkey: to.type === 'test' ? to.publicKey : new PublicKey(to.address),
+          lamports: amount * LAMPORTS_PER_SOL,
+        })
+      );
+
+      const signature = await anchor.web3.sendAndConfirmTransaction(
+        connection,
+        transaction,
+        [from.keypair]
+      );
+
+      toast.success(`Transferred ${amount} SOL successfully!`);
+      console.log('Transfer signature:', signature);
+      
+      // Update balances
+      await Promise.all([
+        checkBalance(from),
+        checkBalance(to)
+      ]);
+    } catch (error) {
+      console.error('Error transferring SOL:', error);
+      toast.error('Failed to transfer SOL');
+    }
+  };
+
+  // Add function to check if player account exists
+  const checkPlayerAccount = async (wallet: WalletType | null) => {
+    if (!program || !wallet) return false;
+    try {
+      const pubkey = wallet.type === 'test' ? wallet.publicKey : new PublicKey(wallet.address);
+      const [playerPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("player"), pubkey.toBuffer()],
+        program.programId
+      );
+      
+      const account = await program.account.player.fetch(playerPda);
+      return !!account;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Update useEffect to prevent infinite loops
+  useEffect(() => {
+    const checkAccounts = async () => {
+      if (!program) return; // Exit early if program isn't ready
+      
+      const testWallet = { type: 'test' as const, publicKey: playerTwo.publicKey, keypair: playerTwo };
+      const realWallet = solanaWallet ? { type: 'real' as const, address: solanaWallet.address } : null;
+      
+      const testExists = await checkPlayerAccount(testWallet);
+      const realExists = await checkPlayerAccount(realWallet);
+      
+      setPlayerAccountsExist(prev => {
+        // Only update if values have changed
+        if (prev.test === testExists && prev.real === realExists) {
+          return prev;
+        }
+        return {
+          test: testExists,
+          real: realExists
+        };
+      });
+    };
+    
+    // Add a small delay to prevent rapid re-checks
+    const timeoutId = setTimeout(checkAccounts, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [program?.programId.toString(), solanaWallet?.address, playerTwo.publicKey.toString()]); // More specific dependencies
+
   return (
     <div className="space-y-8 p-6 bg-gray-800 rounded-lg">
       <div>
@@ -343,29 +522,50 @@ const RPSTestingInterface = () => {
         {/* Wallet Switcher */}
         <div className="border border-gray-700 rounded-lg p-4 mb-8">
           <h4 className="text-lg font-semibold mb-4">Active Wallet</h4>
-          <div className="grid grid-cols-3 gap-4">
-            {(['real', 'test1', 'test2'] as const).map((wallet) => (
-              <div 
-                key={wallet}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all
-                  ${activeWallet === wallet 
-                    ? 'border-gaming-accent bg-gray-700' 
-                    : 'border-gray-600 hover:border-gray-500'}`}
-                onClick={() => setActiveWallet(wallet)}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{getWalletDisplayName(wallet)}</span>
-                  {activeWallet === wallet && (
-                    <span className="px-2 py-1 text-xs bg-gaming-accent rounded-full">Active</span>
-                  )}
+          <div className="grid grid-cols-2 gap-4">
+            {(['real', 'test'] as const).map((walletType) => {
+              const isActive = activeWallet === walletType;
+              const currentWallet = walletType === 'test' ? 
+                { type: 'test', publicKey: playerTwo.publicKey, keypair: playerTwo } :
+                (solanaWallet ? { type: 'real', address: solanaWallet.address } : null);
+              const balance = walletBalances[walletType] || 0;
+              const hasPlayerAccount = playerAccountsExist[walletType];
+              
+              return (
+                <div 
+                  key={walletType}
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all
+                    ${isActive 
+                      ? 'border-gaming-accent bg-gray-700' 
+                      : 'border-gray-600 hover:border-gray-500'}`}
+                  onClick={() => setActiveWallet(walletType)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">{getWalletDisplayName(walletType)}</span>
+                    {isActive && (
+                      <span className="px-2 py-1 text-xs bg-gaming-accent rounded-full">Active</span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    {getShortAddress(currentWallet)}
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">{balance.toFixed(2)} SOL</span>
+                      {walletType !== 'real' && (
+                        <span className="text-xs text-gray-400">Pre-funded Test Wallet</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${hasPlayerAccount ? 'bg-green-500' : 'bg-red-500'}`} />
+                      <span className="text-xs text-gray-400">
+                        {hasPlayerAccount ? 'Player Account Created' : 'No Player Account'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-400">
-                  {wallet === 'real' 
-                    ? getShortAddress(solanaWallet)
-                    : getShortAddress(wallet === 'test1' ? TEST_WALLET_1 : TEST_WALLET_2)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
         

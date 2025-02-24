@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useRPS } from '@/providers/RPSProvider';
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, Connection, clusterApiUrl } from '@solana/web3.js';
+import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, Connection, clusterApiUrl, Keypair } from '@solana/web3.js';
 import { BN } from '@coral-xyz/anchor';
 import { toast } from 'sonner';
 import { SolanaGameState } from '../types';
@@ -24,7 +24,7 @@ export type CommitMoveResult = {
 
 export type TransactionConfirmationResult = {
   confirmed: boolean;
-  gameAccount: any | null;
+  gameAccount: any;
 };
 
 export function useRPSGameActions() {
@@ -74,7 +74,11 @@ export function useRPSGameActions() {
         throw new Error('Transaction confirmation timeout');
     };
 
-    const createGame = async (walletPubkey: PublicKey, betAmount: string): Promise<CreateGameResult> => {
+    const createGame = async (
+      walletPubkey: PublicKey, 
+      betAmount: string,
+      signer?: Keypair
+    ): Promise<CreateGameResult> => {
       if (!program) return null;
       
       try {
@@ -103,6 +107,7 @@ export function useRPSGameActions() {
             gameVault: vaultPda,
             systemProgram: SystemProgram.programId,
           })
+          .signers(signer ? [signer] : [])
           .rpc();
   
         addTransaction({
@@ -145,7 +150,8 @@ export function useRPSGameActions() {
         walletPubkey: PublicKey,
         gamePda: PublicKey,
         moveNumber: number,
-        salt: Uint8Array
+        salt: Uint8Array,
+        signer?: Keypair
     ): Promise<CommitMoveResult> => {
         if (!program) return null;
 
@@ -168,6 +174,7 @@ export function useRPSGameActions() {
                 vault: vaultPda,
                 systemProgram: SystemProgram.programId,
             })
+            .signers(signer ? [signer] : [])
             .rpc();
 
             addTransaction({
@@ -191,28 +198,49 @@ export function useRPSGameActions() {
         }
     };
 
-    const createPlayer = async (walletPubkey: PublicKey): Promise<string | null> => {
-        if (!program) return null;
+    const createPlayer = async (
+      playerPubkey: PublicKey,
+      signer?: Keypair
+    ): Promise<string | null> => {
+        if (!program) {
+            console.log('Program not initialized');
+            return null;
+        }
+        
         try {
-            // Derive the player account PDA
-            const [playerAccount] = PublicKey.findProgramAddressSync(
-                [Buffer.from("player"), walletPubkey.toBuffer()],
-                program.programId
-            );
-            
-            // Derive the player's vault PDA
-            const [vault] = PublicKey.findProgramAddressSync(
-                [Buffer.from("vault"), playerAccount.toBuffer()],
+            console.log('=== Create Player Debug Logs ===');
+            console.log('Player Public Key:', playerPubkey.toBase58());
+            console.log('Has Signer:', !!signer);
+            console.log('Program ID:', program.programId.toBase58());
+
+            const [playerPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("player"), playerPubkey.toBuffer()],
                 program.programId
             );
 
-            const tx = await program.methods.createPlayer()
+            const [vaultPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault"), playerPubkey.toBuffer()],
+                program.programId
+            );
+
+            console.log('PDAs:', {
+                playerPda: playerPda.toBase58(),
+                vaultPda: vaultPda.toBase58(),
+                seeds: {
+                    player: ['player', playerPubkey.toBase58()],
+                    vault: ['vault', playerPubkey.toBase58()]
+                }
+            });
+
+            const tx = await program.methods
+                .createPlayer()
                 .accounts({
-                    user: walletPubkey,
-                    playerAccount,
-                    vault,
+                    user: playerPubkey,
+                    playerAccount: playerPda,
+                    vault: vaultPda,
                     systemProgram: SystemProgram.programId,
                 })
+                .signers(signer ? [signer] : [])
                 .rpc();
             
             addTransaction({
@@ -221,14 +249,20 @@ export function useRPSGameActions() {
                 timestamp: Date.now()
             });
 
+            console.log('Transaction successful:', tx);
             return tx;
         } catch (error) {
-            console.error('Error creating player:', error);
+            console.error('=== Create Player Error Details ===');
+            console.error('Full error:', error);
             throw error;
         }
     };
 
-    const joinGame = async (walletPubkey: PublicKey, gamePublicKey: string): Promise<string | null> => {
+    const joinGame = async (
+      walletPubkey: PublicKey, 
+      gamePublicKey: string,
+      signer?: Keypair
+    ): Promise<string | null> => {
         if (!program) return null;
         try {
             const tx = await program.methods.joinGame()
@@ -237,6 +271,7 @@ export function useRPSGameActions() {
                     gameAccount: new PublicKey(gamePublicKey),
                     systemProgram: SystemProgram.programId,
                 })
+                .signers(signer ? [signer] : [])
                 .rpc();
             
             addTransaction({
@@ -271,7 +306,8 @@ export function useRPSGameActions() {
         opponent: PublicKey,
         gameVault: PublicKey,
         playerVault: PublicKey,
-        opponentVault: PublicKey
+        opponentVault: PublicKey,
+        signer?: Keypair
     ): Promise<string | null> => {
         if (!program) return null;
         try {
@@ -288,6 +324,7 @@ export function useRPSGameActions() {
                 opponentVault,
                 systemProgram: SystemProgram.programId,
             })
+            .signers(signer ? [signer] : [])
             .rpc();
             
             addTransaction({
