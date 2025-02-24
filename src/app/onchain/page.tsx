@@ -62,9 +62,14 @@ const RPSTestingInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [gameState, setGameState] = useState<any>(null);
   const [selectedMove, setSelectedMove] = useState<string>('0'); // Default to Rock
-  const [salt] = useState(() => crypto.getRandomValues(new Uint8Array(32)));
+  const [moveCommitments, setMoveCommitments] = useState<{
+    [gameKey: string]: {
+      playerOne?: { move: string, salt: Uint8Array },
+      playerTwo?: { move: string, salt: Uint8Array }
+    }
+  }>({});
   const [activeWallet, setActiveWallet] = useState<'real' | 'test'>('real');
-  const { createGame, commitMove, transactions, createPlayer, joinGame, revealMove } = useRPSGameActions();
+  const { createGame, commitMove, transactions, createPlayer, joinGame, revealMove, claimWinnings } = useRPSGameActions();
   const [walletBalances, setWalletBalances] = useState<Record<string, number>>({});
   const [playerAccountsExist, setPlayerAccountsExist] = useState<{[key: string]: boolean}>({});
 
@@ -72,13 +77,13 @@ const RPSTestingInterface = () => {
   const getCurrentWallet = (): WalletType | null => {
     if (activeWallet === 'test') {
       return {
-        type: 'test',
+        type: 'test' as const,
         publicKey: playerTwo.publicKey,
         keypair: playerTwo
       };
     } else if (solanaWallet) {
       return {
-        type: 'real',
+        type: 'real' as const,
         address: solanaWallet.address
       };
     }
@@ -170,8 +175,31 @@ const RPSTestingInterface = () => {
       }
       
       if (gameAccount) {
-        setGameState(gameAccount);
-        console.log('Game state:', gameAccount);
+        // Get game vault PDA
+        const [gameVaultPda] = PublicKey.findProgramAddressSync(
+          [Buffer.from("vault"), targetPubkey.toBuffer()],
+          program.programId
+        );
+
+        // Get vault balance
+        const vaultBalance = await connection.getBalance(gameVaultPda);
+        
+        // Add vault balance to game state
+        const gameStateWithBalance = {
+          ...gameAccount,
+          vaultBalance
+        };
+
+        setGameState(gameStateWithBalance);
+        console.log('Game state:', {
+          hasWinner: !!gameStateWithBalance.winner,
+          state: gameStateWithBalance.state,
+          betAmount: gameStateWithBalance.betAmount.toString(),
+          playerOne: gameStateWithBalance.playerOne.toString(),
+          playerTwo: gameStateWithBalance.playerTwo?.toString(),
+          winner: gameStateWithBalance.winner?.toString(),
+          vaultBalance: vaultBalance / LAMPORTS_PER_SOL
+        });
         toast.success('Game state fetched successfully');
       }
     } catch (error) {
@@ -318,10 +346,25 @@ const RPSTestingInterface = () => {
       const signer = getWalletSigner(currentWallet);
       const moveNumber = parseInt(selectedMove);
       
+      // Generate new salt for this commitment
+      const salt = crypto.getRandomValues(new Uint8Array(32));
+      
       const result = await commitMove(walletPubkey, targetGamePda, moveNumber, salt, signer);
       if (!result) {
         throw new Error('Failed to commit move');
       }
+      
+      // Determine if current wallet is player one or two
+      const isPlayerOne = result.gameAccount.playerOne.toBase58() === walletPubkey.toBase58();
+      
+      // Store the move and salt for the appropriate player
+      setMoveCommitments(prev => ({
+        ...prev,
+        [targetGamePda.toString()]: {
+          ...prev[targetGamePda.toString()],
+          [isPlayerOne ? 'playerOne' : 'playerTwo']: { move: selectedMove, salt }
+        }
+      }));
       
       setGameState(result.gameAccount);
       toast.success('Move committed successfully!');
@@ -336,24 +379,80 @@ const RPSTestingInterface = () => {
 
   const handleRevealMove = async () => {
     const currentWallet = getCurrentWallet();
-    if (!program || !gamePublicKey || !currentWallet || !selectedMove || !gameState) return;
+    if (!program || !gamePublicKey || !currentWallet || !gameState) return;
     setIsLoading(true);
     try {
       const walletPubkey = getWalletPublicKey(currentWallet);
       const signer = getWalletSigner(currentWallet);
+      
+      // Determine if current wallet is player one or two
+      const isPlayerOne = walletPubkey.toBase58() === gameState.playerOne.toBase58();
+      const isPlayerTwo = gameState.playerTwo && walletPubkey.toBase58() === gameState.playerTwo.toBase58();
+      
+      // Get the stored commitment for the current player
+      const gameCommitments = moveCommitments[gamePublicKey];
+      const commitment = isPlayerOne ? gameCommitments?.playerOne : gameCommitments?.playerTwo;
+      
+      if (!commitment) {
+        toast.error('No stored move commitment found for your player in this game');
+        return;
+      }
+
+      // Debug logs for game state
+      console.log('=== Debug: Game State ===');
+      console.log('Current wallet pubkey:', walletPubkey.toBase58());
+      console.log('Player One:', gameState.playerOne.toBase58());
+      console.log('Player Two:', gameState.playerTwo ? gameState.playerTwo.toBase58() : 'Not joined');
+      console.log('Player One Commitment:', !!gameState.playerOneCommitment);
+      console.log('Player Two Commitment:', !!gameState.playerTwoCommitment);
+      console.log('Player One Move:', gameState.playerOneMove);
+      console.log('Player Two Move:', gameState.playerTwoMove);
+      console.log('Game State:', gameState.state);
+      console.log('Is Player One:', isPlayerOne);
+      console.log('Is Player Two:', isPlayerTwo);
+      
+      // Set opponent based on player role
+      const opponent = isPlayerOne ? gameState.playerTwo : gameState.playerOne;
+      console.log('Selected opponent:', opponent?.toBase58());
+
+      // Derive vault PDAs using public keys directly
+      const [playerVaultPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("vault"), walletPubkey.toBuffer()],
+        program.programId
+      );
+      
+      const [opponentVaultPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("vault"), opponent.toBuffer()],
+        program.programId
+      );
+
+      console.log('=== Debug: PDAs ===');
+      console.log('Player Vault:', playerVaultPda.toBase58());
+      console.log('Opponent Vault:', opponentVaultPda.toBase58());
+      console.log('Game Vault:', gameState.vault.toBase58());
+
       const tx = await revealMove(
         walletPubkey,
         gamePublicKey,
-        parseInt(selectedMove),
-        salt,
-        gameState.playerTwo || gameState.playerOne,
+        parseInt(commitment.move),
+        commitment.salt,
+        opponent,
         gameState.vault,
-        SystemProgram.programId,
-        SystemProgram.programId,
+        playerVaultPda,
+        opponentVaultPda,
         signer
       );
       
       if (tx) {
+        // Clear only the current player's commitment after successful reveal
+        setMoveCommitments(prev => ({
+          ...prev,
+          [gamePublicKey]: {
+            ...prev[gamePublicKey],
+            [isPlayerOne ? 'playerOne' : 'playerTwo']: undefined
+          }
+        }));
+        
         toast.success('Move revealed successfully!');
         console.log('Reveal move transaction:', tx);
         await handleFetchGameState();
@@ -526,8 +625,8 @@ const RPSTestingInterface = () => {
             {(['real', 'test'] as const).map((walletType) => {
               const isActive = activeWallet === walletType;
               const currentWallet = walletType === 'test' ? 
-                { type: 'test', publicKey: playerTwo.publicKey, keypair: playerTwo } :
-                (solanaWallet ? { type: 'real', address: solanaWallet.address } : null);
+                { type: 'test' as const, publicKey: playerTwo.publicKey, keypair: playerTwo } :
+                (solanaWallet ? { type: 'real' as const, address: solanaWallet.address } : null);
               const balance = walletBalances[walletType] || 0;
               const hasPlayerAccount = playerAccountsExist[walletType];
               
@@ -768,7 +867,10 @@ const RPSTestingInterface = () => {
                         gameState.playerOneCommitment ? 'bg-yellow-600' : 
                         'bg-red-600'
                       }`}>
-                        {gameState.playerOneMove ? 'Move Revealed' :
+                        {gameState.playerOneMove ? 
+                          gameState.playerOneMove.rock ? 'Rock' :
+                          gameState.playerOneMove.paper ? 'Paper' :
+                          gameState.playerOneMove.scissors ? 'Scissors' : 'Unknown' :
                          gameState.playerOneCommitment ? 'Move Encrypted' :
                          'No Move'}
                       </span>
@@ -781,7 +883,10 @@ const RPSTestingInterface = () => {
                           gameState.playerTwoCommitment ? 'bg-yellow-600' : 
                           'bg-red-600'
                         }`}>
-                          {gameState.playerTwoMove ? 'Move Revealed' :
+                          {gameState.playerTwoMove ? 
+                            gameState.playerTwoMove.rock ? 'Rock' :
+                            gameState.playerTwoMove.paper ? 'Paper' :
+                            gameState.playerTwoMove.scissors ? 'Scissors' : 'Unknown' :
                            gameState.playerTwoCommitment ? 'Move Encrypted' :
                            'No Move'}
                         </span>
@@ -800,6 +905,50 @@ const RPSTestingInterface = () => {
                     >
                       {gameState.winner.toString().slice(0, 4)}...{gameState.winner.toString().slice(-4)}
                     </a>
+                  </div>
+                )}
+
+                {/* Add Claim Winnings Button */}
+                {gameState?.winner && gameState.state && gameState.state.finished && (
+                  <div className="mt-4">
+                    <Button
+                      onClick={async () => {
+                        const currentWallet = getCurrentWallet();
+                        if (!program || !currentWallet || !gameState) return;
+                        
+                        try {
+                          const walletPubkey = getWalletPublicKey(currentWallet);
+                          const signer = getWalletSigner(currentWallet);
+                          
+                          // Only allow winner to claim
+                          if (gameState.winner?.toString() !== walletPubkey.toString()) {
+                            toast.error('Only the winner can claim winnings');
+                            return;
+                          }
+                          
+                          const tx = await claimWinnings(
+                            walletPubkey,
+                            gamePublicKey,
+                            new BN(gameState.betAmount.toString()),
+                            signer
+                          );
+                          
+                          if (tx) {
+                            toast.success('Winnings claimed successfully!');
+                            console.log('Claim winnings transaction:', tx);
+                            await handleFetchGameState();
+                          }
+                        } catch (error) {
+                          console.error('Error claiming winnings:', error);
+                          const errorMessage = error instanceof Error ? error.message : 'Failed to claim winnings';
+                          toast.error(errorMessage);
+                        }
+                      }}
+                      disabled={isLoading || !program || gameState.vaultBalance === 0}
+                      className={`w-full ${gameState.vaultBalance === 0 ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                    >
+                      {gameState.vaultBalance === 0 ? 'Winnings Already Claimed' : 'Claim Winnings'}
+                    </Button>
                   </div>
                 )}
               </div>

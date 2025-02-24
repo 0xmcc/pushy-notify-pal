@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { SolanaGameState } from '../types';
 
 export type TransactionInfo = {
-  type: 'create_game' | 'join_game' | 'commit_move' | 'reveal_move';
+  type: 'create_game' | 'join_game' | 'commit_move' | 'reveal_move' | 'claim_winnings';
   signature: string;
   timestamp: number;
   gameAccount?: string;
@@ -350,6 +350,60 @@ export function useRPSGameActions() {
             throw error;
         }
     };
+
+    const claimWinnings = async (
+        walletPubkey: PublicKey,
+        gamePublicKey: string,
+        betAmount: BN,
+        signer?: Keypair
+    ): Promise<string | null> => {
+        if (!program) return null;
+        try {
+            // Get player vault PDA
+            const [playerVaultPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault"), walletPubkey.toBuffer()],
+                program.programId
+            );
+
+            // Get game vault PDA
+            const [gameVaultPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault"), new PublicKey(gamePublicKey).toBuffer()],
+                program.programId
+            );
+
+            // Check if vault has already been claimed
+            const gameVaultBalance = await connection.getBalance(gameVaultPda);
+            if (gameVaultBalance === 0) {
+                throw new Error('Winnings have already been claimed');
+            }
+
+            // Use the actual vault balance instead of calculating it
+            const vaultAmount = new BN(gameVaultBalance);
+
+            const tx = await program.methods
+                .claimWinnings(vaultAmount)
+                .accounts({
+                    player: walletPubkey,
+                    vault: playerVaultPda,
+                    gameVault: gameVaultPda,
+                    systemProgram: SystemProgram.programId,
+                })
+                .signers(signer ? [signer] : [])
+                .rpc();
+
+            addTransaction({
+                type: 'claim_winnings',
+                signature: tx,
+                timestamp: Date.now(),
+                gameAccount: gamePublicKey
+            });
+
+            return tx;
+        } catch (error) {
+            console.error('Error claiming winnings:', error);
+            throw error;
+        }
+    };
   
     return {
         isLoading,
@@ -360,6 +414,7 @@ export function useRPSGameActions() {
         createPlayer,
         joinGame,
         revealMove,
+        claimWinnings,
         waitForTransactionConfirmation,
     };
 } 
