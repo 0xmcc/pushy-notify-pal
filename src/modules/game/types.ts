@@ -1,6 +1,6 @@
 import { type Database } from "@/integrations/supabase/types";
 import { type RpsGame } from '@/types/rps_game';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, Keypair } from '@solana/web3.js';
 
 export interface GameStake {
   userId: string;
@@ -15,6 +15,12 @@ export interface GameMove {
 export interface NotificationOptions {
   title: string;
   body: string;
+}
+
+export interface WalletType {
+  type: 'test' | 'real';
+  publicKey: PublicKey;
+  keypair?: Keypair;
 }
 
 // Solana specific types
