@@ -1,10 +1,11 @@
 import { formatDistanceToNow } from 'date-fns';
-import { Swords } from 'lucide-react';
+import { Swords, UserPlus, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import AvatarPreview from '../profile/AvatarPreview';
 import { Inventory } from '@/types/game';
+import { useState } from 'react';
 
 const MOVES = [
   {
@@ -38,9 +39,15 @@ interface PlayerCardProps {
     rating: number;
     games_played: number;
     wins: number;
+    losses: number;
     current_streak: number;
     last_game_pending: boolean;
     last_game_timestamp: string;
+    match_history: {
+      created_at: string;
+      winner_did: string;
+      status: string;
+    }[];
   };
   isSelected: boolean;
   onClick: () => void;
@@ -55,12 +62,11 @@ export const PlayerCard = ({
   player, 
   isSelected, 
   onClick,
-  showMoveSelector,
-  selectedMove = '',
-  onMoveSelect,
   inventory,
   stakeAmount
 }: PlayerCardProps) => {
+  const [showDetails, setShowDetails] = useState(false);
+
   return (
     <div className={cn(
       "w-full p-4 rounded-lg bg-gaming-card hover:bg-gaming-accent/20 transition-all",
@@ -89,87 +95,71 @@ export const PlayerCard = ({
               <h3 className="font-semibold text-gaming-text-primary">
                 {player.display_name}
               </h3>
-              {/* <span className="text-xs text-gaming-text-secondary">
-                {player.last_game_timestamp && 
-                  formatDistanceToNow(new Date(player.last_game_timestamp), { addSuffix: true })}
-              </span> */}
             </div>
             
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-gaming-text-secondary">
-                {player.wins} - {player.games_played} 
+                {player.wins} - {player.losses}
               </span>
-              {/* {player.current_streak > 0 && (
-                <>
-                  <span className="text-xs text-gaming-text-secondary">•</span>
-                  <span className="text-sm text-gaming-warning">
-                    {player.current_streak} streak
-                  </span>
-                </>
-              )} */}
             </div>
           </div>
         </button>
 
-        {showMoveSelector && onMoveSelect && (
-          <div className="flex flex-col gap-2 ml-4">
-            <div className="flex justify-center gap-4">
-              {MOVES.map((move) => (
-                <Tooltip key={move.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      onClick={() => onMoveSelect(move.id)}
-                      disabled={inventory[move.countKey] === 0}
-                      className={`
-                        relative h-12 w-12 
-                        rounded-lg border-2 
-                        flex flex-col items-center justify-center gap-3 p-2
-                        transition-all duration-200 
-                        text-white hover:text-gaming-accent
-                        ${selectedMove === move.id 
-                          ? 'border-gaming-success bg-gaming-success/10' 
-                          : 'border-slate-700 hover:border-gaming-accent'
-                        }
-                        ${inventory[move.countKey] === 0 
-                          ? 'opacity-50 cursor-not-allowed' 
-                          : 'hover:scale-105'
-                        }
-                      `}
-                    >
-                      {/* Move Icon */}
-                      <span className="text-1xl transform group-hover:scale-110 transition-transform">
-                        {move.icon}
-                      </span>
-                      
-                      {/* Move Name and Count
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">
-                          {move.name}
-                        </span>
-                        <span className="text-sm font-bold">
-                          {inventory[move.countKey]}
-                        </span>
-                      </div> */}
-
-                      {/* Selection Effects */}
-                      {selectedMove === move.id && (
-                        <div className="absolute inset-0 pointer-events-none">
-                          <div className="absolute top-0 left-1/2 w-px h-8 bg-gradient-to-b from-gaming-success/0 via-gaming-success/30 to-gaming-success/0 animate-glow" />
-                          <div className="absolute bottom-0 left-1/2 w-px h-8 bg-gradient-to-t from-gaming-success/0 via-gaming-success/30 to-gaming-success/0 animate-glow" />
-                        </div>
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-sm">Beats {move.beats}</p>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          </div>
-        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-gaming-text-secondary hover:text-gaming-text-primary"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+        >
+          <UserPlus className="h-5 w-5" />
+        </Button>
       </div>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowDetails(!showDetails);
+        }}
+        className="w-full mt-2 flex items-center justify-center gap-1 text-sm text-gaming-text-secondary hover:text-gaming-text-primary"
+      >
+        {/* {showDetails ? 'Hide Details' : 'Show Details'} */}
+        {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      </button>
+
+      {/* Match history section - now conditionally rendered */}
+      {showDetails && (
+        <div className="mt-4 space-y-2">
+          <h4 className="text-sm font-medium text-gaming-text-secondary">Match History</h4>
+          <div className="space-y-1">
+            {player.match_history?.map((match, index) => (
+              <div 
+                key={index}
+                className="flex justify-between items-center text-sm"
+              >
+                <span className="text-gaming-text-secondary">
+                  {formatDistanceToNow(new Date(match.created_at), { addSuffix: true })}
+                </span>
+                <span className={cn(
+                  "font-medium",
+                  match.status === 'pending' ? 'text-gaming-warning' : 
+                  match.winner_did === player.did ? 'text-gaming-success' : 'text-gaming-error'
+                )}>
+                  {match.status === 'pending' ? 'Pending' : 
+                   match.winner_did === player.did ? 'Won' : 'Lost'}
+                </span>
+              </div>
+            ))}
+            {(!player.match_history || player.match_history.length === 0) && (
+              <div className="text-sm text-gaming-text-secondary">
+                No matches played yet
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }; 

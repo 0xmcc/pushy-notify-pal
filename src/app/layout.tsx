@@ -27,10 +27,11 @@ export default function RootLayout({
 }) {
   const { exists, user, isChecking } = useUserCheck();
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
-  const [showNav, setShowNav] = useState(false);
+  const [showNav, setShowNav] = useState(true);
   const location = useLocation();
   const isInvitePath = location.pathname === '/invite' || location.pathname === '/video-background';
-
+  const showPWAPrompt = showInstallPrompt && !isInvitePath && false;
+  const showBottomNav = !isInvitePath && !showPWAPrompt;
   useEffect(() => {
     console.log('Layout - showNav:', showNav);
     console.log('Layout - showInstallPrompt:', showInstallPrompt);
@@ -98,7 +99,7 @@ export default function RootLayout({
                           <main className="flex-1 overflow-y-auto">
                             {children}
                           </main>
-                          {!isInvitePath && !showInstallPrompt && showNav && (
+                          {showBottomNav && (
                             <BottomNav className="sticky bottom-0 z-50" />
                           )}
 
@@ -106,7 +107,7 @@ export default function RootLayout({
                       </TokenTimerWrapper>
                     )}
                   </div>
-                  {(true && !isInvitePath && showInstallPrompt) && (
+                  {showPWAPrompt && (
                     <div>
                       <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
                       <div className="fixed inset-0 z-[100] bg-black">

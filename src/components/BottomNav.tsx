@@ -16,9 +16,9 @@ export const BottomNav = ({ className }: BottomNavProps) => {
       className
     )}>
       <button
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/multiplayer")}
         className={`flex flex-col items-center ${
-          location.pathname === "/" 
+          location.pathname === "/multiplayer" 
             ? "text-gaming-primary" 
             : "text-[#8E9196] hover:text-[#D6BCFA]"
         } transition-colors duration-200`}
@@ -35,9 +35,9 @@ export const BottomNav = ({ className }: BottomNavProps) => {
         } transition-colors duration-200`}
       >
         <Swords size={24} />
-        <span className="text-xs mt-1">Arena</span>
+        <span className="text-xs mt-1">History</span>
       </button>
-      <button
+      {/* <button
         onClick={() => navigate("/multiplayer")}
         className={`flex flex-col items-center ${
           location.pathname === "/multiplayer" 
@@ -47,7 +47,7 @@ export const BottomNav = ({ className }: BottomNavProps) => {
       >
         <Users size={24} />
         <span className="text-xs mt-1">Multi</span>
-      </button>
+      </button> */}
       {/* <button
         onClick={() => navigate("/test")}
         className={`flex flex-col items-center ${

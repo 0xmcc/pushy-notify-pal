@@ -56,16 +56,19 @@ const ArenaPage = () => {
   return (
     <div className="min-h-screen bg-gaming-background text-gaming-text-primary pb-20">
       <div className="max-w-2xl mx-auto p-4">
-        <div className="relative mb-4">
-          <Input
-            type="text"
-            placeholder="Search players..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-gaming-card border-gaming-accent"
-          />
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gaming-text-secondary" />
-        </div>
+        {/* Only show search when no player is selected */}
+        {!selectedPlayer && (
+          <div className="relative mb-4">
+            <Input
+              type="text"
+              placeholder="Search players..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-gaming-card border-gaming-accent"
+            />
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gaming-text-secondary" />
+          </div>
+        )}
 
         {!selectedPlayer ? (
           <PlayerList 
