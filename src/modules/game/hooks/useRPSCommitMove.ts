@@ -1,9 +1,10 @@
 import { PublicKey, SystemProgram, Keypair } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { validateGameAction, getWalletPublicKey, getWalletSigner } from '@/app/onchain/utils';
-import { WalletType } from '@/types';
+import { WalletType } from '../types';
 import { TransactionInfo } from './useRPSGameActions';
 import { useRPSGameTransactions } from './useRPSGameTransactions';
+import { useState } from 'react';
 
 export type CommitMoveResult = {
   tx: string;
@@ -16,15 +17,6 @@ export function useRPSCommitMove(
   setGameState: (state: any) => void
 ) {
   const { waitForTransactionConfirmation } = useRPSGameTransactions();
-
-  const createCommitment = async (move: number, salt: Uint8Array): Promise<Uint8Array> => {
-    const moveBytes = new Uint8Array([move]);
-    const combinedArray = new Uint8Array(moveBytes.length + salt.length);
-    combinedArray.set(moveBytes);
-    combinedArray.set(salt, moveBytes.length);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', combinedArray);
-    return new Uint8Array(hashBuffer);
-  };
 
   const commitMove = async (
     walletPubkey: PublicKey,
@@ -62,13 +54,13 @@ export function useRPSCommitMove(
         gameAccount: gamePda.toString()
       });
 
-      const { confirmed, gameAccount } = await waitForTransactionConfirmation(tx, gamePda);
+      const { confirmed, gameAccount } = await waitForTransactionConfirmation(program, tx, gamePda);
       if (!confirmed) {
         throw new Error('Transaction failed to confirm');
       }
 
       setGameState(gameAccount);
-      return { tx, gameAccount };
+      return { tx, gameAccount};
     } catch (error) {
       console.error('Error committing move:', error);
       throw error;
@@ -78,10 +70,10 @@ export function useRPSCommitMove(
   const handleCommitMove = async (
     wallet: WalletType,
     gamePublicKey: string,
-    moveNumber: number,
-    salt: Uint8Array
+    move: string
   ) => {
-    const validation = validateGameAction(program, wallet, gamePublicKey);
+
+    const validation = validateGameAction(program, wallet);
     if (!validation.isValid) {
       toast.error(validation.error);
       return;
@@ -90,6 +82,8 @@ export function useRPSCommitMove(
     try {
       const walletPubkey = getWalletPublicKey(wallet);
       const signer = getWalletSigner(wallet);
+      const salt = crypto.getRandomValues(new Uint8Array(32));
+      const moveNumber = parseInt(move);
       
       const result = await commitMove(
         walletPubkey,
@@ -101,7 +95,7 @@ export function useRPSCommitMove(
 
       if (result) {
         toast.success('Move committed successfully!');
-        return result;
+        return { tx: result.tx, gameAccount: result.gameAccount, moveNumber: moveNumber, salt: salt, walletPubkey: walletPubkey };
       }
     } catch (error) {
       console.error('Error committing move:', error);
@@ -115,3 +109,12 @@ export function useRPSCommitMove(
     handleCommitMove
   };
 } 
+
+const createCommitment = async (move: number, salt: Uint8Array): Promise<Uint8Array> => {
+  const moveBytes = new Uint8Array([move]);
+  const combinedArray = new Uint8Array(moveBytes.length + salt.length);
+  combinedArray.set(moveBytes);
+  combinedArray.set(salt, moveBytes.length);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', combinedArray);
+  return new Uint8Array(hashBuffer);
+};

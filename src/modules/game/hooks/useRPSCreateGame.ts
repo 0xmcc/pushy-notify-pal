@@ -8,6 +8,7 @@ import { TransactionInfo } from './useRPSGameActions';
 export type CreateGameResult = {
   tx: string;
   gamePda: PublicKey;
+  gameAccount: any;
 } | null;
 
 export function useRPSCreateGame(
@@ -58,7 +59,8 @@ export function useRPSCreateGame(
         gameAccount: gamePda.toString()
       });
 
-      return { tx, gamePda };
+    
+      return { tx, gamePda, gameAccount: gamePda };
     } catch (error) {
       console.error('Error creating game:', error);
       throw error;
@@ -69,21 +71,23 @@ export function useRPSCreateGame(
     wallet: WalletType,
     betAmount: string
   ): Promise<CreateGameResult | null> => {
+    console.log('handleCreateGame wallet1:', wallet, betAmount);
     const validation = validateGameAction(program, wallet);
     if (!validation.isValid) {
       toast.error(validation.error);
       return null;
     }
+    console.log('handleCreateGame wallet 2:', wallet, betAmount);
+    try {
+      const walletPubkey = getWalletPublicKey(wallet);
+      const signer = getWalletSigner(wallet);
+      
+      const result = await createGame(walletPubkey, betAmount, signer);
+      if (!result) {
+        throw new Error('Failed to create game');
+      }
 
-      try {
-        const walletPubkey = getWalletPublicKey(wallet);
-        const signer = getWalletSigner(wallet);
-        
-        const result = await createGame(walletPubkey, betAmount, signer);
-        if (!result) {
-          throw new Error('Failed to create game');
-        }
-
+  
       toast.success('Game created successfully!');
       return result;
     } catch (error) {

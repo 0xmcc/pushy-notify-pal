@@ -8,6 +8,7 @@ interface GameActionsSectionProps {
   handleCreateGame: () => Promise<any>;
   handleCreateGameAndCommit: () => Promise<void>;
   handleJoinGame: () => Promise<void>;
+  handleJoinGameAndCommit: () => Promise<void>;
   handleFetchGameState: () => Promise<void>;
   gamePublicKey: string;
   setGamePublicKey: (key: string) => void;
@@ -23,6 +24,7 @@ export const GameActionsSection = ({
   handleCreateGame,
   handleCreateGameAndCommit,
   handleJoinGame,
+  handleJoinGameAndCommit,
   handleFetchGameState,
   gamePublicKey,
   setGamePublicKey,
@@ -98,11 +100,11 @@ export const GameActionsSection = ({
                 Join Game
               </Button>
               <Button 
-                onClick={() => handleFetchGameState()}
-                disabled={!program || !gamePublicKey}
-                className="flex-1"
+                onClick={handleJoinGameAndCommit}
+                disabled={isLoading || !program || !gamePublicKey}
+                className="flex-1 bg-purple-600 hover:bg-purple-700"
               >
-                Check Game Status
+                Join & Commit
               </Button>
             </div>
           </div>

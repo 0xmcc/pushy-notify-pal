@@ -162,6 +162,54 @@ export type Database = {
           },
         ]
       }
+      solana_matches: {
+        Row: {
+          game_account_address: string
+          player1_wallet_address: string
+          player2_wallet_address: string | null
+          player1_move: string | null
+          player2_move: string | null
+          player1_move_commitment: number[] | null
+          player2_move_commitment: number[] | null
+          player1_move_salt: string | null
+          player2_move_salt: string | null
+          status: string
+          bet_amount: number
+          winner_wallet_address: string | null
+          created_at: string
+        }
+        Insert: {
+          game_account_address: string
+          player1_wallet_address: string
+          player2_wallet_address?: string | null
+          player1_move?: string | null
+          player2_move?: string | null
+          player1_move_commitment?: string | null
+          player2_move_commitment?: string | null
+          player1_move_salt?: string | null
+          player2_move_salt?: string | null
+          status: string
+          bet_amount: number
+          winner_wallet_address?: string | null
+          created_at?: string
+        }
+        Update: {
+          game_account_address?: string
+          player1_wallet_address?: string
+          player2_wallet_address?: string | null
+          player1_move?: string | null
+          player2_move?: string | null
+          player1_move_commitment?: number[] | null
+          player2_move_commitment?: number[] | null
+          player1_move_salt?: string | null
+          player2_move_salt?: string | null
+          status?: string
+          bet_amount?: number
+          winner_wallet_address?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_url: string | null

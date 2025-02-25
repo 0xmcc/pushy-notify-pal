@@ -43,3 +43,4 @@ export interface SolanaGameState {
 // Database types
 export type GameMatch = Database['public']['Tables']['matches']['Row'];
 export type UserData = Database['public']['Tables']['users']['Row']; 
+export type SolanaMatch = Database['public']['Tables']['solana_matches']['Row'];

@@ -1,5 +1,5 @@
 import { PublicKey, Keypair, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { WalletType } from './types';
+import { WalletType } from '@/modules/game/types';
 
 export const getWalletDisplayName = (type: 'real' | 'test') => {
   switch (type) {
@@ -9,6 +9,7 @@ export const getWalletDisplayName = (type: 'real' | 'test') => {
       return 'Your Wallet';
   }
 };
+
 
 export const getShortAddress = (wallet: WalletType | null) => {
   if (!wallet) return 'Not Connected';
@@ -38,12 +39,10 @@ export const getWalletSigner = (wallet: WalletType): Keypair | undefined => {
 
 export const validateGameAction = (
   program: any,
-  wallet: WalletType | null,
-  gamePublicKey?: string
+  wallet: WalletType | null     
 ): { isValid: boolean; error?: string } => {
   if (!program) return { isValid: false, error: 'Program not initialized' };
   if (!wallet) return { isValid: false, error: 'Wallet not connected' };
-  if (gamePublicKey && !gamePublicKey) return { isValid: false, error: 'Game public key required' };
   return { isValid: true };
 };
 

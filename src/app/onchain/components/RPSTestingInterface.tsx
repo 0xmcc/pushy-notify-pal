@@ -14,7 +14,8 @@ import { TransactionHistory } from './TransactionHistory';
 import { getWalletPublicKey, checkWalletBalances } from '../utils';
 import { WalletType } from '@/modules/game/types';
 import { useRPSGameTransactions } from '@/modules/game/hooks/useRPSGameTransactions';
-
+import { toast } from 'sonner';
+import { useSolanaGameStateSync } from '@/modules/game/hooks/useSolanaGameStateSync';
 const PROGRAM_ID = "AdNRN8coBzuAPKiKPz4uxEQrgDDp2ZxXjtXfu6NnYKSg";
 
 export const RPSTestingInterface = () => {
@@ -45,13 +46,13 @@ export const RPSTestingInterface = () => {
       playerTwo?: { move: string, salt: Uint8Array }
     }
   }>({});
+
+  
   const [activeWallet, setActiveWallet] = useState<'real' | 'test'>('real');
   const [walletBalances, setWalletBalances] = useState<Record<string, number>>({});
   const [playerAccountsExist, setPlayerAccountsExist] = useState<{[key: string]: boolean}>({});
 
   const { 
-    createGame, 
-    commitMove, 
     transactions, 
     handleCreatePlayer,
     handleJoinGame,
@@ -60,7 +61,8 @@ export const RPSTestingInterface = () => {
     handleClaimWinnings,
     handleCreateGame,
     handleCreateGameAndCommit,
-    handleFetchGameState
+    handleFetchGameState,
+    handleJoinGameAndCommit
   } = useRPSGameActions();
 
   const { waitForTransactionConfirmation } = useRPSGameTransactions();
@@ -159,6 +161,121 @@ export const RPSTestingInterface = () => {
     );
   };
 
+  const onCommitMove = async () => {
+    const currentWallet = getCurrentWallet();
+    if (!currentWallet || !gamePublicKey) {
+      toast.error('Missing wallet or game public key');
+      return;
+    }
+
+    const result = await handleCommitMove(
+      currentWallet,
+      gamePublicKey,
+      selectedMove
+    );
+
+    if (!result) {
+      toast.error('Failed to commit move');
+      return;
+    }
+    
+    setGameState(result.gameAccount);
+    // Determine if current wallet is player one or two
+    const isPlayerOne = result.gameAccount.playerOne.toBase58() === result.walletPubkey.toBase58();
+    // Store the move and salt for the appropriate player
+    setMoveCommitments(prev => ({
+      ...prev,
+      [gamePublicKey]: {
+        ...prev[gamePublicKey],
+        [isPlayerOne ? 'playerOne' : 'playerTwo']: { move: result.moveNumber, salt: result.salt }
+      }
+    }));
+  };
+
+
+  const onCreateGame = async () => {
+    const currentWallet = getCurrentWallet();
+    if (!currentWallet) return;
+
+    const result = await handleCreateGame(currentWallet, betAmount);
+    if (result) {
+      const confirmation = await waitForTransactionConfirmation(program, result.tx, result.gamePda);
+      setGameState(confirmation.gameAccount);
+      setGamePublicKey(result.gamePda.toString());
+    }
+  };
+
+
+
+  const onJoinGame = async () => {
+    const currentWallet = getCurrentWallet();
+    if (!currentWallet || !gamePublicKey) return;
+
+    const result = await handleJoinGame(currentWallet, gamePublicKey);
+    if (result) {
+      setGameState(result.gameAccount);
+    }
+  };
+
+  const onJoinGameAndCommit = async () => {
+    const currentWallet = getCurrentWallet();
+    if (!currentWallet || !gamePublicKey) return;
+
+    const result = await handleJoinGameAndCommit(currentWallet, gamePublicKey, selectedMove);
+    if (result) {
+      setGameState(result.gameAccount);
+      setMoveCommitments(prev => ({
+        ...prev,
+        [gamePublicKey]: {
+          playerTwo: { 
+            move: result.moveNumber, 
+            salt: result.salt 
+          }
+        }
+      }));
+    }
+  };
+
+  const onFetchGameState = async () => {
+    console.log('Fetching game state:', gamePublicKey);
+    const currentWallet = getCurrentWallet();
+    if (!currentWallet || !gamePublicKey) return;
+    const result = await handleFetchGameState(gamePublicKey);
+    console.log('Game state:', result);
+    setGameState(result);
+  };
+
+  const onCreateGameAndCommit = async () => {
+    const currentWallet = getCurrentWallet();
+    if (!currentWallet) return;
+
+    const result = await handleCreateGameAndCommit(
+      currentWallet,
+      betAmount,
+      selectedMove
+    );
+
+    if (result) {
+      setGamePublicKey(result.gamePda.toString());
+      setGameState(result.gameAccount);
+      setMoveCommitments(prev => ({
+        ...prev,
+        [result.gamePda.toString()]: {
+          playerOne: { 
+            move: result.moveNumber, 
+            salt: result.salt 
+          }
+        }
+      }));
+    }
+  };
+
+  const onCreatePlayer = async () => {
+    const currentWallet = getCurrentWallet();
+    if (!currentWallet) return;
+    await handleCreatePlayer(currentWallet);
+  };
+
   const onRevealMove = async () => {
     const currentWallet = getCurrentWallet();
     if (!currentWallet || !gamePublicKey) return;
@@ -172,26 +289,45 @@ export const RPSTestingInterface = () => {
       throw new Error('No move commitment found');
     }
 
-    return handleRevealMove(
+    const result = await handleRevealMove(
       currentWallet,
       gamePublicKey,
       parseInt(commitment[playerType].move),
       commitment[playerType].salt
     );
-  };
-
-  const onCreateGame = async () => {
-    const currentWallet = getCurrentWallet();
-    if (!currentWallet) return;
-
-    const result = await handleCreateGame(currentWallet, betAmount);
+    console.log('Reveal move result:', result);
     if (result) {
-      console.log('Game created successfully:', result);
-      const confirmation = await waitForTransactionConfirmation(program, result.tx, result.gamePda);
-      setGameState(confirmation.gameAccount);
-      setGamePublicKey(result.gamePda.toString());
+      console.log('New game state:', result.gameAccount);
+      setGameState(result.gameAccount);
     }
   };
+
+  // const onJoinGameAndCommit = async () => {
+  //   const currentWallet = getCurrentWallet();
+  //   if (!currentWallet || !gamePublicKey) {
+  //     toast.error('Missing wallet or game public key');
+  //     return;
+  //   }
+
+  //   const result = await handleJoinGameAndCommit(
+  //     currentWallet,
+  //     gamePublicKey,
+  //     selectedMove
+  //   );
+
+  //   if (result) {
+  //     setGameState(result.gameAccount);
+  //     setMoveCommitments(prev => ({
+  //       ...prev,
+  //       [gamePublicKey]: {
+  //         playerTwo: { 
+  //           move: result.moveNumber, 
+  //           salt: result.salt 
+  //         }
+  //       }
+  //     }));
+  //   }
+  // };
 
   return (
     <div className="space-y-8 p-6 bg-gray-800 rounded-lg">
@@ -210,7 +346,7 @@ export const RPSTestingInterface = () => {
         
         <div className="space-y-8">
           <CreatePlayerSection 
-            handleCreatePlayer={() => handleCreatePlayer(getCurrentWallet())}
+            handleCreatePlayer={onCreatePlayer}
             isLoading={isLoading}
             program={program}
             activeWallet={activeWallet}
@@ -220,15 +356,10 @@ export const RPSTestingInterface = () => {
             betAmount={betAmount}
             setBetAmount={setBetAmount}
             handleCreateGame={onCreateGame}
-            handleCreateGameAndCommit={() => handleCreateGameAndCommit(
-              getCurrentWallet(),
-              betAmount,
-              selectedMove,
-              setGamePublicKey,
-              setMoveCommitments
-            )}
-            handleJoinGame={() => handleJoinGame(getCurrentWallet(), gamePublicKey)}
-            handleFetchGameState={() => handleFetchGameState(gamePublicKey)}
+            handleCreateGameAndCommit={onCreateGameAndCommit}
+            handleJoinGame={onJoinGame}
+            handleJoinGameAndCommit={onJoinGameAndCommit}
+            handleFetchGameState={onFetchGameState}
             gamePublicKey={gamePublicKey}
             setGamePublicKey={setGamePublicKey}
             isLoading={isLoading}
@@ -240,12 +371,7 @@ export const RPSTestingInterface = () => {
           <MoveActionsSection 
             selectedMove={selectedMove}
             setSelectedMove={setSelectedMove}
-            handleCommitMove={() => handleCommitMove(
-              getCurrentWallet(),
-              gamePublicKey,
-              selectedMove,
-              setMoveCommitments
-            )}
+            handleCommitMove={onCommitMove}
             handleRevealMove={onRevealMove}
             isLoading={isLoading}
             program={program}
@@ -258,6 +384,7 @@ export const RPSTestingInterface = () => {
               gameState={gameState}
               gamePublicKey={gamePublicKey}
               handleClaimWinnings={onClaimWinnings}
+              handleFetchGameState={onFetchGameState}
               isLoading={isLoading}
               program={program}
             />

@@ -1,6 +1,7 @@
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Button } from '@/components/ui/button';
 import { getExplorerUrl } from '../utils';
+import { RefreshCw } from 'lucide-react';
 
 interface GameState {
   state: { active: boolean };
@@ -19,6 +20,7 @@ interface GameStateDisplayProps {
   gameState: GameState;
   gamePublicKey: string;
   handleClaimWinnings: () => Promise<void>;
+  handleFetchGameState: () => Promise<void>;
   isLoading: boolean;
   program: any; // Replace with proper program type
 }
@@ -27,6 +29,7 @@ export const GameStateDisplay = ({
   gameState,
   gamePublicKey,
   handleClaimWinnings,
+  handleFetchGameState,
   isLoading,
   program
 }: GameStateDisplayProps) => {
@@ -38,8 +41,19 @@ export const GameStateDisplay = ({
   };
 
   return (
-    <div className="mt-6 p-4 border border-gray-700 rounded-lg">
-      <h4 className="text-xl font-semibold mb-4">Current Game Status</h4>
+    <div className="border border-gray-700 rounded-lg p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="text-lg font-semibold">Game State</h4>
+        <Button
+          onClick={handleFetchGameState}
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-gray-400 hover:bg-gray-600"
+          disabled={isLoading}
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="space-y-2">
         <div className="flex justify-between items-center p-2 bg-gray-700 rounded">
           <span>Game Account:</span>
@@ -60,7 +74,7 @@ export const GameStateDisplay = ({
 
         <div className="flex justify-between p-2 bg-gray-700 rounded">
           <span>Bet Amount:</span>
-          <span className="font-medium">{(Number(gameState.betAmount) / LAMPORTS_PER_SOL).toFixed(2)} SOL</span>
+          <span className="font-medium">{(Number(gameState.betAmount) / LAMPORTS_PER_SOL).toFixed(3)} SOL</span>
         </div>
 
         <div className="flex justify-between p-2 bg-gray-700 rounded">
@@ -128,7 +142,10 @@ export const GameStateDisplay = ({
             <div className="mb-2 text-center">
               <span className="text-lg font-medium">
                 Winner: {gameState.winner ? 
-                  `${gameState.winner.slice(0, 4)}...${gameState.winner.slice(-4)}` : 
+                  (typeof gameState.winner === 'string' ? 
+                    `${gameState.winner.slice(0, 4)}...${gameState.winner.slice(-4)}` :
+                    `${gameState.winner.toString().slice(0, 4)}...${gameState.winner.toString().slice(-4)}`
+                  ) : 
                   'No winner yet'}
               </span>
             </div>

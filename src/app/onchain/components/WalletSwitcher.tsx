@@ -54,7 +54,7 @@ export const WalletSwitcher = ({
               </div>
               <div className="mt-2 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">{balance.toFixed(2)} SOL</span>
+                  <span className="text-sm">{balance.toFixed(3)} SOL</span>
                   {walletType !== 'real' && (
                     <span className="text-xs text-gray-400">Pre-funded Test Wallet</span>
                   )}

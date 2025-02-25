@@ -1,7 +1,7 @@
 import { PublicKey, SystemProgram, Keypair } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { validateGameAction, getWalletPublicKey, getWalletSigner } from '@/app/onchain/utils';
-import { WalletType } from '@/types';
+import { WalletType } from '@/modules/game/types';
 import { TransactionInfo } from './useRPSGameActions';
 import { useRPSGameTransactions } from './useRPSGameTransactions';
 
@@ -49,15 +49,7 @@ export function useRPSRevealMove(
         gameAccount: gamePublicKey
       });
 
-      const { confirmed, gameAccount } = await waitForTransactionConfirmation(
-        tx,
-        new PublicKey(gamePublicKey)
-      );
-      if (!confirmed) {
-        throw new Error('Transaction failed to confirm');
-      }
-
-      setGameState(gameAccount);
+ 
       return tx;
     } catch (error) {
       console.error('Error revealing move:', error);
@@ -71,7 +63,11 @@ export function useRPSRevealMove(
     moveNumber: number,
     salt: Uint8Array
   ) => {
-    const validation = validateGameAction(program, wallet, gamePublicKey);
+    if (!program || !gamePublicKey) {
+      toast.error('Program or gamePublicKey not found');
+      return;
+    }
+    const validation = validateGameAction(program, wallet);
     if (!validation.isValid) {
       toast.error(validation.error);
       return;
@@ -111,8 +107,12 @@ export function useRPSRevealMove(
       );
       
       if (tx) {
-        toast.success('Move revealed successfully!');
-        return tx;
+        const { confirmed, gameAccount } = await waitForTransactionConfirmation(program, tx, new PublicKey(gamePublicKey));
+        if (!confirmed) {
+          throw new Error('Transaction failed to confirm');
+        }
+        toast.success('Move revealed successfully!', gameAccount);
+        return { tx: tx, gameAccount: gameAccount };
       }
     } catch (error) {
       console.error('Error revealing move:', error);

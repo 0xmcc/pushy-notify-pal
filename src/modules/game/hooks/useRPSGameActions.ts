@@ -17,7 +17,9 @@ import { useRPSJoinGame } from './useRPSJoinGame';
 import { useRPSCommitMove } from './useRPSCommitMove';
 import { useRPSRevealMove } from './useRPSRevealMove';
 import { useRPSGamePlayer } from './useRPSGamePlayer';
-import { useRPSGameSettlement } from './useRPSGameSettlement';
+import { useRPSGameClaimWinnings } from './useRPSGameClaimWinnings';
+import { syncGameToSupabase } from './useSolanaGameStateSync';
+import { useRPSGameCompositeActions } from './useRPSGameCompositeActions';
 
 export type TransactionInfo = {
   type: 'create_game' | 'join_game' | 'commit_move' | 'reveal_move' | 'claim_winnings';
@@ -73,7 +75,13 @@ export function useRPSGameActions() {
     const {
       claimWinnings,
       handleClaimWinnings
-    } = useRPSGameSettlement(program, addTransaction, setGameState);
+    } = useRPSGameClaimWinnings(program, addTransaction, setGameState);
+
+    // Import composite actions
+    const {
+      handleCreateGameAndCommit,
+      handleJoinGameAndCommit
+    } = useRPSGameCompositeActions(program, addTransaction, setGameState);
   
 
     const handleFetchGameState = async (gamePublicKey: string) => {
@@ -81,68 +89,16 @@ export function useRPSGameActions() {
         try {
             const gameAccount = await program.account.game.fetch(new PublicKey(gamePublicKey));
             setGameState(gameAccount);
+            
+            // Sync to Supabase
+            await syncGameToSupabase(gameAccount, gamePublicKey);
+            
             return gameAccount;
         } catch (error) {
             console.error('Error fetching game state:', error);
             toast.error('Failed to fetch game state');
         }
     };
-
-    const handleCreateGameAndCommit = async (
-        wallet: WalletType,
-        betAmount: string,
-        selectedMove: string,
-        setGamePublicKey: (key: string) => void,
-        setMoveCommitments: (fn: (prev: any) => any) => void
-    ) => {
-        const validation = validateGameAction(program, wallet);
-        if (!validation.isValid) {
-            toast.error(validation.error);
-            return;
-        }
-
-        try {
-            const walletPubkey = getWalletPublicKey(wallet);
-            const signer = getWalletSigner(wallet);
-            
-            // First create the game
-            const result = await createGame(walletPubkey, betAmount, signer);
-            if (!result) {
-                throw new Error('Failed to create game');
-            }
-            
-            setGamePublicKey(result.gamePda.toString());
-
-            // Then commit the move
-            const moveNumber = parseInt(selectedMove);
-            const salt = crypto.getRandomValues(new Uint8Array(32));
-            
-            const commitResult = await commitMove(
-                walletPubkey,
-                result.gamePda,
-                moveNumber,
-                salt,
-                signer
-            );
-
-            if (commitResult) {
-                setMoveCommitments(prev => ({
-                    ...prev,
-                    [result.gamePda.toString()]: {
-                        playerOne: { move: selectedMove, salt }
-                    }
-                }));
-                
-                toast.success('Game created and move committed successfully!');
-                return result.gamePda;
-            }
-        } catch (error) {
-            console.error('Error in create and commit:', error);
-            toast.error('Failed to create game and commit move');
-            throw error;
-        }
-    };
-
 
     return {
         isLoading,
@@ -160,6 +116,7 @@ export function useRPSGameActions() {
         handleCommitMove,
         handleFetchGameState,
         handleCreateGameAndCommit,
+        handleJoinGameAndCommit,
         handleRevealMove,
         handleClaimWinnings,
     };

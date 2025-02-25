@@ -3,12 +3,22 @@ import { toast } from 'sonner';
 import { validateGameAction, getWalletPublicKey, getWalletSigner } from '@/app/onchain/utils';
 import { WalletType } from '../types';
 import { TransactionInfo } from './useRPSGameActions';
+import { useRPSGameTransactions } from './useRPSGameTransactions';
 
 export function useRPSJoinGame(
   program: any,
   addTransaction: (info: TransactionInfo) => void,
   setGameState: (state: any) => void
 ) {
+  const { waitForTransactionConfirmation } = useRPSGameTransactions();
+
+  /**
+   * Join a game
+   * @param walletPubkey - The public key of the wallet
+   * @param gamePublicKey - The public key of the game
+   * @param signer - The signer of the transaction
+   * @returns The transaction signature
+   */
   const joinGame = async (
     walletPubkey: PublicKey, 
     gamePublicKey: string,
@@ -31,8 +41,8 @@ export function useRPSJoinGame(
         timestamp: Date.now(),
         gameAccount: gamePublicKey
       });
+      console.log('Game joined successfully!', tx);
 
-      setGameState(gameAccount);
       return tx;
     } catch (error) {
       console.error('Error joining game:', error);
@@ -41,7 +51,7 @@ export function useRPSJoinGame(
   };
 
   const handleJoinGame = async (wallet: WalletType, gamePublicKey: string) => {
-    const validation = validateGameAction(program, wallet, gamePublicKey);
+    const validation = validateGameAction(program, wallet);
     if (!validation.isValid) {
       toast.error(validation.error);
       return;
@@ -53,8 +63,9 @@ export function useRPSJoinGame(
       
       const tx = await joinGame(walletPubkey, gamePublicKey, signer);
       if (tx) {
+        const { gameAccount } = await waitForTransactionConfirmation(program, tx, new PublicKey(gamePublicKey));
         toast.success('Game joined successfully!');
-        return tx;
+        return {tx, gameAccount};
       }
     } catch (error) {
       console.error('Error joining game:', error);

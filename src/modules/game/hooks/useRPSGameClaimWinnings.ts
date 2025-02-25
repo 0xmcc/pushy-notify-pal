@@ -3,7 +3,7 @@ import { BN } from '@coral-xyz/anchor';
 import { toast } from 'sonner';
 import { TransactionInfo } from './useRPSGameActions';
 
-export function useRPSGameSettlement(
+export function useRPSGameClaimWinnings(
   program: any,
   addTransaction: (info: TransactionInfo) => void,
   setGameState: (state: any) => void
