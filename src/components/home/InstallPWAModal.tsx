@@ -7,6 +7,7 @@ import { IPhoneMockStepThree } from "@/components/pwa/iphoneMocks/iphone-mock-st
 import { useState, useEffect } from 'react';
 import AnimatedNextButton from "@/components/animated-next-button"
 import { isIOSSafari } from '@/utils/browser';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface InstallPWAModalProps {
   open: boolean;
@@ -58,6 +59,7 @@ const STEPS = {
 } as const;
 
 export function InstallPWAModal({ open, onOpenChange }: InstallPWAModalProps) {
+  useScrollLock(open); // Only locked when modal is open
   const [step, setStep] = useState(1);
   const [isSafari, setIsSafari] = useState(true);
   const [copied, setCopied] = useState(false);

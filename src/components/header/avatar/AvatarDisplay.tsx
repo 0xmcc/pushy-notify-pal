@@ -14,11 +14,11 @@ export const AvatarDisplay = ({ avatarUrl, authenticated, className }: AvatarDis
         <AvatarPreview 
           previewUrl={null} 
           avatarUrl={avatarUrl}
-          size="xs"
+          className="h-full w-full"
         />
       ) : (
-        <div className="w-8 h-8 flex items-center justify-center text-gaming-text-secondary">
-          <UserX className="w-5 h-5" />
+        <div className="h-full w-full flex items-center justify-center text-gaming-text-secondary">
+          <UserX className="w-6 h-6" />
         </div>
       )}
     </div>

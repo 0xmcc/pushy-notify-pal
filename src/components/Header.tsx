@@ -43,7 +43,9 @@ export const Header = ({ className }: HeaderProps) => {
     )}>
       <div className="flex items-center space-x-8">
         <Logo />
-        <NavigationTabs />
+        <div className="hidden md:block">
+          <NavigationTabs />
+        </div>
       </div>
       <ProfileButton avatarUrl={avatarUrl} onAvatarUpdate={handleAvatarUpdate} />
     </header>

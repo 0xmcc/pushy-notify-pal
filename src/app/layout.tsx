@@ -38,12 +38,13 @@ export default function RootLayout({
   }, [exists, isInvitePath]);
 
   // Handle body scroll when the PWA modal is open
-  useEffect(() => {
-    document.body.style.overflow = showInstallPrompt ? 'hidden' : 'auto';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [showInstallPrompt]);
+  // useEffect(() => {
+  //   const originalOverflow = document.body.style.overflow;
+  //   document.body.style.overflow = showInstallPrompt ? 'hidden' : 'auto';
+  //   return () => {
+  //     document.body.style.overflow = originalOverflow;
+  //   };
+  // }, [showInstallPrompt]);
 
   return (
     <html lang="en" className={cn("h-full", showInstallPrompt)}>
@@ -105,7 +106,7 @@ export default function RootLayout({
                       </TokenTimerWrapper>
                     )}
                   </div>
-                  {(false && !isInvitePath && showInstallPrompt) && (
+                  {(true && !isInvitePath && showInstallPrompt) && (
                     <div>
                       <InstallPWAModal open={showInstallPrompt} onOpenChange={setShowInstallPrompt} />
                       <div className="fixed inset-0 z-[100] bg-black">

@@ -97,11 +97,14 @@ export const ProfileButton = ({ avatarUrl, onAvatarUpdate }: ProfileButtonProps)
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0 hover:bg-transparent hover:text-gaming-text-primary focus:bg-transparent">
+            <Button 
+              variant="ghost" 
+              className="relative h-12 w-12 rounded-full p-0 hover:bg-transparent hover:text-gaming-text-primary focus:bg-transparent"
+            >
               <AvatarDisplay 
                 avatarUrl={avatarUrl}
                 authenticated={authenticated}
-                className="h-full w-full"
+                className="h-12 w-12 rounded-full"
               />
             </Button>
           </DropdownMenuTrigger>

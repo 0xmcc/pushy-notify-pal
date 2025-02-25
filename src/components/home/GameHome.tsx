@@ -13,9 +13,11 @@ import { InstallPWAModal } from './InstallPWAModal';
 import { useInstallPWA } from '@/hooks/useInstallPWA';
 import { InstallationPage } from '@/components/pwa/installation-page2';
 import { UserGameCard } from '@/components/multiplayer/game-card/UserGameCard';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 
 const HomePage = () => {
+  useScrollLock(true); // Always locked for home page
   const { data: matches, isLoading, refetch } = useHomeData();
   const { authenticated } = usePrivy();
   const { showInstallPrompt, setShowInstallPrompt } = useInstallPWA();
@@ -39,15 +41,15 @@ const HomePage = () => {
   };
 
 
-  useEffect(() => {
-    // Disable scrolling
-    document.body.style.overflow = 'hidden';
+  // useEffect(() => {
+  //   // Disable scrolling
+  //   document.body.style.overflow = 'hidden';
 
-    // Re-enable scrolling when component unmounts
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+  //   // Re-enable scrolling when component unmounts
+  //   return () => {
+  //     document.body.style.overflow = '';
+  //   };
+  // }, []);
 
   if (isLoading) {
     return (

@@ -70,3 +70,9 @@
     @apply bg-gradient-to-r from-gaming-primary to-gaming-secondary bg-clip-text text-transparent;
   }
 }
+
+@layer utilities {
+  .overflow-hidden {
+    overflow: hidden;
+  }
+}
