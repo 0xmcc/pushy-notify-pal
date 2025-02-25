@@ -31,10 +31,13 @@ export const fetchGamesFromSupabase = async (stakeRange: [number, number], userD
   const notHiddenAsPlayer1 = `and(player1_did.eq.${userDid},or(player1_hidden.is.null,player1_hidden.eq.false))`;
   const notHiddenAsPlayer2 = `and(player2_did.eq.${userDid},or(player2_hidden.is.null,player2_hidden.eq.false))`;
   const notHiddenGamesFilter = `or(${notHiddenAsPlayer1},${notHiddenAsPlayer2})`;
-  const nonPendingGamesFilter = `and(${nonPendingBasic},${notHiddenGamesFilter})`;
+  
+  // Add condition to exclude games where either player has claimed
+  const notEitherClaimed = `and(player1_claimed_at.is.null,player2_claimed_at.is.null)`;
+  const nonPendingGamesFilter = `and(${nonPendingBasic},${notHiddenGamesFilter},${notEitherClaimed})`;
 
   // Combine filters with simple comma (no extra space)
-  const fullFilter = `${pendingGamesFilter},${nonPendingGamesFilter}`; // Changed this line back
+  const fullFilter = `${pendingGamesFilter},${nonPendingGamesFilter}`;
 
   console.log('MCC FULL FILTER:', fullFilter);
 
