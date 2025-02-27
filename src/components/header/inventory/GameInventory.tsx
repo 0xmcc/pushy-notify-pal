@@ -65,6 +65,11 @@ export const GameInventory = () => {
   const { userStats, isLoading, replenishmentTimers } = useUser();
   const maxCount = 5; // Maximum count for each item
 
+  // Add debugging logs
+  console.log('GameInventory - userStats:', userStats);
+  console.log('GameInventory - isLoading:', isLoading);
+  console.log('GameInventory - replenishmentTimers:', replenishmentTimers);
+
   if (isLoading) {
     return (
       <div className="px-1 py-2 space-y-1 border-b border-gaming-accent opacity-50">
@@ -73,7 +78,7 @@ export const GameInventory = () => {
     );
   }
 
-  if (!userStats || !replenishmentTimers) {
+  if (!userStats) {
     return (
       <div className="px-1 py-2 space-y-1 border-b border-gaming-accent opacity-50">
         <div className="text-xs text-gaming-text-secondary text-center">No inventory data</div>
@@ -81,25 +86,28 @@ export const GameInventory = () => {
     );
   }
 
+  // Default timestamp if replenishmentTimers is null
+  const defaultTimestamp = Date.now() + 300000; // 5 minutes from now as fallback
+
   return (
     <div className="px-1 py-2 space-y-1 border-b border-gaming-accent">
       <GameInventoryItem 
         emoji="🪨"
         count={userStats.rock_count}
         maxCount={maxCount}
-        timestamp={replenishmentTimers.next_replenish.rock}
+        timestamp={replenishmentTimers?.next_replenish?.rock || defaultTimestamp}
       />
       <GameInventoryItem 
         emoji="📄"
         count={userStats.paper_count}
         maxCount={maxCount}
-        timestamp={replenishmentTimers.next_replenish.paper}
+        timestamp={replenishmentTimers?.next_replenish?.paper || defaultTimestamp}
       />
       <GameInventoryItem 
         emoji="✂️"
         count={userStats.scissors_count}
         maxCount={maxCount}
-        timestamp={replenishmentTimers.next_replenish.scissors}
+        timestamp={replenishmentTimers?.next_replenish?.scissors || defaultTimestamp}
       />
     </div>
   );

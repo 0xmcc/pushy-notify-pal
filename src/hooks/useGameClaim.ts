@@ -95,7 +95,7 @@ export const useGameClaim = ({
           return;
         }
         setLocalClaimStatus(true);
-        toast.success(`${stakeAmount * 2} SOL added to your off-chain balance`);
+        toast.success(`${stakeAmount * 2} SOL added to your balance`);
       }
     } catch (error) {
       console.error('Error in handleClaim:', error);

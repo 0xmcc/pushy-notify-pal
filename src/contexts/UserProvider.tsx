@@ -49,13 +49,32 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [nextReplenishmentTimer, setNextReplenishmentTimer] = useState<number | null>(null);
 
   const refreshReplenishmentTimers = async () => {
-    if (userStats?.did) {
-      try {
-        const timers = await updateReplenishTimers(userStats.did);
-        setReplenishmentTimers(timers);
-      } catch (error) {
-        console.error('Failed to update replenishment timers:', error);
+    console.log('refreshReplenishmentTimers called, userStats:', userStats);
+    
+    if (!userStats) {
+      console.log('No userStats available, skipping timer refresh');
+      return;
+    }
+    
+    if (!userStats.did) {
+      console.log('No DID in userStats, skipping timer refresh');
+      return;
+    }
+    
+    try {
+      console.log('UserProvider - Fetching replenishment timers for DID:', userStats.did);
+      const timers = await updateReplenishTimers(userStats.did);
+      console.log('UserProvider - API response:', timers);
+      
+      if (!timers) {
+        console.error('Replenishment timers returned null or undefined');
+        return;
       }
+      
+      setReplenishmentTimers(timers);
+      console.log('UserProvider - Processed replenishmentTimers:', timers);
+    } catch (error) {
+      console.error('Failed to update replenishment timers:', error);
     }
   };
 
@@ -141,6 +160,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user?.id, ready]);
 
   useEffect(() => {
+    console.log('useEffect for refreshReplenishmentTimers triggered, userStats?.did:', userStats?.did);
     refreshReplenishmentTimers();
   }, [userStats?.did]);
 
